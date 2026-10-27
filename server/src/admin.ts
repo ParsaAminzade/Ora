@@ -344,7 +344,7 @@ async function release(c: Ctx) {
     ${latest ? `<p>الان: نسخه‌ی <b class="ltr">${esc(latest.version)}</b> · ${jdate(latest.at)}${latest.url ? ` · <a href="${esc(latest.url)}">لینک دانلود</a>` : ''}</p>` : ''}
     <label class="f">شماره‌ی نسخه (همان که در manifest.json است)<input type="text" name="version" class="ltr" placeholder="2.3.0" required pattern="\\d+(\\.\\d+){0,3}"></label>
     <label class="f">چه چیزهایی عوض شده (به زبان ساده)<textarea name="notes" maxlength="1500"></textarea></label>
-    <label class="f">لینک دانلود (مثلاً صفحه‌ی Release در گیت‌هاب)<input type="url" name="url" class="ltr" placeholder="https://github.com/ParsaAminzade/ora/releases/latest" required></label>
+    <label class="f">لینک دانلود (مثلاً صفحه‌ی Release در گیت‌هاب)<input type="url" name="url" class="ltr" placeholder="https://github.com/ParsaAminzade/Ora/releases/latest" required></label>
     <button class="btn btn-accent">ثبت نسخه</button></form>
   <form method="post" class="card">${csrf(c)}<input type="hidden" name="what" value="announce"><h2>اعلان برای همه</h2>
     <p class="muted">یک پیام کوتاه که هر کاربر یک بار در اورآ می‌بیند.</p>
@@ -419,7 +419,7 @@ async function docs(c: Ctx) {
     <li><b>افزونه‌ی کروم</b>: صفحه‌ی تب جدید. همه‌چیز روی خود مرورگر کار می‌کند و فقط اگر کاربر قبول کرده باشد، داده‌ها را به این سرور می‌فرستد.</li>
     <li><b>اپ گوشی</b>: <a href="/app/">${esc(origin)}/app/</a>. همان اورآ برای گوشی که با «Add to Home screen» نصب می‌شود و خودش به‌روز می‌شود. یک نسخه هم روی GitHub Pages هست.</li>
     <li><b>این سرور</b>: یک Cloudflare Worker با پایگاه داده‌ی D1. رایگان است، در ایران فیلتر نیست و تمدید ماهانه ندارد.</li>
-    <li><b>گیت‌هاب</b>: مخزن <a href="https://github.com/ParsaAminzade/ora">ParsaAminzade/ora</a>. کد سرور در پوشه‌ی <code>server/</code> و اپ گوشی در ریشه‌ی آن است. هر تغییری که در گیت‌هاب ثبت شود، کلادفلر خودکار روی سرور می‌برد.</li></ul>
+    <li><b>گیت‌هاب</b>: مخزن <a href="https://github.com/ParsaAminzade/Ora">ParsaAminzade/Ora</a>. کد سرور در پوشه‌ی <code>server/</code> و اپ گوشی در ریشه‌ی آن است. هر تغییری که در گیت‌هاب ثبت شود، کلادفلر خودکار روی سرور می‌برد.</li></ul>
   <h2>جریان داده</h2><ol class="lines">
     <li>کاربر بار اول صفحه‌ی قوانین را می‌بیند و «قبول دارم» یا «ادامه بدون ارسال» را می‌زند.</li>
     <li>اگر قبول کرده باشد، اورآ روزی یک بار (و بعد از هر تغییر پروفایل) یک بسته به <code>/api/sync</code> می‌فرستد.</li>
