@@ -1,11 +1,20 @@
 // Ora web app: works offline. Everything the app needs is cached at install; a new version is
 // fetched in the background and takes over when you tap «بارگذاری دوباره» (or on the next start).
-const VERSION = '7c2abe095c8a';
-const FILES = ["./","./app.webmanifest","./assets/ai-BEqGd6_c.js","./assets/dates-KBkGdMio.js","./assets/index-CpEiwQDA.css","./assets/index-Czyq66oX.js","./assets/markdown-CLEEhsSJ.js","./assets/markdown-VvdwByQe.css","./assets/meanings-Dgtu1YaX.js","./assets/nova-sentences-C9Y0VbuM.js","./assets/pdf-DsaPBOGG.js","./assets/pdf.worker.min-CjEcRF4W.mjs","./assets/pdf.worker.min-DI4FfYVf.js","./assets/planner-Bn1qxAc9.js","./assets/preload-helper-uBIymjUX.js","./assets/pwa-C9X_4F0H.js","./assets/recurrence-Cu1sNjmU.js","./assets/rolldown-runtime-hePW80VL.js","./assets/schedule-V1ereoRe.js","./assets/state-Cn2_6X1S.js","./assets/taskparse-D8ovPRQ-.js","./assets/three-DwEraHp2.js","./bgframe.html","./icons/128.png","./icons/app-192.png","./icons/app-512.png","./icons/apple-180.png","./icons/maskable-512.png","./index.html","./sandbox.html"];
+const VERSION = 'bf2edf212e49';
+const FILES = ["./","./app.webmanifest","./assets/ai-BEqGd6_c.js","./assets/dates-KBkGdMio.js","./assets/index-BqomImwf.js","./assets/index-D2E-TGtO.css","./assets/markdown-CLEEhsSJ.js","./assets/markdown-VvdwByQe.css","./assets/meanings-Dgtu1YaX.js","./assets/nova-sentences-C9Y0VbuM.js","./assets/pdf-DsaPBOGG.js","./assets/pdf.worker.min-CjEcRF4W.mjs","./assets/pdf.worker.min-DI4FfYVf.js","./assets/planner-Bn1qxAc9.js","./assets/preload-helper-uBIymjUX.js","./assets/pwa-C9X_4F0H.js","./assets/recurrence-Cu1sNjmU.js","./assets/rolldown-runtime-hePW80VL.js","./assets/schedule-V1ereoRe.js","./assets/state-Cn2_6X1S.js","./assets/taskparse-D8ovPRQ-.js","./assets/three-DwEraHp2.js","./bgframe.html","./icons/128.png","./icons/app-192.png","./icons/app-512.png","./icons/apple-180.png","./icons/maskable-512.png","./index.html","./sandbox.html"];
 const CACHE = `ora-${VERSION}`;
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)));
+  // Some hosts answer index.html with a redirect to the folder (Cloudflare does). A redirected
+  // response cannot be served for a page load, so store a clean copy of each file instead.
+  e.waitUntil((async () => {
+    const c = await caches.open(CACHE);
+    await Promise.all(FILES.map(async (f) => {
+      const res = await fetch(f, { cache: 'reload' });
+      if (!res.ok) throw new Error(`${f}: ${res.status}`);
+      await c.put(f, res.redirected ? new Response(await res.blob(), { status: 200, headers: res.headers }) : res);
+    }));
+  })());
 });
 self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {

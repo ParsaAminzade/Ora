@@ -1,10 +1,18 @@
-# اورآ (Ora) · روی گوشی
+# اورآ / Ora
 
-نسخه‌ی نصب‌شدنی اورآ برای گوشی: جمله‌ی روز، کارهای امروز، تقویم شمسی، برنامه‌ی روز و جمع‌بندی شب. بعد از اولین باز شدن بدون اینترنت هم کار می‌کند.
+- **اپ گوشی** (همین ریشه‌ی مخزن، روی GitHub Pages): https://parsaaminzade.github.io/ora/
+- **سرور و پنل مدیریت** (پوشه‌ی `server/`، روی Cloudflare Workers + D1): https://ora.p128parsa.workers.dev
+  - پنل: `/admin` · اپ گوشی روی همان سرور: `/app/` · قوانین: `/privacy`
 
-**باز کردن:** https://parsaaminzade.github.io/ora/
+## راه‌اندازی سرور (یک بار)
+1. در کلادفلر: Workers & Pages › ora › Settings › Builds › Connect، مخزن `ParsaAminzade/ora`، شاخه‌ی `main`.
+   Root directory: `server` · Deploy command: `npx wrangler deploy`
+2. Settings › Variables and Secrets › Add › نوع Secret، نام `ADMIN_PASSWORD`، رمزی با دست‌کم ۱۰ نویسه.
+3. از این به بعد هر تغییری در `server/` خودکار روی سرور می‌رود. جدول‌های پایگاه داده خودشان ساخته می‌شوند.
 
-**نصب روی اندروید:** آدرس بالا را در Chrome باز کن، منوی سه‌نقطه را بزن و «Add to Home screen» یا «Install app» را انتخاب کن.
-**آیفون:** در Safari دکمه‌ی Share را بزن، بعد «Add to Home Screen».
-
-این مخزن فقط فایل‌های ساخته‌شده‌ی اپ را دارد و مستقیم با GitHub Pages نشان داده می‌شود.
+## آزمایش روی کامپیوتر
+```
+cd server && npm install
+echo ADMIN_PASSWORD=یک-رمز-آزمایشی > .dev.vars
+npx wrangler dev --local
+```
