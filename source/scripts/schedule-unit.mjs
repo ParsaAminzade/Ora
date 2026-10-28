@@ -1,0 +1,44 @@
+// Unit checks for the scheduling engine (bundled with tiny stubs for the browser-only modules).
+import { rolldown } from 'rolldown';
+import path from 'node:path'; import fs from 'node:fs';
+const S = path.resolve('scripts/stubs') + '/';
+const out = fs.mkdtempSync('/tmp/claude-0/su-') + '/schedule.mjs';
+const b = await rolldown({ input: path.resolve('src/core/schedule.ts'), platform: 'node', logLevel: 'silent',
+  plugins: [{ name: 'stub', resolveId(src) { return { './db': S + 'db.ts', './state': S + 'state.ts', './kv': S + 'kv.ts', './providers/calendar': S + 'calendar.ts' }[src] ?? null; } }] });
+await b.write({ file: out, format: 'esm' });
+const { autoPlan, replan, report, computeStats, toMin, freeSlots } = await import(out);
+let fail = 0; const check = (n, c) => { console.log(c ? 'PASS' : 'FAIL', n); if (!c) fail++; };
+const P = { hours: 6, buffer: 1.25, morning: true, evening: true, eveningAt: 18, dayStart: '08:00', dayEnd: '16:00', daysOff: [], focus: 50, peak: 'morning', liveCheck: true };
+const now = new Date('2026-10-10T12:30:00'); const d = '2026-10-10';
+const T = (o) => ({ done: false, priority: 0, order: 1, createdAt: 1, ...o });
+const flat = { ...computeStats([]), ratio: {}, overall: { r: 1, n: 0 } };
+const day = [T({ id: 'ex', title: 'ورزش', when: d, time: '12:00', est: 30 }), T({ id: 'math', title: 'ریاضی', when: d, time: '12:45', est: 60, priority: 1, due: d }), T({ id: 'lang', title: 'زبان', when: d, time: '14:30', est: 60 })];
+const r1 = replan(day[0], 30, day, [], P, flat, now);
+check('a short overrun shifts the next block, nothing dropped', r1.shifted.length === 1 && r1.shifted[0].to === '13:05' && !r1.dropped.length && r1.advice === 'go');
+const day2 = day.map((t) => (t.id === 'lang' ? { ...t, priority: 1, due: d } : t));
+const r2 = replan(day2[0], 120, day2, [], P, flat, now);
+check('an overrun that pushes a due-today task out → advice to stop', r2.advice === 'stop' && r2.dropped.some((x) => x.taskId === 'lang'));
+const r3 = replan({ ...day[0], priority: 1 }, 90, day, [], P, flat, now);
+check('an overrun that only drops lower-priority work → go', r3.advice === 'go' && r3.dropped.some((x) => x.taskId === 'lang'));
+const t2 = [T({ id: 'a', title: 'مقاله', est: 90, top: true, when: d }), T({ id: 'b', title: 'ایمیل', est: 30, when: d }), T({ id: 'z', title: 'کلاس', when: d, time: '13:00', est: 60, fixed: true })];
+const plan = autoPlan({ tasks: t2, events: [{ id: 'e', title: 'جلسه', day: d, time: '14:00', source: 'local', updatedAt: 1 }], settings: { ...P, dayEnd: '22:00' }, stats: flat, now, scope: 'day' });
+const at = Object.fromEntries(plan.placements.map((x) => [x.taskId, toMin(x.time)]));
+const clash = (s, len, a, z) => s < z && s + len > a;
+check('auto plan avoids the fixed class and the meeting', !plan.placements.some((x) => clash(toMin(x.time), x.len, 780, 840) || clash(toMin(x.time), x.len, 840, 900)));
+check('auto plan never places in the past', Object.values(at).every((m) => m >= 12 * 60 + 35));
+check('auto plan adds a break after a long block', (plan.breaks[d] ?? []).length >= 1);
+const big = [T({ id: 'big', title: 'پروژه', est: 900, due: '2026-10-11' })];
+const rep = report({ tasks: big, events: [], settings: P, stats: flat, now, scope: 'week' });
+check('weekly check flags a deadline that cannot be met', rep.risks.length === 1 && rep.risks[0].shortMin > 0);
+const week = autoPlan({ tasks: [T({ id: 'w1', title: 'الف', est: 300 }), T({ id: 'w2', title: 'ب', est: 300 }), T({ id: 'w3', title: 'ج', est: 300 })], events: [], settings: { ...P, hours: 6, dayEnd: '22:00', daysOff: [5] }, stats: flat, now, scope: 'week' });
+check('weekly plan spreads work over days within the daily cap and skips days off', new Set(week.placements.map((x) => x.when)).size >= 2 && week.placements.every((x) => new Date(`${x.when}T12:00`).getDay() !== 5));
+const log = []; for (let i = 0; i < 8; i++) log.push({ area: 'سلامت', est: 30, actual: 48, hour: 15, done: true, at: 1 }); for (let i = 0; i < 6; i++) log.push({ area: 'پژوهش', est: 60, actual: 55, hour: 9, done: i < 2, at: 1 });
+const st = computeStats(log);
+check('learns that a kind of work runs long', st.ratio['سلامت'].r > 1.35);
+check('learns the part of the day you finish things', st.peak === 'afternoon');
+// focus time: important work goes inside it; a focus window is not busy time
+const fplan = autoPlan({ tasks: [T({ id: 'deep', title: 'فصل ۳', est: 60, top: true, when: d })], events: [{ id: 'f', title: 'زمان تمرکز', day: d, time: '15:00', end: '17:00', kind: 'focus', source: 'local', updatedAt: 1 }], settings: { ...P, dayEnd: '22:00', peak: 'morning' }, stats: flat, now, scope: 'day' });
+check('important work goes into the focus window', fplan.placements[0] && toMin(fplan.placements[0].time) >= 15 * 60 && toMin(fplan.placements[0].time) + 60 <= 17 * 60);
+const fr = freeSlots([d], [T({ id: 'x', title: 'x', when: d, time: '13:00', est: 60, len: 60 })], [{ id: 'm', title: 'جلسه', day: d, time: '15:00', end: '16:00', source: 'local', updatedAt: 1 }], { ...P, dayEnd: '18:00' }, 60, now);
+check('free time finder skips busy blocks, short gaps and the past', JSON.stringify(fr.map((x) => [x.start, x.end])) === JSON.stringify([[840, 900], [960, 1080]]));
+process.exit(fail ? 1 : 0);

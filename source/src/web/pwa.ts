@@ -1,0 +1,28 @@
+// The web/phone app: register the offline service worker (public-web/app-sw.js), offer a reload when
+// a new version is ready, and open the home-screen shortcuts (?open=schedule|coach).
+const say = (detail: object) => dispatchEvent(new CustomEvent('ora:say', { detail }));
+
+export function startPwa() {
+  const open = new URLSearchParams(location.search).get('open');
+  if (open === 'schedule' || open === 'coach') {
+    window.setTimeout(() => dispatchEvent(new CustomEvent(`ora:${open}`, { detail: {} })), 900);
+    history.replaceState(null, '', location.pathname);
+  }
+  if (!('serviceWorker' in navigator) || !/^https:|^http:\/\/(localhost|127\.0\.0\.1)/.test(location.origin)) return;
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (!reloaded) { reloaded = true; location.reload(); } });
+  navigator.serviceWorker.register('./app-sw.js').then((reg) => {
+    const offer = (w: ServiceWorker) => window.setTimeout(() => say({
+      text: 'نسخه‌ی تازه‌ی اورآ آماده است.',
+      sticky: true,
+      action: { label: 'بارگذاری دوباره', run: () => w.postMessage('skip-waiting') },
+    }), 2500);
+    if (reg.waiting && navigator.serviceWorker.controller) offer(reg.waiting);
+    reg.addEventListener('updatefound', () => {
+      const w = reg.installing;
+      w?.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) offer(w); });
+    });
+    window.setInterval(() => void reg.update().catch(() => {}), 6 * 3600_000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+  }).catch(() => {});
+}

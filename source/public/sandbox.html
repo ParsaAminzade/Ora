@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Ora custom widget</title>
+</head>
+<body>
+<script>
+// Sandboxed page for your own widgets. It has no access to the extension, your files or other
+// sites' data; it can only ask Nova for a few things through window.nova (see SHIM below).
+// The first message carries the widget's code; the page is then replaced by it, shim first.
+const SHIM = `
+<style>
+:root{color-scheme:dark}
+html,body{margin:0;height:100%;background:transparent;color:var(--text,#ECE8E1);font-family:var(--font,'Vazirmatn',system-ui,sans-serif);direction:rtl}
+</style>
+<script>
+(() => {
+  let seq = 0;
+  const waiting = new Map();
+  const call = (method, ...args) => new Promise((resolve, reject) => {
+    const id = ++seq;
+    waiting.set(id, { resolve, reject });
+    parent.postMessage({ nova: 'req', id, method, args }, '*');
+  });
+  window.addEventListener('message', (e) => {
+    const m = e.data || {};
+    if (m.nova === 'res' && waiting.has(m.id)) {
+      const w = waiting.get(m.id); waiting.delete(m.id);
+      m.error ? w.reject(new Error(m.error)) : w.resolve(m.result);
+    } else if (m.nova === 'theme') {
+      for (const [k, v] of Object.entries(m.vars)) document.documentElement.style.setProperty(k, v);
+    }
+  });
+  window.nova = {
+    tasks: () => call('tasks'),
+    addTask: (title) => call('addTask', title),
+    events: (fromDay, toDay) => call('events', fromDay, toDay),
+    ai: (prompt) => call('ai', prompt),
+    storage: { get: (k) => call('storageGet', k), set: (k, v) => call('storageSet', k, v) },
+    today: () => call('today'),
+  };
+  window.onerror = (msg) => { parent.postMessage({ nova: 'error', message: String(msg) }, '*'); };
+})();
+<\/script>`;
+
+window.addEventListener('message', function once(e) {
+  const m = e.data || {};
+  if (m.nova !== 'render') return;
+  window.removeEventListener('message', once);
+  document.open();
+  document.write(SHIM + String(m.code || ''));
+  document.close();
+  for (const [k, v] of Object.entries(m.vars || {})) document.documentElement.style.setProperty(k, v);
+});
+parent.postMessage({ nova: 'ready' }, '*');
+</script>
+</body>
+</html>

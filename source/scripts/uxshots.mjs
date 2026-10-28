@@ -1,0 +1,37 @@
+import { chromium } from 'playwright';
+import fs from 'node:fs'; import path from 'node:path'; import { createHash } from 'node:crypto';
+const dist = path.resolve('dist');
+const key = JSON.parse(fs.readFileSync('dist/manifest.json')).key;
+const id = [...createHash('sha256').update(Buffer.from(key, 'base64')).digest('hex').slice(0, 32)].map((c) => String.fromCharCode(97 + parseInt(c, 16))).join('');
+const W = Number(process.env.W || 1440), H = Number(process.env.H || 900);
+const ctx = await chromium.launchPersistentContext(fs.mkdtempSync('/tmp/claude-0/ux-'), { executablePath: '/opt/pw-browsers/chromium', headless: true,
+  args: [`--disable-extensions-except=${dist}`, `--load-extension=${dist}`, '--headless=new', '--enable-unsafe-swiftshader', '--use-angle=swiftshader'], viewport: { width: W, height: H } });
+await ctx.route('https://api.open-meteo.com/**', (r) => r.fulfill({ json: { current: { temperature_2m: 22.4, apparent_temperature: 21.1, weather_code: 0, is_day: 1, relative_humidity_2m: 28, wind_speed_10m: 9 }, daily: { time: ['2026-10-06','2026-10-07','2026-10-08','2026-10-09','2026-10-10'], weather_code: [0,1,3,61,0], temperature_2m_max: [31,30,27,24,28], temperature_2m_min: [19,18,17,15,16] } } }));
+const page = await ctx.newPage();
+const ymd = new Date().toISOString().slice(0, 10);
+const o = process.env.O || '/tmp/claude-0/ux';
+fs.mkdirSync(o, { recursive: true });
+await page.goto(`chrome-extension://${id}/index.html?now=${ymd}T12:00:00`);
+await page.waitForTimeout(2500);
+for (const t of ['خواندن فصل سوم پایان‌نامه #پژوهش', 'ایمیل به استاد', 'تمرین انگلیسی ۲۰ دقیقه']) { await page.getByLabel('تسک جدید').fill(t); await page.getByLabel('تسک جدید').press('Enter'); }
+await page.waitForTimeout(800);
+await page.screenshot({ path: `${o}/1-home.png` });
+await page.getByRole('button', { name: 'ویرایش چیدمان' }).first().click();
+await page.waitForTimeout(400);
+await page.screenshot({ path: `${o}/2-edit.png` });
+await page.getByRole('button', { name: 'افزودن ویجت' }).click();
+await page.waitForTimeout(300);
+await page.screenshot({ path: `${o}/3-drawer.png` });
+await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
+await page.getByRole('button', { name: 'شخصی‌سازی' }).click();
+await page.waitForTimeout(400);
+await page.screenshot({ path: `${o}/4-settings.png` });
+await page.keyboard.press('Escape');
+await page.keyboard.press('Control+k');
+await page.waitForTimeout(300);
+await page.screenshot({ path: `${o}/5-palette.png` });
+await page.keyboard.press('Escape');
+await page.locator('button[aria-label^="حالت:"]').click();
+await page.waitForTimeout(300);
+await page.screenshot({ path: `${o}/6-modes.png` });
+await ctx.close();

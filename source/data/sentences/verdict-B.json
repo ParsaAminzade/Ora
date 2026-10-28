@@ -1,0 +1,357 @@
+{
+ "measure": {
+  "drop": [
+   {
+    "i": 23,
+    "why": "duplicate idea of #1 (popularity≠truth); flat-earth line is a well-worn meme"
+   },
+   {
+    "i": 29,
+    "why": "cliché ('run your own race')"
+   },
+   {
+    "i": 43,
+    "why": "vague/pseudo-profound"
+   },
+   {
+    "i": 49,
+    "why": "near-duplicate of guide golden example (applause/clowns)"
+   },
+   {
+    "i": 60,
+    "why": "close paraphrase of Emerson 'go where there is no path'"
+   },
+   {
+    "i": 73,
+    "why": "cliché; duplicates self #128 (praise like sugar), weaker"
+   },
+   {
+    "i": 81,
+    "why": "close paraphrase of Gibran (mountain clearer from the plain)"
+   },
+   {
+    "i": 106,
+    "why": "paraphrase of 'what gets measured gets managed'; Goodhart covered by #97/#98"
+   },
+   {
+    "i": 112,
+    "why": "paraphrase of famous 'behind-the-scenes vs highlight reel' quote"
+   },
+   {
+    "i": 129,
+    "why": "envy-as-map idea repeated across files (kept in self #18)"
+   },
+   {
+    "i": 136,
+    "why": "duplicate of #90 and self #26"
+   },
+   {
+    "i": 153,
+    "why": "duplicate of #139"
+   }
+  ],
+  "sad_unsafe": [],
+  "relabel": [
+   {
+    "i": 34,
+    "form": "metaphor"
+   }
+  ],
+  "fix": [
+   {
+    "i": 41,
+    "text": "آدم‌ها کار را به خاطر بد بودن نتیجه رها نمی‌کنند؛ به خاطر دیر دیده‌شدنش رها می‌کنند."
+   },
+   {
+    "i": 155,
+    "text": "برای کاری که برایت مهم است، معیارت را پیش از شروع بنویس، قبل از آن‌که دیگران برایت بنویسند."
+   }
+  ]
+ },
+ "mind": {
+  "drop": [
+   {
+    "i": 8,
+    "why": "close paraphrase of famous Twain/Montaigne 'most worries never happened'"
+   },
+   {
+    "i": 13,
+    "why": "cliché ('where attention goes, energy flows')"
+   },
+   {
+    "i": 34,
+    "why": "envy-as-map repeated across files (kept in self #18)"
+   },
+   {
+    "i": 42,
+    "why": "cliché Dunning-Kruger / 'doesn't know what it doesn't know'"
+   },
+   {
+    "i": 78,
+    "why": "logic off (obeying isn't what makes you nervous); duplicates people #32"
+   },
+   {
+    "i": 90,
+    "why": "concrete paraphrase of Epictetus ('not things but our opinions disturb us')"
+   },
+   {
+    "i": 99,
+    "why": "duplicates self #39 (shame of past self = progress)"
+   },
+   {
+    "i": 154,
+    "why": "paraphrase of meme 'this meeting could have been an email'"
+   },
+   {
+    "i": 155,
+    "why": "duplicates time #59 (old song returns a year)"
+   }
+  ],
+  "sad_unsafe": [
+   118
+  ],
+  "relabel": [
+   {
+    "i": 16,
+    "form": "observation"
+   },
+   {
+    "i": 39,
+    "form": "observation"
+   },
+   {
+    "i": 125,
+    "form": "observation"
+   }
+  ],
+  "fix": [
+   {
+    "i": 37,
+    "text": "اندوهی که گفته نشود، راهش را از جای دیگری پیدا می‌کند؛ از گردنی خشک یا بی‌خوابی نیمه‌شب."
+   },
+   {
+    "i": 59,
+    "text": "همان عادت‌کردنی که لذت خرید را کوتاه می‌کند، درد سختی‌ها را هم کم‌کم کم‌رنگ می‌کند."
+   },
+   {
+    "i": 144,
+    "text": "ذهن گذشته را شیرین‌تر از آنچه بود نگه می‌دارد و همین، امروز را کمی بی‌انصافانه کم‌رنگ می‌کند."
+   }
+  ]
+ },
+ "people": {
+  "drop": [
+   {
+    "i": 9,
+    "why": "cliché (Covey 'emotional bank account')"
+   },
+   {
+    "i": 11,
+    "why": "paraphrase of Covey 'listen to understand, not to reply'"
+   },
+   {
+    "i": 15,
+    "why": "paraphrase of proverb 'praise in public, criticize in private'"
+   },
+   {
+    "i": 55,
+    "why": "duplicates measure #50 (small promises build credibility)"
+   },
+   {
+    "i": 77,
+    "why": "duplicates mind #40 (fundamental attribution error, traffic)"
+   },
+   {
+    "i": 80,
+    "why": "envy-as-map repeated across files (kept in self #18)"
+   },
+   {
+    "i": 82,
+    "why": "duplicates mind #66 (spotlight effect)"
+   },
+   {
+    "i": 147,
+    "why": "paraphrase of da Vinci 'poor is the pupil who does not surpass his master'"
+   }
+  ],
+  "sad_unsafe": [
+   54,
+   89
+  ],
+  "relabel": [],
+  "fix": [
+   {
+    "i": 5,
+    "text": "عذرخواهی‌ای که با «اما» ادامه پیدا کند، توجیهی است که لباس عذرخواهی پوشیده."
+   },
+   {
+    "i": 32,
+    "text": "تا حالا کسی با شنیدن جمله‌ی «آرام باش» واقعاً آرام شده است؟"
+   },
+   {
+    "i": 41,
+    "text": "کلمه‌ی «همیشه» در دعوا، تقریباً همیشه دروغ است."
+   },
+   {
+    "i": 105,
+    "text": "شنیدن «نه» از کسی که دوستش داری، یعنی آن‌قدر امن هستی که راستش را بشنوی."
+   },
+   {
+    "i": 145,
+    "text": "گفتن «متأسفم» بدون تغییر رفتار، مثل عوض کردن برچسب شیشه بدون عوض کردن محتوای آن است."
+   }
+  ]
+ },
+ "self": {
+  "drop": [
+   {
+    "i": 1,
+    "why": "famous saying; duplicates time #50 and self #3"
+   },
+   {
+    "i": 3,
+    "why": "paraphrase of proverb 'if you want it you find a way, if not an excuse'"
+   },
+   {
+    "i": 16,
+    "why": "cliché ('your only competition is who you were yesterday')"
+   },
+   {
+    "i": 20,
+    "why": "duplicates measure #65 (others' ruler)"
+   },
+   {
+    "i": 49,
+    "why": "paraphrase of Elizabeth Gilbert 'perfectionism is fear in fancy shoes'"
+   },
+   {
+    "i": 56,
+    "why": "duplicates mind #95 (sensitivity sees details)"
+   },
+   {
+    "i": 58,
+    "why": "duplicates mind #3 (pre-task anxiety = it matters)"
+   },
+   {
+    "i": 62,
+    "why": "duplicates mind #30 (last time you changed your mind)"
+   },
+   {
+    "i": 78,
+    "why": "duplicates mind #26 (write it on paper, it shrinks)"
+   },
+   {
+    "i": 94,
+    "why": "cliché ('biggest risk is taking no risk')"
+   },
+   {
+    "i": 110,
+    "why": "duplicates measure #36 (fear of being seen failing)"
+   },
+   {
+    "i": 125,
+    "why": "duplicates people #24 (stone/pebble in shoe)"
+   },
+   {
+    "i": 139,
+    "why": "duplicates mind #122 (night-time review meeting)"
+   },
+   {
+    "i": 151,
+    "why": "paraphrase of proverb 'better late than never'"
+   }
+  ],
+  "sad_unsafe": [],
+  "relabel": [
+   {
+    "i": 14,
+    "form": "contrast"
+   }
+  ],
+  "fix": [
+   {
+    "i": 35,
+    "text": "عیب‌هایمان را با ذره‌بین می‌بینیم و توانایی‌هایمان را با دوربینی که برعکس دستمان گرفته‌ایم."
+   }
+  ]
+ },
+ "time": {
+  "drop": [
+   {
+    "i": 0,
+    "why": "close paraphrase of viral 'there was a last time you were carried' piece"
+   },
+   {
+    "i": 2,
+    "why": "duplicates people #53 (peeled fruit as parental love)"
+   },
+   {
+    "i": 29,
+    "why": "duplicates people #83 (birthdays via phone reminders)"
+   },
+   {
+    "i": 43,
+    "why": "duplicates mind #64 (boring days vs memorable days)"
+   },
+   {
+    "i": 67,
+    "why": "paraphrase of 'life is not measured by the years/breaths we take'"
+   },
+   {
+    "i": 98,
+    "why": "cliché ('life is not a rehearsal / it's live')"
+   },
+   {
+    "i": 140,
+    "why": "duplicates self #63 ('later' = which day?)"
+   },
+   {
+    "i": 153,
+    "why": "duplicates people #108 (thank specifically)"
+   },
+   {
+    "i": 10,
+    "why": "trim: vague"
+   },
+   {
+    "i": 55,
+    "why": "trim: vague"
+   }
+  ],
+  "sad_unsafe": [
+   4,
+   15,
+   88,
+   97,
+   109,
+   121,
+   128,
+   150,
+   157
+  ],
+  "relabel": [
+   {
+    "i": 15,
+    "tone": "bittersweet"
+   },
+   {
+    "i": 57,
+    "form": "observation"
+   },
+   {
+    "i": 158,
+    "tone": "calm"
+   }
+  ],
+  "fix": [
+   {
+    "i": 118,
+    "text": "ترافیک صبح یا وقت تلف‌شده است، یا تنها نیم‌ساعتی که کسی از ما چیزی نمی‌خواهد."
+   },
+   {
+    "i": 131,
+    "text": "روزهای بی‌اتفاق هدر نمی‌روند؛ زمینی‌اند که خاطره‌های بزرگ رویشان ساخته می‌شود."
+   }
+  ]
+ }
+}

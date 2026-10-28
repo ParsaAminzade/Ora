@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Ora HTML background</title>
+<style>html,body{margin:0;height:100%;background:#05060A;overflow:hidden}</style>
+</head>
+<body>
+<script>
+// Sandboxed page for an HTML background. It has no access to the extension or your data.
+// The parent sends the code once; this page is then replaced by it. A small shim forwards the
+// mouse position from Nova (the frame itself never receives clicks).
+const SHIM = '<script>(' + function () {
+  addEventListener('message', function (e) {
+    var m = e.data || {};
+    if (m.novaBg === 'snap') {
+      // A still for the gallery: the biggest canvas on the page, read right after it draws.
+      requestAnimationFrame(function () {
+        var url = null;
+        try {
+          var cs = Array.prototype.slice.call(document.querySelectorAll('canvas'));
+          cs.sort(function (a, b) { return b.width * b.height - a.width * a.height; });
+          var src = cs[0];
+          if (src && src.width && src.height) {
+            var c = document.createElement('canvas'); c.width = 320; c.height = 200;
+            var k = Math.max(320 / src.width, 200 / src.height);
+            c.getContext('2d').drawImage(src, (320 - src.width * k) / 2, (200 - src.height * k) / 2, src.width * k, src.height * k);
+            url = c.toDataURL('image/jpeg', 0.78);
+          }
+        } catch (_) {}
+        parent.postMessage({ novaBg: 'still', url: url }, '*');
+      });
+      return;
+    }
+    if (m.novaBg !== 'pointer') return;
+    var init = { clientX: m.x, clientY: m.y, pageX: m.x, pageY: m.y, screenX: m.x, screenY: m.y, bubbles: true };
+    var target = document.elementFromPoint(m.x, m.y) || document.body || document.documentElement;
+    try { target.dispatchEvent(new PointerEvent('pointermove', init)); } catch (_) {}
+    target.dispatchEvent(new MouseEvent('mousemove', init));
+  });
+} + ')();<\/script>';
+addEventListener('message', function (e) {
+  var m = e.data || {};
+  if (m.novaBg !== 'load' || typeof m.html !== 'string') return;
+  var html = m.html;
+  // put the shim first so it is listening before the user's code runs
+  var at = html.search(/<head[^>]*>/i);
+  html = at >= 0 ? html.replace(/<head[^>]*>/i, function (h) { return h + SHIM; }) : SHIM + html;
+  document.open();
+  document.write(html);
+  document.close();
+}, { once: true });
+parent.postMessage({ novaBg: 'ready' }, '*');
+</script>
+</body>
+</html>

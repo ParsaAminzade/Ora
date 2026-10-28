@@ -1,0 +1,574 @@
+{
+ "action": {
+  "drop": [
+   {
+    "i": 0,
+    "why": "same idea as 73 (an unexecuted plan/code has no flaws); 73 is more concrete"
+   },
+   {
+    "i": 1,
+    "why": "duplicate of 67 (perfectionism as fake quality); 67 is stronger"
+   },
+   {
+    "i": 3,
+    "why": "cliché: 'tomorrow never comes'"
+   },
+   {
+    "i": 14,
+    "why": "muddled logic; reads as a twist on Wilde's 'experience is the name we give our mistakes'"
+   },
+   {
+    "i": 33,
+    "why": "close paraphrase of the widely shared 'a first draft doesn't have to be good, it just has to exist'"
+   },
+   {
+    "i": 37,
+    "why": "cliché (small daily decisions build progress)"
+   },
+   {
+    "i": 45,
+    "why": "cliché ('someday is not a day of the week') and duplicates 61"
+   },
+   {
+    "i": 47,
+    "why": "famous quote (Ratan Tata: I take decisions and then make them right)"
+   },
+   {
+    "i": 58,
+    "why": "same idea as 49 (motivation/feeling good comes from doing the work)"
+   },
+   {
+    "i": 68,
+    "why": "duplicates 60 and focus#60 (open browser tab = unfinished work)"
+   },
+   {
+    "i": 69,
+    "why": "piggy-bank coin cliché; also in focus#78 and grit#68"
+   },
+   {
+    "i": 84,
+    "why": "cliché: courage is a muscle"
+   },
+   {
+    "i": 86,
+    "why": "door-closing cliché; same idea as 53"
+   },
+   {
+    "i": 100,
+    "why": "near-verbatim duplicate of focus#100"
+   },
+   {
+    "i": 137,
+    "why": "riff on Voltaire's 'the best is the enemy of the good'; confusing"
+   },
+   {
+    "i": 139,
+    "why": "cliché (every no is a yes to something else); also focus#117"
+   },
+   {
+    "i": 145,
+    "why": "cliché regret question (did vs didn't do)"
+   }
+  ],
+  "sad_unsafe": [],
+  "relabel": [
+   {
+    "i": 112,
+    "form": "contrast"
+   },
+   {
+    "i": 103,
+    "form": "contrast"
+   }
+  ],
+  "fix": [
+   {
+    "i": 62,
+    "text": "قطار اولش سنگین راه می‌افتد؛ بعد است که نگه داشتنش سخت می‌شود."
+   },
+   {
+    "i": 28,
+    "text": "بیشتر «نه»هایی را که شنیده‌ایم، دیگران نگفته‌اند؛ خودمان پیش از پرسیدن به خودمان گفته‌ایم."
+   },
+   {
+    "i": 50,
+    "text": "مطالعه‌ی بیشتر همیشه به معنای دانش بیشتر نیست؛ گاهی فقط یعنی شروع دیرتر."
+   },
+   {
+    "i": 74,
+    "text": "دنده‌ی یک پرسروصدا و کند است، اما هیچ ماشینی بدون آن به دنده‌ی پنج نرسیده است."
+   }
+  ]
+ },
+ "focus": {
+  "drop": [
+   {
+    "i": 4,
+    "why": "same idea as 82 (boundaries create freedom); 82 is concrete"
+   },
+   {
+    "i": 6,
+    "why": "same idea as 5 (rest makes you finish faster)"
+   },
+   {
+    "i": 12,
+    "why": "paraphrase of a well-known quote (saying yes to others = no to yourself)"
+   },
+   {
+    "i": 28,
+    "why": "close paraphrase of Steve Jobs on focus as saying no to other things"
+   },
+   {
+    "i": 29,
+    "why": "same idea as 101 (habit = no longer needs a decision)"
+   },
+   {
+    "i": 30,
+    "why": "cliché: rest is part of the work"
+   },
+   {
+    "i": 31,
+    "why": "near-verbatim duplicate of action#36"
+   },
+   {
+    "i": 41,
+    "why": "duplicates 1 (instant replies vs main work)"
+   },
+   {
+    "i": 72,
+    "why": "duplicates 61 (endless scroll); treadmill image is a cliché"
+   },
+   {
+    "i": 73,
+    "why": "famous line: the inbox is a to-do list others write for you"
+   },
+   {
+    "i": 74,
+    "why": "famous paraphrase: music is the silence between the notes"
+   },
+   {
+    "i": 78,
+    "why": "piggy-bank cliché, repeated across files"
+   },
+   {
+    "i": 86,
+    "why": "paraphrase of Alexander Graham Bell's magnifying-glass/sun-rays quote"
+   },
+   {
+    "i": 90,
+    "why": "same idea as 99 (hand reaches phone before mind)"
+   },
+   {
+    "i": 92,
+    "why": "duplicates action#97 (tidying the desk when procrastinating)"
+   },
+   {
+    "i": 97,
+    "why": "cliché: if everything is urgent, nothing is important"
+   },
+   {
+    "i": 105,
+    "why": "cliché, and contradicts 57"
+   },
+   {
+    "i": 106,
+    "why": "paraphrase of the famous 'comparing your behind-the-scenes to their highlight reel'"
+   },
+   {
+    "i": 114,
+    "why": "same idea as 68 (best hour spent answering others)"
+   },
+   {
+    "i": 117,
+    "why": "cliché no=yes; duplicates action#139"
+   },
+   {
+    "i": 121,
+    "why": "same idea as 20 (skip news for a focused morning)"
+   },
+   {
+    "i": 122,
+    "why": "weak logic (guilt does not show need)"
+   },
+   {
+    "i": 126,
+    "why": "duplicates grit#122 (tiredness as a receipt); grit version is sharper"
+   }
+  ],
+  "sad_unsafe": [],
+  "relabel": [
+   {
+    "i": 2,
+    "form": "observation"
+   },
+   {
+    "i": 116,
+    "tone": "calm"
+   }
+  ],
+  "fix": [
+   {
+    "i": 0,
+    "text": "گوشی‌ها هر سال باهوش‌تر می‌شوند و ما هر سال برای خواندن یک صفحه‌ی کامل کم‌حوصله‌تر می‌شویم."
+   },
+   {
+    "i": 60,
+    "text": "هر زبانه‌ی باز در مرورگر، کاری است که هنوز روی میز ذهن پهن مانده."
+   },
+   {
+    "i": 148,
+    "text": "چند تا از زبانه‌های بازت واقعاً قرار است روزی خوانده شوند؟"
+   },
+   {
+    "i": 128,
+    "text": "هر بار که گوشی را برمی‌داری و بی‌آن‌که بازش کنی برمی‌گردانی، یک تکرار در باشگاه تمرکز انجام داده‌ای."
+   }
+  ]
+ },
+ "grit": {
+  "drop": [
+   {
+    "i": 5,
+    "why": "cliché: overnight success took years"
+   },
+   {
+    "i": 13,
+    "why": "cliché: slow progress beats no progress"
+   },
+   {
+    "i": 28,
+    "why": "cliché: climbing a mountain step by step; same idea as 16"
+   },
+   {
+    "i": 37,
+    "why": "famous quote (Banksy: learn to rest, not to quit)"
+   },
+   {
+    "i": 55,
+    "why": "duplicates learning#33 (brain moving furniture during confusion/plateau)"
+   },
+   {
+    "i": 59,
+    "why": "paraphrase of E.L. Doctorow's line about driving at night in fog"
+   },
+   {
+    "i": 63,
+    "why": "near-duplicate of action#78 (fear/despair like fog that looks like a wall)"
+   },
+   {
+    "i": 68,
+    "why": "piggy-bank cliché, repeated across files"
+   },
+   {
+    "i": 69,
+    "why": "duplicates meaning#5 (knot tightens when pulled)"
+   },
+   {
+    "i": 75,
+    "why": "scaffolding image duplicates action#82 and learning#51"
+   },
+   {
+    "i": 81,
+    "why": "missed train cliché; duplicates meaning#27 (bus)"
+   },
+   {
+    "i": 91,
+    "why": "cliché: every expert was once a beginner"
+   },
+   {
+    "i": 93,
+    "why": "well-known idea (the 'CV of failures')"
+   },
+   {
+    "i": 111,
+    "why": "paraphrase of Hofstadter's law"
+   },
+   {
+    "i": 115,
+    "why": "cliché: you start not from scratch but from experience"
+   },
+   {
+    "i": 127,
+    "why": "duplicates action#123 (a clumsy start proves you started)"
+   },
+   {
+    "i": 128,
+    "why": "same idea as 126 (failure proves you tried)"
+   },
+   {
+    "i": 131,
+    "why": "near-verbatim duplicate of action#128 (the chain didn't break)"
+   },
+   {
+    "i": 157,
+    "why": "paraphrase of a famous rule (compare yourself to who you were, not others)"
+   }
+  ],
+  "sad_unsafe": [],
+  "relabel": [
+   {
+    "i": 20,
+    "form": "contrast"
+   },
+   {
+    "i": 60,
+    "tone": "neutral"
+   }
+  ],
+  "fix": [
+   {
+    "i": 64,
+    "text": "عضله در باشگاه آسیب می‌بیند و در خواب ساخته می‌شود؛ ذهن هم بعد از شکست همین‌طور است."
+   },
+   {
+    "i": 99,
+    "text": "در صندوق ایمیل هر پژوهشگر موفق، جمله‌ی «با کمال تأسف» بیشتر از «تبریک» پیدا می‌شود."
+   },
+   {
+    "i": 149,
+    "text": "وقتی می‌گویی «وقتش را ندارم»، منظورت وقت است یا حوصله‌ی شکست دوباره؟"
+   }
+  ]
+ },
+ "learning": {
+  "drop": [
+   {
+    "i": 16,
+    "why": "mirror vs window is a stock cliché"
+   },
+   {
+    "i": 17,
+    "why": "paraphrase of Toffler's famous 'illiterate of the 21st century' quote"
+   },
+   {
+    "i": 26,
+    "why": "same idea as 149 (scientists and disconfirming data); 149 is sharper"
+   },
+   {
+    "i": 32,
+    "why": "same idea as 116 (ready answers dull the mind)"
+   },
+   {
+    "i": 51,
+    "why": "scaffolding image duplicates action#82 and grit#75"
+   },
+   {
+    "i": 55,
+    "why": "paraphrase of Descartes: reading books is a conversation with past minds"
+   },
+   {
+    "i": 60,
+    "why": "same idea as 126 (explaining/writing exposes gaps); Feynman cliché"
+   },
+   {
+    "i": 61,
+    "why": "famous paraphrase (Covey: we listen with the intent to reply)"
+   },
+   {
+    "i": 62,
+    "why": "duplicates focus#107 ('no time to read' but scrolls)"
+   },
+   {
+    "i": 67,
+    "why": "duplicates focus#96 (best ideas in the shower)"
+   },
+   {
+    "i": 87,
+    "why": "famous quote: if you're the smartest in the room you're in the wrong room"
+   },
+   {
+    "i": 93,
+    "why": "known saying: brakes exist so you can go fast"
+   },
+   {
+    "i": 113,
+    "why": "duplicates action#134 (quitting a boring book is OK)"
+   },
+   {
+    "i": 115,
+    "why": "paraphrase of Einstein: I just stay with problems longer"
+   },
+   {
+    "i": 124,
+    "why": "paraphrase of Schopenhauer's three stages of truth"
+   },
+   {
+    "i": 127,
+    "why": "close paraphrase of F.P. Jones: experience lets you recognize a mistake when you make it again"
+   }
+  ],
+  "sad_unsafe": [],
+  "relabel": [
+   {
+    "i": 23,
+    "form": "observation"
+   },
+   {
+    "i": 9,
+    "form": "observation"
+   }
+  ],
+  "fix": [
+   {
+    "i": 81,
+    "text": "جمله‌ی «نمی‌دانم»، سطر اول هر پروژه‌ی پژوهشی است."
+   },
+   {
+    "i": 157,
+    "text": "ذهنی که زود می‌گوید «می‌دانستم»، دیگر چیزی برای دانستن پیدا نمی‌کند."
+   },
+   {
+    "i": 159,
+    "text": "وقتی دلیلی جز «همه می‌دانند» نداری، احتمالاً هیچ‌کس واقعاً نمی‌داند."
+   },
+   {
+    "i": 9,
+    "text": "دقیق‌ترین آدم‌ها بیشتر از همه جمله‌شان را با کلمه‌ی «احتمالاً» شروع می‌کنند."
+   },
+   {
+    "i": 4,
+    "text": "بچه‌ها روزی صد بار «چرا» می‌پرسند و ما ساکتشان می‌کنیم؛ بعد برای همین مهارت کارگاه می‌گذاریم."
+   },
+   {
+    "i": 78,
+    "text": "دانشجوی سال اول همه‌چیز را می‌داند، دانشجوی دکترا هیچ‌چیز را، و استاد فقط می‌گوید «بستگی دارد»."
+   },
+   {
+    "i": 33,
+    "text": "گیج شدن نشانه‌ی شکست نیست؛ صدای جابه‌جا شدن اثاثیه‌ی ذهن است."
+   }
+  ]
+ },
+ "meaning": {
+  "drop": [
+   {
+    "i": 0,
+    "why": "paraphrase of E.L. Doctorow (headlights in fog, you can make the whole trip)"
+   },
+   {
+    "i": 2,
+    "why": "cliché: behind the clouds the sky is still there"
+   },
+   {
+    "i": 15,
+    "why": "vague; echoes Gibran on sorrow carving deeper"
+   },
+   {
+    "i": 23,
+    "why": "duplicates grit#57 (pulling the seed to check roots)"
+   },
+   {
+    "i": 24,
+    "why": "paraphrase of Gibran (the mountain is clearer from the plain)"
+   },
+   {
+    "i": 25,
+    "why": "cliché: calm after the storm"
+   },
+   {
+    "i": 35,
+    "why": "famous proverb: planting trees whose shade you'll never sit in"
+   },
+   {
+    "i": 36,
+    "why": "famous quote: peace is not the absence of the storm"
+   },
+   {
+    "i": 39,
+    "why": "too close to the user's own golden example #3 (fear of the dark)"
+   },
+   {
+    "i": 43,
+    "why": "control theme repeated (52, 59, 67); weakest of the group"
+   },
+   {
+    "i": 47,
+    "why": "Kierkegaard paraphrase (prayer changes the one who prays); religious framing"
+   },
+   {
+    "i": 54,
+    "why": "same idea as 42 and grit#52 (vague goals are what tire you)"
+   },
+   {
+    "i": 66,
+    "why": "cliché: you have to get lost to find your way"
+   },
+   {
+    "i": 70,
+    "why": "stock saying: open hand vs clenched fist"
+   },
+   {
+    "i": 82,
+    "why": "same idea as 21 (hope is for the dark nights)"
+   },
+   {
+    "i": 86,
+    "why": "same idea as 52 (shrinking what you must control)"
+   },
+   {
+    "i": 88,
+    "why": "paraphrase of T.S. Eliot / The Alchemist (finding it back home)"
+   },
+   {
+    "i": 89,
+    "why": "paraphrase of a well-known saying about tomorrow's burden"
+   },
+   {
+    "i": 95,
+    "why": "echoes Ecclesiastes 7:2 (house of mourning) and centers funerals; heavy on a sad day"
+   },
+   {
+    "i": 116,
+    "why": "close paraphrase of 'grief is the price we pay for love'"
+   },
+   {
+    "i": 119,
+    "why": "duplicates grit#71 and learning#79 (a dead end is information)"
+   },
+   {
+    "i": 120,
+    "why": "echoes Lennon: life is what happens while you're making other plans"
+   },
+   {
+    "i": 155,
+    "why": "cliché: leave it to time, time knows its job"
+   },
+   {
+    "i": 159,
+    "why": "famous Carnegie line: today is the tomorrow you worried about yesterday"
+   }
+  ],
+  "sad_unsafe": [
+   83,
+   103
+  ],
+  "relabel": [
+   {
+    "i": 19,
+    "tone": "calm"
+   },
+   {
+    "i": 102,
+    "tone": "neutral"
+   },
+   {
+    "i": 125,
+    "tone": "calm"
+   },
+   {
+    "i": 87,
+    "form": "metaphor"
+   }
+  ],
+  "fix": [
+   {
+    "i": 1,
+    "text": "زمستان‌ها رویه‌ی برکه یخ می‌زند، اما ماهی‌ها زیرش هنوز شنا می‌کنند."
+   },
+   {
+    "i": 99,
+    "text": "در فرودگاه، مسافران پرواز تأخیری دو دسته‌اند: آن‌هایی که غر می‌زنند و آن‌هایی که کتاب باز می‌کنند."
+   }
+  ]
+ }
+}
