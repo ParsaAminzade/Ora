@@ -65,7 +65,7 @@ export function PrivacySection() {
           {update.url && <a className="btn btn-accent" href={update.url} target="_blank" rel="noopener noreferrer">دریافت</a>}
         </div>
       )}
-      <Row label="دریافت جمله‌های تازه و خبر نسخه‌ها" hint={`روزی یک بار؛ در این درخواست چیزی از تو فرستاده نمی‌شود.${info ? ` آخرین دریافت: ${when(info.at)}، ${fa(info.count)} جمله‌ی سرور.` : ''}`}>
+      <Row label="دریافت جمله‌های تازه و خبر نسخه‌ها" hint={`روزی یک بار؛ در این درخواست چیزی از تو فرستاده نمی‌شود. آیکون سایت‌های میانبرت هم از همین سرور گرفته می‌شود؛ اسم سایت جایی ذخیره نمی‌شود.${info ? ` آخرین دریافت: ${when(info.at)}، ${fa(info.count)} جمله‌ی سرور.` : ''}`}>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <Segmented label="دریافت از سرور" value={p.receive ? 'on' : 'off'} options={[['on', 'روشن'], ['off', 'خاموش']] as const} onChange={(x) => setPrivacy({ receive: x === 'on' })} />
           <button className="btn" disabled={busy || !hasServer || !p.receive} onClick={() => void run(async () => {

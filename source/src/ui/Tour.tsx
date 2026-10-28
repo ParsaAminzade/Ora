@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useStore } from '../core/state';
 import { fa } from '../core/dates';
 import { nudgeDue, nudged, openTour, resetTour, tourItems, tourSeen, understood, type TourId, type TourItem } from '../core/tour';
-import { IconCheck, IconChevronL, IconChevronR, IconX } from './icons';
+import { IconCheck, IconChevronL, IconChevronR, IconOra, IconX } from './icons';
 import { Section } from './Panels';
 
 /* ---------- pictures ---------- */
@@ -182,7 +182,7 @@ function ArtPhone() {
       {[0, 1, 2].map((i) => <rect key={i} x="130" y={34 + i * 38} width="60" height="32" rx="7" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.2)" className={`tour-card c${i + 1}`} />)}
       <rect x="130" y="150" width="60" height="22" rx="11" fill="rgba(255,255,255,.1)" />
       <circle cx="160" cy="161" r="8" fill="var(--tour-c)" />
-      <g transform="translate(220 70)"><g className="tour-tap"><rect width="54" height="54" rx="14" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.25)" /><circle cx="27" cy="27" r="11" fill="none" stroke="var(--tour-c)" strokeWidth="3" /><circle cx="33" cy="21" r="3" fill="#FFF1D6" /></g></g>
+      <g transform="translate(220 70)"><g className="tour-tap"><rect width="54" height="54" rx="14" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.25)" /><g transform="translate(9 9) scale(1.5)"><circle cx="12" cy="12" r="7.2" fill="none" stroke="var(--tour-c)" strokeWidth="2.4" strokeLinecap="round" strokeDasharray="38.9 6.3" transform="rotate(-20 12 12)" /><circle cx="17.1" cy="6.9" r="1.9" fill="#FFF1D6" /></g></g></g>
     </g>
   );
 }
@@ -254,12 +254,7 @@ export function TourArt({ item, phone }: { item: TourItem; phone: boolean }) {
     </div>
   );
 }
-const TourMark = () => (
-  <svg className="tour-mark" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-    <circle cx="12" cy="12" r="7.2" fill="none" stroke="currentColor" strokeWidth="2.4" />
-    <circle cx="17.1" cy="6.9" r="1.9" fill="#FFF1D6" />
-  </svg>
-);
+const TourMark = () => <span className="tour-mark"><IconOra size={22} /></span>;
 
 /* ---------- one card ---------- */
 function TourCard({ item, index, total, done, onGot, compact, phone, onMore }: {

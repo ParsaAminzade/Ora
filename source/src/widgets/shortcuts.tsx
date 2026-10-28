@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type DragEvent, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type DragEvent, type KeyboardEvent } from 'react';
+import { cachedIcon, hostOf, siteIcon, type SiteIcon } from '../core/siteicon';
 import { createPortal } from 'react-dom';
 import { defineWidget } from '../core/widgets';
 import { IconEdit, IconGrid, IconGrip, IconPinTop, IconPlus, IconTrash, IconDown, IconUp, IconX } from '../ui/icons';
@@ -22,47 +23,34 @@ const DEFAULTS: Shortcut[] = [
   { title: 'GitHub', url: 'https://github.com' },
 ];
 
-/** Chrome's local favicon cache (needs the "favicon" permission). No network request. */
-function faviconUrl(pageUrl: string): string | undefined {
-  if (typeof chrome === 'undefined' || !chrome.runtime?.id) return undefined;
-  const u = new URL(chrome.runtime.getURL('/_favicon/'));
-  u.searchParams.set('pageUrl', pageUrl);
-  u.searchParams.set('size', '64');
-  return u.toString();
-}
-
 const normalize = (raw: string) => (/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
-const hostOf = (full: string) => { try { return new URL(full).hostname.replace(/^www\./, ''); } catch { return full; } };
 const move = <T,>(a: T[], from: number, to: number) => { const b = [...a]; const [x] = b.splice(from, 1); b.splice(to, 0, x); return b; };
-
-/* Chrome hands back a grey globe for sites it has never cached. Tell that apart from a real
-   icon by comparing pixels with the globe it returns for a made-up address, and show a
-   monogram instead, so a fresh install doesn't look like a row of identical placeholders. */
-let globeSig: Promise<string> | null = null;
-function signature(img: HTMLImageElement): string {
-  const c = document.createElement('canvas'); c.width = 16; c.height = 16;
-  const g = c.getContext('2d', { willReadFrequently: true })!;
-  g.drawImage(img, 0, 0, 16, 16);
-  return Array.from(g.getImageData(0, 0, 16, 16).data).join(',');
-}
-function genericGlobe(): Promise<string> {
-  const url = faviconUrl('https://nova-no-such-site.invalid/');
-  if (!url) return Promise.resolve('');
-  return (globeSig ??= new Promise((res) => {
-    const im = new Image();
-    im.onload = () => { try { res(signature(im)); } catch { res(''); } };
-    im.onerror = () => res('');
-    im.src = url;
-  }));
-}
 /** FNV-1a over the host, spread round the colour wheel. */
 const hueOf = (s: string) => { let h = 0x811c9dc5; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 0x01000193) >>> 0; } return h % 360; };
 
-function Favicon({ s, size }: { s: Shortcut; size: number }) {
-  const icon = faviconUrl(s.url);
-  const [mono, setMono] = useState(!icon);
+/** The site's own icon (or a monogram) and its colour, for the glow. */
+function useSiteIcon(url: string): SiteIcon | null | undefined {
+  const [icon, setIcon] = useState<SiteIcon | null | undefined>(undefined);
+  useEffect(() => {
+    let alive = true;
+    void cachedIcon(url).then((c) => { if (alive && c !== undefined) setIcon(c); });
+    void siteIcon(url).then((v) => { if (alive) setIcon(v); });
+    return () => { alive = false; };
+  }, [url]);
+  return icon;
+}
+/** CSS colour (r g b) for a site: its icon's colour, else one made from its name. */
+const glowOf = (icon: SiteIcon | null | undefined, url: string) =>
+  icon?.rgb ? icon.rgb.join(' ') : icon === undefined ? undefined : (() => { const h = hueOf(hostOf(url)); return hslToRgb(h, 0.55, 0.6).join(' '); })();
+function hslToRgb(h: number, s: number, l: number): number[] {
+  const k = (n: number) => (n + h / 30) % 12, a = s * Math.min(l, 1 - l);
+  return [0, 8, 4].map((n) => Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1)))));
+}
+
+function Favicon({ s, size, icon }: { s: Shortcut; size: number; icon: SiteIcon | null | undefined }) {
   const letter = (s.title.trim() || hostOf(s.url)).slice(0, 1).toUpperCase();
-  if (mono) {
+  if (icon === undefined) return <span className="sc-wait" aria-hidden="true" />;
+  if (!icon) {
     const h = hueOf(hostOf(s.url));
     return (
       <span className="sc-mono" aria-hidden="true" style={{ fontSize: Math.round(size * 0.8), color: `hsl(${h} 60% 82%)`, background: `linear-gradient(160deg, hsl(${h} 45% 50% / .26), hsl(${h} 45% 40% / .1))` }}>
@@ -70,10 +58,20 @@ function Favicon({ s, size }: { s: Shortcut; size: number }) {
       </span>
     );
   }
+  return <img src={icon.src} alt="" width={size} height={size} draggable={false} className="sc-img" />;
+}
+function RowIcon({ s }: { s: Shortcut }) {
+  const icon = useSiteIcon(s.url);
+  return <Favicon s={s} size={20} icon={icon} />;
+}
+function Tile({ s }: { s: Shortcut }) {
+  const icon = useSiteIcon(s.url);
+  const c = glowOf(icon, s.url);
   return (
-    <img src={icon} alt="" width={size} height={size} draggable={false} style={{ borderRadius: 6 }}
-      onError={() => setMono(true)}
-      onLoad={(e) => { const im = e.currentTarget; void genericGlobe().then((g) => { try { if (g && signature(im) === g) setMono(true); } catch { /* unreadable: keep the icon */ } }); }} />
+    <>
+      <span className={`sc-tile${icon ? ' has-icon' : ''}`} style={c ? ({ '--sc-c': c } as CSSProperties) : undefined}><Favicon s={s} size={34} icon={icon} /></span>
+      <span className="sc-name">{s.title}</span>
+    </>
   );
 }
 
@@ -132,7 +130,7 @@ function EditPanel({ items, onChange, onClose, focusNew }: { items: Shortcut[]; 
               onDragOver={(e) => { if (drag === null) return; e.preventDefault(); if (drag !== i) { onChange(move(items, drag, i)); setDrag(i); } }}
               onDragEnd={() => setDrag(null)} onDrop={(e) => e.preventDefault()}>
               <span className="sc-grip" aria-hidden="true"><IconGrip size={16} /></span>
-              <span className="sc-row-icon"><Favicon s={s} size={20} /></span>
+              <span className="sc-row-icon"><RowIcon s={s} /></span>
               <input className="sc-in" value={s.title} aria-label="اسم" onChange={(e) => patch(i, { title: e.target.value })}
                 onBlur={() => { if (!s.title.trim()) patch(i, { title: hostOf(s.url) }); }} draggable={false} onDragStart={(e) => e.preventDefault()} />
               <input className="sc-in" value={s.url} aria-label="آدرس" dir="ltr" style={{ flex: 1.6 }} onChange={(e) => patch(i, { url: e.target.value })}
@@ -192,8 +190,7 @@ defineWidget<Config>({
               onDragStart={(e) => { setDrag(i); setPreview(config.items); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/uri-list', s.url); }}
               onDragOver={(e) => over(e, i)} onDragEnd={end}>
               <a href={s.url} draggable={false} className="sc-link" title={s.url}>
-                <span className="sc-tile"><Favicon s={s} size={30} /></span>
-                <span className="sc-name">{s.title}</span>
+                <Tile s={s} />
               </a>
             </div>
           ))}

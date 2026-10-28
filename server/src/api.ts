@@ -5,6 +5,7 @@
 // POST /api/sync      what the user agreed to share: sentence feedback, search categories, profile
 // POST /api/feedback  a message the user typed and sent on purpose
 // POST /api/delete    erase everything stored for an install id
+// GET  /api/icon      a site's icon for the shortcuts (fetched for the user; the site name is not stored or logged)
 //
 // The IP address is never stored. Cloudflare tells us the country of each request; only that is kept.
 import { all, eraseInstall, kvGet, one, run } from './db';
@@ -52,6 +53,7 @@ export async function handleApi(req: Request, env: Env, url: URL): Promise<Respo
   const p = url.pathname;
   try {
     if (p === '/api/pack' && req.method === 'GET') return await pack(req, env, url);
+    if (p === '/api/icon' && req.method === 'GET') return await icon(req, url);
     if (p === '/api/legal' && req.method === 'GET') return out(LEGAL);
     if (p === '/api/sync' && req.method === 'POST') return await sync(req, env);
     if (p === '/api/feedback' && req.method === 'POST') return await feedback(req, env);
@@ -191,4 +193,32 @@ async function del(req: Request, env: Env) {
   if (typeof id !== 'string' || !ID_RE.test(id)) return out({ ok: false, error: 400 }, 400);
   await eraseInstall(env.DB, id);
   return out({ ok: true, erased: true });
+}
+
+/* ---------- site icons ---------- */
+// The phone app can't read the browser's own icon cache, and an image from another site can't be
+// read for its colour. So the server fetches the icon and hands it back from Ora's own address.
+// Nothing about the request is stored; the answer is cached for a week by Cloudflare.
+const HOST_RE = /^(?=.{3,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
+async function icon(req: Request, url: URL): Promise<Response> {
+  const host = (url.searchParams.get('d') ?? '').toLowerCase().replace(/^www\./, '');
+  if (!HOST_RE.test(host)) return out({ ok: false, error: 'host' }, 400);
+  const cache = (caches as unknown as { default: Cache }).default;
+  const key = new Request(`https://ora-icon.cache/${host}`);
+  const hit = await cache.match(key);
+  if (hit) return hit;
+  let res: Response | null = null;
+  try {
+    res = await fetch(`https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=128`, { redirect: 'follow', cf: { cacheTtl: 604800 } } as RequestInit);
+  } catch { /* offline upstream */ }
+  // Google answers 404 (with a grey globe) for sites it doesn't know: the app shows a monogram instead.
+  const type = res?.headers.get('Content-Type') ?? '';
+  if (!res || !res.ok || !type.startsWith('image/')) {
+    return new Response(null, { status: 404, headers: { ...CORS, 'Cache-Control': 'public, max-age=86400' } });
+  }
+  const body = await res.arrayBuffer();
+  if (body.byteLength > 200_000) return new Response(null, { status: 404, headers: CORS });
+  const answer = new Response(body, { headers: { ...CORS, 'Content-Type': type, 'Cache-Control': 'public, max-age=604800', 'X-Content-Type-Options': 'nosniff' } });
+  await cache.put(key, answer.clone()).catch(() => {});
+  return answer;
 }

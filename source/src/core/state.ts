@@ -85,7 +85,8 @@ export type SearchEngine = 'google' | 'duckduckgo' | 'startpage' | 'bing' | 'sea
 
 export interface Settings {
   accent: string;
-  search: { engine: SearchEngine; searxngUrl: string };
+  /** suggest: ask the engine for suggestions while typing (extension only) · history: remember recent searches on this device */
+  search: { engine: SearchEngine; searxngUrl: string; suggest?: boolean; history?: boolean };
   backup: { autoDays: 0 | 1 | 7; includeAssets: boolean };
   panelBlur: number;
   /** The same on the phone (default 2px: a phone screen is small and heavy blur makes it look smeared). */

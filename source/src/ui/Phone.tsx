@@ -12,7 +12,10 @@ const phoneOf = (): PhoneLayout => ({ order: [], hidden: [], ...useStore.getStat
 const setPhone = (patch: Partial<PhoneLayout>) => useStore.getState().setSettings({ phone: { ...phoneOf(), ...patch } });
 
 /** Without a saved order: the most useful cards first, then the desktop reading order. */
-const PRIORITY = ['sentence', 'clock', 'onetask', 'tasks', 'dayplan', 'agenda', 'prayer', 'calendar', 'weather', 'pomodoro', 'notes', 'calm', 'shortcuts', 'assistant', 'search', 'offline'];
+// Search first, within thumb's reach of the top like a phone browser; the clock lower (the phone shows the time already).
+const PRIORITY = ['search', 'sentence', 'onetask', 'tasks', 'shortcuts', 'dayplan', 'agenda', 'prayer', 'calendar', 'weather', 'pomodoro', 'notes', 'clock', 'calm', 'assistant', 'offline'];
+/** Cards that take the height of what is in them (up to their desktop height), so an empty list isn't a big empty box. */
+const FIT = new Set(['tasks', 'notes', 'weather', 'agenda', 'dayplan', 'onetask', 'prayer', 'calm', 'offline', 'shortcuts']);
 const rank = (w: WidgetInstance) => {
   const i = PRIORITY.indexOf(w.type);
   return (i < 0 ? PRIORITY.length : i) * 1e4 + w.y * 100 + w.x;
@@ -32,9 +35,10 @@ function PhoneCard({ inst, editing, first, last, onMove, onHide }: { inst: Widge
   if (!def) return null;
   const C = def.Component;
   const card = def.card !== false;
-  const h = Math.min(620, Math.max(110, inst.h * GRID.rowH - GRID.gap));
+  // the clock: the phone already shows the time, so a slim card is enough
+  const h = inst.type === 'clock' ? 150 : Math.min(620, Math.max(110, inst.h * GRID.rowH - GRID.gap));
   return (
-    <section aria-label={def.name} className={`phone-card${card ? ' glass' : ' bare'}${editing ? ' editing' : ''}`} style={card ? { height: h } : { minHeight: Math.min(h, 260) }} data-type={inst.type}>
+    <section aria-label={def.name} className={`phone-card${card ? ' glass' : ' bare'}${FIT.has(inst.type) ? ' fit' : ''}${editing ? ' editing' : ''}`} style={FIT.has(inst.type) ? { maxHeight: h } : card ? { height: h } : { minHeight: Math.min(h, 260) }} data-type={inst.type}>
       <div className="phone-card-in">
         <ErrorBoundary label={def.name}><C id={inst.id} config={inst.config as never} setConfig={setConfig as never} editing={false} /></ErrorBoundary>
       </div>
