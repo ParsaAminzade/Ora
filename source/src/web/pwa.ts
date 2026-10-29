@@ -10,6 +10,8 @@ export function startPwa() {
   }
   if (!('serviceWorker' in navigator) || !/^https:|^http:\/\/(localhost|127\.0\.0\.1)/.test(location.origin)) return;
   let reloaded = false;
+  let touched = false;
+  for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, () => { touched = true; }, { once: true, capture: true });
   navigator.serviceWorker.addEventListener('controllerchange', () => { if (!reloaded) { reloaded = true; location.reload(); } });
   navigator.serviceWorker.register('./app-sw.js').then((reg) => {
     const offer = (w: ServiceWorker) => window.setTimeout(() => say({
@@ -17,10 +19,16 @@ export function startPwa() {
       sticky: true,
       action: { label: 'بارگذاری دوباره', run: () => w.postMessage('skip-waiting') },
     }), 2500);
-    if (reg.waiting && navigator.serviceWorker.controller) offer(reg.waiting);
+    // A new version waiting from last time: the app has only just opened, so take it now
+    // (one quick reload) instead of asking. Later on, ask, so nothing jumps under your finger.
+    const fresh = () => performance.now() < 6000 && !touched;
+    if (reg.waiting && navigator.serviceWorker.controller) { if (fresh()) reg.waiting.postMessage('skip-waiting'); else offer(reg.waiting); }
     reg.addEventListener('updatefound', () => {
       const w = reg.installing;
-      w?.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) offer(w); });
+      w?.addEventListener('statechange', () => {
+        if (w.state !== 'installed' || !navigator.serviceWorker.controller) return;
+        if (fresh() || document.visibilityState === 'hidden') w.postMessage('skip-waiting'); else offer(w);
+      });
     });
     window.setInterval(() => void reg.update().catch(() => {}), 6 * 3600_000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
