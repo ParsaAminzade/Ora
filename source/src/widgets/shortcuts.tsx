@@ -40,8 +40,15 @@ function useSiteIcon(url: string): SiteIcon | null | undefined {
   return icon;
 }
 /** CSS colour (r g b) for a site: its icon's colour, else one made from its name. */
-const glowOf = (icon: SiteIcon | null | undefined, url: string) =>
-  icon?.rgb ? icon.rgb.join(' ') : icon === undefined ? undefined : (() => { const h = hueOf(hostOf(url)); return hslToRgb(h, 0.55, 0.6).join(' '); })();
+/** The glow's colours (r g b): every colour in the site's logo; a soft white for a black-and-white
+ *  logo; colours made from the site's name for a monogram. Always four, repeating if the logo has fewer. */
+function glowOf(icon: SiteIcon | null | undefined, url: string): string[] | undefined {
+  if (icon === undefined) return undefined;
+  let pal: number[][];
+  if (icon) pal = icon.pal?.length ? icon.pal : icon.rgb ? [icon.rgb] : [[226, 230, 240]];
+  else { const h = hueOf(hostOf(url)); pal = [hslToRgb(h, 0.55, 0.6), hslToRgb((h + 40) % 360, 0.5, 0.58)]; }
+  return [0, 1, 2, 3].map((i) => pal[i % pal.length].join(' '));
+}
 function hslToRgb(h: number, s: number, l: number): number[] {
   const k = (n: number) => (n + h / 30) % 12, a = s * Math.min(l, 1 - l);
   return [0, 8, 4].map((n) => Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1)))));
@@ -58,7 +65,7 @@ function Favicon({ s, size, icon }: { s: Shortcut; size: number; icon: SiteIcon 
       </span>
     );
   }
-  return <img src={icon.src} alt="" width={size} height={size} draggable={false} className="sc-img" />;
+  return <img src={icon.src} alt="" width={size} height={size} draggable={false} className={`sc-img${icon.dark ? ' on-light' : ''}`} />;
 }
 function RowIcon({ s }: { s: Shortcut }) {
   const icon = useSiteIcon(s.url);
@@ -67,9 +74,10 @@ function RowIcon({ s }: { s: Shortcut }) {
 function Tile({ s }: { s: Shortcut }) {
   const icon = useSiteIcon(s.url);
   const c = glowOf(icon, s.url);
+  const mono = !!icon && !icon.pal?.length && !icon.rgb;
   return (
     <>
-      <span className={`sc-tile${icon ? ' has-icon' : ''}`} style={c ? ({ '--sc-c': c } as CSSProperties) : undefined}><Favicon s={s} size={34} icon={icon} /></span>
+      <span className={`sc-tile${icon ? ' has-icon' : ''}${mono ? ' bw' : ''}`} style={c ? ({ '--sc-c': c[0], '--sc-c2': c[1], '--sc-c3': c[2], '--sc-c4': c[3] } as CSSProperties) : undefined}><Favicon s={s} size={34} icon={icon} /></span>
       <span className="sc-name">{s.title}</span>
     </>
   );

@@ -213,6 +213,7 @@ export async function current(): Promise<{ sentence: Sentence; pick: Pick } | nu
 export async function feedback(s: Sentence, signal: Signal): Promise<void> {
   const st = useStore.getState().settings;
   await record(s, signal, st.mode.active, st.sentences.halfLife);
+  dispatchEvent(new Event('ora:taste-used')); // the tour: «اورآ سلیقه‌ات را یاد می‌گیرد» is understood once you use it
   if (signal === 'like') await db.sentences.update(s.id, { likes: (s.likes ?? 0) + 1 });
   if (signal === 'less') await db.sentences.update(s.id, { dislikedAt: Date.now() });
   if (signal === 'like' || signal === 'less') await noteLine(s, signal).catch(() => {});

@@ -30,7 +30,7 @@ defineWidget<Config>({
     if (config.compact) {
       return (
         <button onClick={() => setConfig({ compact: false })} title="نمایش فهرستی"
-          style={{ width: '100%', height: '100%', border: 0, background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', borderRadius: 'inherit' }}>
+          style={{ width: '100%', height: '100%', border: 0, background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 12px', minHeight: 64, borderRadius: 'inherit' }}>
           {times.map((t) => {
             const isNext = t.key === next.key;
             return (

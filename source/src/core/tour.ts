@@ -135,15 +135,37 @@ export async function resetTour(): Promise<void> {
 }
 export const openTour = (id?: TourId) => dispatchEvent(new CustomEvent('ora:tour', { detail: { id } }));
 
-/** At most one reminder a day, and never in the first minute after another tip. */
+/* ---------- reminding, without nagging ----------
+   A new user sees the next card not yet understood every few hours, one card at a time, only
+   while nothing else is open. «بعداً» pushes that card further back each time (3 h → 12 h → a day
+   → three days) and the next one gets its turn. After the first two weeks: at most once a day.
+   And using a thing counts as understanding it: change a background and the background card is done. */
 const NUDGE = 'ora:tour-nudge-at';
+const FIRST = 'ora:tour-first';
+const LATER = 'ora:tour-later';
+const H = 3600_000;
+const ls = { get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private */ } } };
+const firstSeen = () => { let f = Number(ls.get(FIRST)); if (!f) { f = Date.now(); ls.set(FIRST, String(f)); } return f; };
+type Later = Partial<Record<TourId, { n: number; until: number }>>;
+const later = (): Later => { try { return JSON.parse(ls.get(LATER) ?? '{}'); } catch { return {}; } };
+
 export function nudgeDue(): boolean {
-  try {
-    if (Date.now() - Number(localStorage.getItem(NUDGE) ?? 0) < 20 * 3600_000) return false;
-    if (Date.now() - Number(localStorage.getItem('ora:tip-at') ?? 0) < 60_000) return false;
-    return true;
-  } catch { return false; }
+  const newcomer = Date.now() - firstSeen() < 14 * 24 * H;
+  if (Date.now() - Number(ls.get(NUDGE) ?? 0) < (newcomer ? 3 : 20) * H) return false;
+  if (Date.now() - Number(ls.get('ora:tip-at') ?? 0) < 60_000) return false;
+  return true;
 }
-export function nudged() {
-  try { localStorage.setItem(NUDGE, String(Date.now())); localStorage.setItem('ora:tip-at', String(Date.now())); } catch { /* private */ }
+export function nudged() { ls.set(NUDGE, String(Date.now())); ls.set('ora:tip-at', String(Date.now())); }
+/** The next card to bring up: not understood, and not put off right now. */
+export function nextToNudge(items: TourItem[], seen: Seen): TourItem | undefined {
+  const l = later();
+  return items.find((x) => !seen[x.id] && (l[x.id]?.until ?? 0) <= Date.now());
 }
+/** «بعداً»: this card waits longer each time. */
+export function putOff(id: TourId) {
+  const l = later(), n = (l[id]?.n ?? 0) + 1;
+  l[id] = { n, until: Date.now() + [3, 12, 24, 72][Math.min(n - 1, 3)] * H };
+  ls.set(LATER, JSON.stringify(l));
+}
+/** Doing it is the surest sign it was understood. */
+export const used = (id: TourId) => void understood(id);

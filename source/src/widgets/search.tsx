@@ -8,19 +8,19 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperti
 import { createPortal } from 'react-dom';
 import { defineWidget } from '../core/widgets';
 import { IconSearch, IconX, IconClock, IconChevronR } from '../ui/icons';
-import { engineSuggest, forgetSearch, recentSearches, rememberSearch, webSearchUrl, ENGINE_NAMES } from '../core/search';
+import { engineSuggest, forgetSearch, recentSearches, rememberSearch, webSearchUrl, ENGINE_NAMES, ENGINE_SITES } from '../core/search';
 import { useStore } from '../core/state';
 import { noteSearch } from '../core/remote';
 import { usePhone } from '../core/platform';
-import { cachedIcon, hostOf, type SiteIcon } from '../core/siteicon';
+import { cachedIcon, hostOf, siteIcon, type SiteIcon } from '../core/siteicon';
 
 // Prefix commands: "a pinn" → arXiv, "s …" → Scholar, "y …" → YouTube, "t …" → Translate.
-const ENGINES: Record<string, { name: string; label: string; url: (q: string) => string }> = {
+const ENGINES: Record<string, { name: string; label: string; url: (q: string) => string; site?: string }> = {
   g: { name: 'web', label: 'وب', url: (q) => webSearchUrl(q) },
-  a: { name: 'arXiv', label: 'arXiv', url: (q) => `https://arxiv.org/search/?query=${encodeURIComponent(q)}&searchtype=all` },
-  s: { name: 'Scholar', label: 'Scholar', url: (q) => `https://scholar.google.com/scholar?q=${encodeURIComponent(q)}` },
-  y: { name: 'YouTube', label: 'یوتیوب', url: (q) => `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}` },
-  t: { name: 'Translate', label: 'ترجمه', url: (q) => `https://translate.google.com/?sl=auto&tl=fa&text=${encodeURIComponent(q)}` },
+  a: { name: 'arXiv', label: 'arXiv', url: (q) => `https://arxiv.org/search/?query=${encodeURIComponent(q)}&searchtype=all` , site: 'https://arxiv.org' },
+  s: { name: 'Scholar', label: 'Scholar', url: (q) => `https://scholar.google.com/scholar?q=${encodeURIComponent(q)}` , site: 'https://scholar.google.com' },
+  y: { name: 'YouTube', label: 'یوتیوب', url: (q) => `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}` , site: 'https://www.youtube.com' },
+  t: { name: 'Translate', label: 'ترجمه', url: (q) => `https://translate.google.com/?sl=auto&tl=fa&text=${encodeURIComponent(q)}` , site: 'https://translate.google.com' },
 };
 function parse(input: string) {
   const m = input.match(/^([a-z])\s+(.+)$/i);
@@ -47,6 +47,19 @@ function SiteDot({ url }: { url: string }) {
   const [icon, setIcon] = useState<SiteIcon | null | undefined>(undefined);
   useEffect(() => { void cachedIcon(url).then(setIcon); }, [url]);
   return icon?.src ? <img src={icon.src} alt="" width={20} height={20} className="srch-ico-img" /> : <span className="srch-ico-mono">{hostOf(url).slice(0, 1).toUpperCase()}</span>;
+}
+
+/** The engine's logo and colours (for the ring that turns slowly around the box). */
+function useEngine(site: string) {
+  const [icon, setIcon] = useState<SiteIcon | null | undefined>(undefined);
+  useEffect(() => {
+    let alive = true;
+    if (!site) { setIcon(null); return; }
+    void cachedIcon(site).then((c) => { if (alive && c !== undefined) setIcon(c); });
+    void siteIcon(site).then((v) => { if (alive) setIcon(v); });
+    return () => { alive = false; };
+  }, [site]);
+  return icon;
 }
 
 /** Bold what the suggestion adds to what you typed, the way Chrome does. */
@@ -76,7 +89,16 @@ defineWidget<Record<string, never>>({
     const sites = useSites();
     const engineKey = useStore((st) => st.settings.search.engine);
     const engineLabel = ENGINE_NAMES[engineKey].replace(/ \(.+\)$/, '');
+    const searxng = useStore((st) => st.settings.search.searxngUrl);
     const { engine, key: prefix, q: query } = parse(q.trim());
+    const site = engine.site ?? (engineKey === 'searxng' ? searxng : ENGINE_SITES[engineKey]);
+    const eIcon = useEngine(site);
+    const pal = eIcon?.pal?.length ? eIcon.pal : eIcon?.rgb ? [eIcon.rgb] : null;
+    const ring = (pal ? [0, 1, 2, 3].map((i) => pal[i % pal.length].join(' ')) : null);
+    const ringStyle = (ring ? { '--e1': ring[0], '--e2': ring[1], '--e3': ring[2], '--e4': ring[3] } : {}) as CSSProperties;
+    const mark = eIcon?.src
+      ? <img src={eIcon.src} alt="" width={22} height={22} className={`srch-mark${eIcon.dark ? ' on-light' : ''}`} title={engine.name === 'web' ? engineLabel : engine.label} />
+      : <IconSearch className="ico muted" />;
 
     // «/» focuses the box from anywhere
     useEffect(() => {
@@ -167,10 +189,10 @@ defineWidget<Record<string, never>>({
     return (
       <div className={`srch${open ? ' open' : ''}${open && phone ? ' full' : ''}`}>
         {open && phone && <div className="srch-shade" />}
+        <div className={`srch-ring${ring ? '' : ' plain'}`} style={ringStyle}>
         <form ref={boxRef} className="srch-box glass" role="search" onSubmit={(e) => { e.preventDefault(); if (sel >= 0 && items[sel]) pick(items[sel]); else go(q); }}>
-          {open && phone
-            ? <button type="button" className="icon-btn srch-back" aria-label="بستن جستجو" onClick={() => close()}><IconChevronR size={20} /></button>
-            : <IconSearch className="ico muted" />}
+          {open && phone && <button type="button" className="icon-btn srch-back" aria-label="بستن جستجو" onClick={() => close()}><IconChevronR size={20} /></button>}
+          {mark}
           <input
             ref={ref}
             type="search"
@@ -199,6 +221,7 @@ defineWidget<Record<string, never>>({
           {q && <button type="button" className="icon-btn srch-clear" aria-label="پاک کردن" onClick={() => { setQ(''); ref.current?.focus(); }}><IconX size={16} /></button>}
           {!q && !phone && <kbd className="srch-kbd">/</kbd>}
         </form>
+        </div>
         {show && wrap(
           <div className="srch-pop glass" style={phone ? undefined : at} onMouseDown={(e) => e.preventDefault()}>
             {!q.trim() && (

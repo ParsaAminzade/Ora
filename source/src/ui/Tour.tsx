@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from 're
 import { createPortal } from 'react-dom';
 import { useStore } from '../core/state';
 import { fa } from '../core/dates';
-import { nudgeDue, nudged, openTour, resetTour, tourItems, tourSeen, understood, type TourId, type TourItem } from '../core/tour';
+import { nextToNudge, nudgeDue, nudged, openTour, putOff, resetTour, tourItems, tourSeen, understood, used, type TourId, type TourItem } from '../core/tour';
 import { IconCheck, IconChevronL, IconChevronR, IconOra, IconX } from './icons';
 import { Section } from './Panels';
 
@@ -356,7 +356,7 @@ function TourNudge({ item, index, total, onClose }: { item: TourItem; index: num
   const phone = matchMedia('(max-width: 720px)').matches;
   return (
     <div className="tour-nudge glass" role="dialog" aria-label={`اورآ: ${item.title}`}>
-      <button className="icon-btn tour-nudge-x" aria-label="بعداً" title="بعداً" onClick={onClose}><IconX size={16} /></button>
+      <button className="icon-btn tour-nudge-x" aria-label="بعداً" title="بعداً" onClick={() => { putOff(item.id); onClose(); }}><IconX size={16} /></button>
       <span className="tour-nudge-h">این را می‌دانستی؟</span>
       <TourCard item={item} index={index} total={total} done={false} compact phone={phone}
         onGot={() => { void understood(item.id); onClose(); }}
@@ -378,7 +378,24 @@ export function TourHost() {
     for (const n of others) addEventListener(n, away);
     return () => { removeEventListener('ora:tour', on); for (const n of others) removeEventListener(n, away); };
   }, []);
-  // Now and then (once a day at most), bring up the next thing not yet understood.
+  // Using a feature counts as understanding it.
+  useEffect(() => {
+    if (!loaded) return;
+    const unsub = useStore.subscribe((st, prev) => {
+      const a = st.settings, b = prev.settings;
+      if (a.background !== b.background) used('bg');
+      if (a.accent !== b.accent || a.font !== b.font || a.panelStyle !== b.panelStyle) used('theme');
+      if (a.mode.active !== b.mode.active && !a.mode.auto) used('modes'); // by hand, not by a time rule
+      if (a.night !== b.night) used('glow');
+      if (a.phone !== b.phone) used('phone');
+    });
+    const ev: [string, TourId][] = [['ora:palette', 'keys'], ['ora:schedule', 'plan'], ['ora:review', 'plan'], ['ora:taste-used', 'taste']];
+    const fns = ev.map(([n, id]) => { const f = () => used(id); addEventListener(n, f); return [n, f] as const; });
+    const key = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') used('keys'); };
+    addEventListener('keydown', key);
+    return () => { unsub(); for (const [n, f] of fns) removeEventListener(n, f); removeEventListener('keydown', key); };
+  }, [loaded]);
+  // Every few hours for a newcomer (once a day later on), bring up the next thing not yet understood.
   useEffect(() => {
     if (!loaded) return;
     let shown = false;
@@ -387,9 +404,10 @@ export function TourHost() {
       if (shown || st.panel !== 'none' || st.editing || !nudgeDue()) return;
       if (document.querySelector('[role="dialog"]')) return; // the terms, a question… try again a bit later
       const seen = await tourSeen();
-      const next = tourItems().find((x) => !seen[x.id]);
+      const next = nextToNudge(tourItems(), seen);
       if (!next) return;
       shown = true;
+      window.setTimeout(() => { shown = false; }, 60_000); // the page may stay open all day
       nudged();
       setNudge(next.id);
     };

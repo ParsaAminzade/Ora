@@ -11,6 +11,20 @@ export const ENGINE_NAMES: Record<SearchEngine, string> = {
   searxng: 'SearXNG (سرور خودت)',
 };
 
+/** Each engine's own site: its logo is shown in the search box (fetched like any saved site's icon),
+ *  so an engine added later gets its logo with one line here. */
+export const ENGINE_SITES: Record<SearchEngine, string> = {
+  google: 'https://www.google.com',
+  duckduckgo: 'https://duckduckgo.com',
+  startpage: 'https://www.startpage.com',
+  bing: 'https://www.bing.com',
+  searxng: '',
+};
+export const engineSite = (): string => {
+  const { engine, searxngUrl } = useStore.getState().settings.search;
+  return engine === 'searxng' ? searxngUrl : ENGINE_SITES[engine];
+};
+
 export function webSearchUrl(q: string): string {
   const { engine, searxngUrl } = useStore.getState().settings.search;
   const e = encodeURIComponent(q);
