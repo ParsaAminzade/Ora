@@ -7,6 +7,7 @@ import { PrivacySection, ProfileSection } from './settings/PrivacySection';
 import { TourSection } from './Tour';
 import { APP_VERSION, IS_EXTENSION, IS_WEB_BUILD, usePhone } from '../core/platform';
 import { NotifySection } from './NotifyAsk';
+import { KnowsSection } from './settings/KnowsSection';
 import { effectiveLook } from '../core/state';
 import { useAssetUrl } from './hooks';
 import { bgStill } from '../core/backgrounds';
@@ -585,6 +586,7 @@ const GROUPS: { name: string; items: { title: string; short?: string; keys: stri
     { title: 'موتور جستجو', short: 'جستجو', keys: 'جستجو search گوگل duckduckgo' },
   ] },
   { name: 'داده', items: [
+    { title: 'اورآ درباره‌ی تو چه می‌داند', short: 'اورآ چه می‌داند', keys: 'یادگیری ریتم اعتماد پله داده حریم' },
     ...(IS_WEB_BUILD ? [{ title: 'یادآوری کارها', short: 'یادآوری', keys: 'نوتیف اعلان یادآوری notification push' }] : []),
     { title: 'پروفایل من', short: 'پروفایل', keys: 'پروفایل نام علایق ایمیل' },
     { title: 'حریم خصوصی و داده‌ها', short: 'حریم خصوصی', keys: 'حریم خصوصی سرور قوانین اشتراک داده بازخورد پیام ایمیل حذف نسخه آپدیت' },
@@ -809,6 +811,7 @@ export function SettingsPanel() {
 
       <SearchSection />
 
+      <KnowsSection />
       <NotifySection />
       <ProfileSection />
       <PrivacySection />

@@ -1921,3 +1921,44 @@ body:has(.srch.full) .ora-tip, body:has(.srch.full) .tour-nudge { display: none;
 .nask-actions { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
 .nask-yes { height: 48px; justify-content: center; font-size: 15px; }
 .nask-no { align-self: center; font-size: 13.5px; color: var(--text-2); }
+
+/* ---------- 2.5.1: help in a hard moment (core/safety) ---------- */
+.crisis { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.crisis ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.crisis li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.07); border: 1px solid var(--line-2); }
+.crisis a { color: var(--text); text-decoration: none; font-size: 15px; display: flex; gap: 8px; align-items: center; }
+.crisis a bdi { font-weight: 700; font-size: 17px; color: var(--accent); }
+.crisis small { color: var(--text-3); font-size: 12px; }
+.crisis p { margin: 0; font-size: 13.5px; line-height: 1.9; }
+.crisis-danger { color: var(--text) !important; font-weight: 600; }
+.coach-help-link { color: var(--text-2); }
+
+/* ---------- 2.6: «اورآ درباره‌ی تو چه می‌داند» ---------- */
+.knows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 900px) { .knows { grid-template-columns: 1fr; } }
+.knows-card { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: var(--r-md); background: var(--fill); border: 1px solid var(--line); font-size: 13px; line-height: 1.85; }
+.knows-card > b { font-size: 14.5px; }
+.knows-card ul { margin: 0; padding: 0 16px 0 0; display: flex; flex-direction: column; gap: 2px; color: var(--text-2); }
+.knows-card i.faint { font-style: normal; }
+.knows-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,.08); overflow: hidden; }
+.knows-bar i { display: block; height: 100%; background: var(--accent); border-radius: inherit; transition: width .4s; }
+.knows-hours { display: flex; align-items: flex-end; gap: 2px; height: 46px; direction: ltr; }
+.knows-hours i { flex: 1; background: var(--accent); border-radius: 2px 2px 0 0; min-height: 3px; }
+.knows-not { font-size: 12px; color: var(--text-3); }
+.knows-acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+
+/* ---------- 2.6: «چی جلوشو گرفته؟» (ui/CauseCard) ---------- */
+.cause { position: fixed; z-index: 95; bottom: 20px; left: 20px; width: min(360px, calc(100vw - 32px)); padding: 16px; border-radius: 22px; display: flex; flex-direction: column; gap: 10px; --glass-solid: rgba(12,14,20,.95); box-shadow: var(--glass-shadow); animation: tour-up .45s cubic-bezier(.2,.8,.2,1); }
+.cause p { margin: 0; font-size: 14px; line-height: 1.9; }
+.cause-q { font-weight: 600; padding-left: 26px; }
+.cause-x { position: absolute; top: 8px; left: 8px; width: 30px; height: 30px; }
+.cause-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cause-chips .pill { height: 34px; font-size: 13px; }
+.cause-foot { display: flex; justify-content: space-between; }
+.cause-foot .btn-link { font-size: 12.5px; color: var(--text-3); }
+.cause-why { font-size: 12.5px !important; color: var(--text-2); background: var(--fill); padding: 8px 10px; border-radius: 10px; }
+.cause-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.cause-acts .btn { flex: 1; justify-content: center; }
+.cause-in { height: 40px; border-radius: 10px; border: 1px solid var(--line-input); background: rgba(0,0,0,.25); padding: 0 10px; font-size: 14px; }
+.cause-done { color: var(--text-2); }
+@media (max-width: 720px) { .cause { left: 12px; right: 12px; width: auto; bottom: calc(84px + env(safe-area-inset-bottom)); } }

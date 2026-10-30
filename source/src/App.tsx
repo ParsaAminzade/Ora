@@ -32,7 +32,9 @@ import { LegalHost } from './ui/Legal';
 import { TourHost } from './ui/Tour';
 import { UpdateHost } from './ui/Update';
 import { NotifyHost } from './ui/NotifyAsk';
+import { CauseHost } from './ui/CauseCard';
 import { remoteTick } from './core/remote';
+import { watchOpen } from './core/rhythm';
 
 /** Pick black or white text for a given accent colour. */
 function onColor(hex: string): string {
@@ -112,6 +114,8 @@ export default function App() {
   useEffect(() => {
     if (!loaded) return;
     void requestPersistence();
+    // «ریتم تو»: count this opening (never what you do; core/rhythm)
+    const unwatch = watchOpen();
     // State loaded and the page rendered without a page-level error: this start is healthy.
     markHealthy();
     void migrateTasks();
@@ -129,7 +133,7 @@ export default function App() {
     // The Ora server: fresh lines and, only with consent, what you liked (core/remote).
     const r1 = window.setTimeout(() => void remoteTick(), 6000);
     const r2 = window.setInterval(() => void remoteTick(), 3 * 3600_000);
-    return () => { window.clearTimeout(t); window.clearInterval(iv); window.clearTimeout(r1); window.clearInterval(r2); };
+    return () => { unwatch(); window.clearTimeout(t); window.clearInterval(iv); window.clearTimeout(r1); window.clearInterval(r2); };
   }, [loaded]);
 
   useEffect(() => {
@@ -176,6 +180,7 @@ export default function App() {
       <TourHost />
       <UpdateHost />
       <NotifyHost />
+      <CauseHost />
       <NightLayer />
     </>
   );

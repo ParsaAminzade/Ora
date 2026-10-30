@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { respond, runAction, rateStyle, STYLE_LABEL, type Action, type Reply } from '../core/coach';
 import { IconChat, IconX } from './icons';
+import { CRISIS_DANGER, CRISIS_LINES, CRISIS_PEOPLE } from '../core/safety';
 
 interface Msg { id: string; who: 'me' | 'ora'; text: string; reply?: Reply; rated?: boolean }
 const LS = 'ora:coach-chat';
@@ -36,7 +37,9 @@ function Coach({ first, onClose }: { first?: string; onClose(): void }) {
     setMsgs((m) => [...m, mine]);
     setBusy(true);
     try {
-      const r = await respond(t);
+      // once help was shown in this conversation, Ora doesn't go back to coaching in it
+      const afterCrisis = msgs.some((x) => x.reply?.crisis === 'first');
+      const r = await respond(t, { afterCrisis });
       setMsgs((m) => [...m, { id: `o${Date.now()}`, who: 'ora', text: r.text, reply: r }]);
     } catch (e) {
       setMsgs((m) => [...m, { id: `o${Date.now()}`, who: 'ora', text: `چیزی خراب شد: ${(e as Error).message}` }]);
@@ -57,6 +60,7 @@ function Coach({ first, onClose }: { first?: string; onClose(): void }) {
     <div className="dlg-backdrop coach-bd" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div role="dialog" aria-modal="true" aria-label="گفتگو با اورآ" className="glass coach">
         <div className="pl-head"><IconChat size={18} /><h2 style={{ flex: 1 }}>گفتگو با اورآ</h2>
+          <button className="link-btn coach-help-link" onClick={() => setMsgs((m) => [...m, { id: `o${Date.now()}`, who: 'ora', text: 'اگه حالت خیلی سخته، لطفاً همین الان با یکی از این‌ها حرف بزن:', reply: { text: '', crisis: 'help' } }])}>کمک فوری</button>
           {msgs.length > 0 && <button className="link-btn" onClick={() => setMsgs([])}>پاک کردن</button>}
           <button className="icon-btn" aria-label="بستن" onClick={onClose}><IconX size={18} /></button>
         </div>
@@ -66,6 +70,7 @@ function Coach({ first, onClose }: { first?: string; onClose(): void }) {
             <div key={m.id} className={`coach-msg ${m.who}`}>
               {m.reply?.title && <b className="coach-title">{m.reply.title}</b>}
               <p>{m.text}</p>
+              {(m.reply?.crisis === 'first' || m.reply?.crisis === 'help') && <HelpLines />}
               {m.reply?.actions?.length ? <div className="coach-acts">{m.reply.actions.map((a) => <button key={a.label} className="btn btn-sm" onClick={() => void act(a)}>{a.label}</button>)}</div> : null}
               {m.reply?.style && !m.rated && (
                 <span className="coach-rate">کمک کرد؟ <button className="pill pill-xs" onClick={() => rate(m.id, true)}>آره</button><button className="pill pill-xs" onClick={() => rate(m.id, false)}>نه</button><small>{STYLE_LABEL[m.reply.style]}</small></span>
@@ -80,6 +85,17 @@ function Coach({ first, onClose }: { first?: string; onClose(): void }) {
           <button className="btn btn-sm btn-accent" type="submit" disabled={busy || !draft.trim()}>بفرست</button>
         </form>
       </div>
+    </div>
+  );
+}
+
+/** People to talk to: tap a number to call (on a phone). */
+function HelpLines() {
+  return (
+    <div className="crisis">
+      <ul>{CRISIS_LINES.map((l) => <li key={l.tel}><a href={`tel:${l.tel}`}><b>{l.label}</b> <bdi dir="ltr">{l.tel.replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d])}</bdi></a><small>{l.note}</small></li>)}</ul>
+      <p>{CRISIS_PEOPLE}</p>
+      <p className="crisis-danger">{CRISIS_DANGER}</p>
     </div>
   );
 }

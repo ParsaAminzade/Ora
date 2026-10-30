@@ -16,6 +16,8 @@ export const tomorrow = () => dayKey(addDays(new Date(), 1));
 
 export interface PlannerSettings {
   hours: number; buffer: number; morning: boolean; evening: boolean; eveningAt: number;
+  /** The morning ritual starts with the first tab after this hour (and ends at noon). */
+  morningAt?: number;
   /** The part of the day plans may use, HH:MM. */
   dayStart: string; dayEnd: string;
   /** Days with no planned work (JS getDay(): 5 = Friday). */
@@ -127,7 +129,7 @@ export async function toggleDone(t: Task, opts: { early?: boolean } = {}): Promi
 /** Move to another day. Pushing a task later counts as a slip, so the planner can say so. */
 export async function reschedule(t: Task, when: string | undefined, opts: { someday?: boolean } = {}): Promise<void> {
   const later = !!(t.when && when && when > t.when) || (!!t.when && t.when < today() && !!when);
-  await db.tasks.update(t.id, { when, someday: opts.someday ?? false, top: when === today() ? t.top : false, slips: (t.slips ?? 0) + (later ? 1 : 0) });
+  await db.tasks.update(t.id, { when, someday: opts.someday ?? false, top: when === today() ? t.top : false, slips: (t.slips ?? 0) + (later ? 1 : 0), waiting: false });
 }
 
 /** Mark as one of today's top three (max three). Returns false when three are already chosen. */
@@ -182,7 +184,7 @@ const RIT = 'ora:ritual';
 const ritual = (): Record<string, string> => { try { return JSON.parse(localStorage.getItem(RIT) ?? '{}'); } catch { return {}; } };
 export function ritualDue(kind: 'morning' | 'evening', now = new Date()): boolean {
   const p = plannerOf();
-  if (kind === 'morning' && (!p.morning || now.getHours() < 5 || now.getHours() >= 13)) return false;
+  if (kind === 'morning' && (!p.morning || now.getHours() < (p.morningAt ?? 5) || now.getHours() >= 13)) return false;
   if (kind === 'evening' && (!p.evening || now.getHours() < p.eveningAt)) return false;
   return ritual()[kind] !== dayKey(now);
 }

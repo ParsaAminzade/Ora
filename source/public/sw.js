@@ -21,6 +21,24 @@ chrome.alarms.onAlarm.addListener((a) => {
   chrome.notifications.create(a.name, { type: 'basic', iconUrl: 'icons/128.png', title: kind === 'event' ? 'اورآ · تقویم' : 'اورآ', message: text, priority: 2 });
 });
 
+/* ---------- «ریتم تو»: how often you switch tabs (counted, never read; see src/core/rhythm.ts) ---------- */
+// Chrome tells us «a tab became active» — not which one, nor its address (Ora has no «tabs» permission).
+const pad2 = (n) => String(n).padStart(2, '0');
+const slotKey = (d = new Date()) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${Math.floor(d.getMinutes() / 10)}`;
+let switches = 0, flushT = 0;
+chrome.tabs.onActivated.addListener(() => {
+  switches++;
+  clearTimeout(flushT);
+  flushT = setTimeout(async () => {
+    const n = switches; switches = 0;
+    const { oraRhythm: r = { since: Date.now(), slots: {} } } = await chrome.storage.local.get('oraRhythm');
+    if (r.paused) return;
+    const k = slotKey();
+    r.slots[k] = { ...(r.slots[k] || {}), s: ((r.slots[k] || {}).s || 0) + n };
+    await chrome.storage.local.set({ oraRhythm: r });
+  }, 3000);
+});
+
 /* ---------- task reminders («task|id|at|title|body», scheduled by the page) ---------- */
 function taskNote(name) {
   const [, , at, title, body] = name.split('|');

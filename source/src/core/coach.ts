@@ -139,7 +139,7 @@ export async function styleStats(): Promise<{ style: Style; rate: number; n: num
 
 /* ---------- replies ---------- */
 export interface Action { label: string; kind: 'focus' | 'star' | 'tomorrow' | 'review' | 'wizard' | 'project-new' | 'projects' | 'open-task' | 'dismiss' | 'lighten' | 'add-step'; taskId?: string; payload?: string }
-export interface Reply { text: string; ctx?: string; style?: Style; actions?: Action[]; title?: string }
+export interface Reply { text: string; ctx?: string; style?: Style; actions?: Action[]; title?: string; crisis?: 'first' | 'after' | 'help' }
 
 interface Data { tasks: Task[]; projects: Project[]; events: CalEvent[]; stats: Stats; now: Date; coach: CoachState }
 async function data(): Promise<Data> {
@@ -347,6 +347,8 @@ export async function dismissedMap(): Promise<Record<string, number>> { return (
 export async function askedRecently(kind: string, hours: number): Promise<boolean> { const s = await loadCoach(); return Date.now() - (s.asked[kind] ?? 0) < hours * 3600_000; }
 export async function markAsked(kind: string): Promise<void> { const s = await loadCoach(); s.asked[kind] = Date.now(); await saveCoach(s); }
 
+import { CRISIS_AFTER, CRISIS_TEXT, isCrisis, quietRestOfDay } from './safety';
+
 /* ---------- the conversation ---------- */
 export type Intent = 'next' | 'priorities' | 'behind' | 'worry' | 'week' | 'why' | 'done' | 'add' | 'review' | 'projects' | 'hello' | 'thanks' | 'help' | 'unknown';
 const N = (s: string) => normalize(s).replace(/\s+/g, ' ').trim();
@@ -371,7 +373,10 @@ export function intentOf(text: string): Intent {
 
 export const HELP = 'می‌توانم بگویم الان چه کاری بکنی و چرا، اولویت‌هایت را با مهلت‌ها و وقتت بسنجم، وقتی عقبی یک راه برگشت بچینم، نگرانی‌ات را با عدد بسنجم، بگویم چرا کاری مدام عقب می‌افتد، و روز را جمع‌بندی کنم. کافی است بنویسی؛ مثلاً «نگرانم به ارائه نرسم» یا «اولویت‌هام درسته؟».';
 
-export async function respond(text: string): Promise<Reply> {
+export async function respond(text: string, opts: { afterCrisis?: boolean } = {}): Promise<Reply> {
+  // Someone in a very bad place: a fixed message and people to talk to — never coaching (core/safety).
+  if (isCrisis(text)) { quietRestOfDay(); return { text: CRISIS_TEXT, crisis: 'first' }; }
+  if (opts.afterCrisis) return { text: CRISIS_AFTER, crisis: 'after' };
   const x = await data();
   const it = intentOf(text);
   switch (it) {

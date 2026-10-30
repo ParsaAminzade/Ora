@@ -91,6 +91,8 @@ export interface Settings {
   panelBlur: number;
   /** The same on the phone (default 2px: a phone screen is small and heavy blur makes it look smeared). */
   panelBlurPhone?: number;
+  /** The highest trust step Ora may reach on its own (0–4, «اورآ درباره‌ی تو چه می‌داند»). */
+  trustCap?: number;
   panelOpacity: number;
   /** Panel material: the premium glass (same as the sentence plate) or the simple flat glass. */
   panelStyle?: 'premium' | 'plain';

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { db } from '../core/db';
+import { isQuiet } from '../core/safety';
 import { useStore } from '../core/state';
 import { IconX } from './icons';
 import { openPlanner, ritualDone, ritualDue } from '../core/planner';
@@ -122,7 +123,7 @@ export function OraEye({ size = 30 }: { size?: number }) {
   // The daily ritual: a morning «let's plan» and an evening «let's close the day». Asked once a day.
   useEffect(() => {
     const t = window.setTimeout(async () => {
-      if (useStore.getState().panel !== 'none' || useStore.getState().editing) return;
+      if (useStore.getState().panel !== 'none' || useStore.getState().editing || isQuiet()) return;
       const open = await db.tasks.filter((x) => !x.done).count();
       if (ritualDue('morning') && open) {
         ritualDone('morning');

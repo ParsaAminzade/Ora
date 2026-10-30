@@ -14,11 +14,11 @@ export function PlannerSection() {
       <Row label="حاشیه‌ی برآورد" hint="کارها تقریباً همیشه بیشتر از حدسمان طول می‌کشند (خطای برنامه‌ریزی). این حاشیه به برآوردها اضافه می‌شود.">
         <Segmented label="حاشیه‌ی برآورد" value={p.buffer} options={[[1, 'هیچ'], [1.25, '۲۵٪'], [1.5, '۵۰٪']] as const} onChange={(v) => set({ buffer: v })} />
       </Row>
-      <Row label="برنامه‌ریزی صبح" hint="اولین تب صبح، اورآ پیشنهاد می‌دهد دو دقیقه برنامه‌ی روز را بچینی.">
-        <Segmented label="برنامه‌ریزی صبح" value={p.morning ? 'on' : 'off'} options={[['on', 'روشن'], ['off', 'خاموش']] as const} onChange={(v) => set({ morning: v === 'on' })} />
+      <Row label="برنامه‌ریزی صبح" hint={`اولین تب بعد از ساعت ${fa(p.morningAt ?? 5)} (تا ظهر)، اورآ پیشنهاد می‌دهد دو دقیقه برنامه‌ی روز را بچینی.`}>
+        <Segmented label="برنامه‌ریزی صبح" value={p.morning ? (p.morningAt ?? 5) : 0} options={[[0, 'خاموش'], [5, 'از صبح زود'], [7, '۷'], [8, '۸'], [9, '۹'], [10, '۱۰']] as const} onChange={(v) => set(v ? { morning: true, morningAt: v } : { morning: false })} />
       </Row>
       <Row label="جمع‌بندی عصر" hint={`از ساعت ${fa(p.eveningAt)} به بعد، اورآ پیشنهاد می‌دهد روز را ببندی و مانده‌ها را برای فردا بچینی.`}>
-        <Segmented label="جمع‌بندی عصر" value={p.evening ? p.eveningAt : 0} options={[[0, 'خاموش'], [17, '۱۷'], [18, '۱۸'], [19, '۱۹'], [20, '۲۰']] as const} onChange={(v) => set(v ? { evening: true, eveningAt: v } : { evening: false })} />
+        <Segmented label="جمع‌بندی عصر" value={p.evening ? p.eveningAt : 0} options={[[0, 'خاموش'], [17, '۱۷'], [18, '۱۸'], [19, '۱۹'], [20, '۲۰'], [21, '۲۱'], [22, '۲۲']] as const} onChange={(v) => set(v ? { evening: true, eveningAt: v } : { evening: false })} />
       </Row>
       <div style={{ display: 'flex', gap: 8 }}>
         <button className="btn" onClick={() => openPlanner('plan')}>برنامه‌ریزی امروز</button>

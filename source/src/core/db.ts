@@ -36,6 +36,8 @@ export interface Task {
   spent?: number;
   /** How many times it was pushed to a later day. */
   slips?: number;
+  /** Waiting on someone else («منتظر جوابم»): no reminders, no «why» question, until it moves again. */
+  waiting?: boolean;
   /** Length of its time block, when you set it by dragging in the calendar (minutes). */
   len?: number;
   /** The project (and its phase) this task moves forward. */

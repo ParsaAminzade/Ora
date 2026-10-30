@@ -1,6 +1,7 @@
 // Reminders for tasks that have a day and a time: «وقت «تمرین فیزیک» است». On the computer they are
 // Chrome alarms turned into notifications by the extension's worker (public/sw.js); on the phone
-// they go sealed through the Ora server (web/push.ts). Both use this list.
+// they go sealed through the Ora server (web/push.ts). Both use this list. A task that slipped three
+// times gets no more reminders (it gets the «why» question instead, ui/CauseCard), nor one you wait on.
 import { db, type Task } from './db';
 import { IS_EXTENSION } from './platform';
 import { fa } from './dates';
@@ -9,7 +10,7 @@ const at = (t: Task) => { const [h, m] = (t.time ?? '').split(':').map(Number); 
 
 export async function upcomingTaskReminders(hours = 48): Promise<{ id: string; at: number; title: string; body: string }[]> {
   const now = Date.now(), end = now + hours * 3600_000;
-  const tasks = await db.tasks.filter((t) => !t.done && !t.someday && !!t.when && !!t.time && /^\d\d:\d\d$/.test(t.time)).toArray();
+  const tasks = await db.tasks.filter((t) => !t.done && !t.someday && !t.waiting && (t.slips ?? 0) < 3 && !!t.when && !!t.time && /^\d\d:\d\d$/.test(t.time)).toArray();
   return tasks.map((t) => ({ t, ms: at(t) })).filter(({ ms }) => ms > now + 30_000 && ms < end).sort((a, b) => a.ms - b.ms).slice(0, 60)
     .map(({ t, ms }) => ({
       id: `t-${t.id}-${t.when}-${t.time}`.replace(/[^A-Za-z0-9:_-]/g, '').slice(0, 80),
