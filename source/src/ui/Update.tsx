@@ -12,6 +12,7 @@ import { IconDownload, IconX } from './icons';
 
 type Latest = { version: string; notes?: string; url?: string };
 const HIDE = 'ora:update-bar-hidden';
+const UPDATER = 'https://github.com/ParsaAminzade/Ora/raw/main/downloads/Ora-Update.cmd';
 const LAST = 'ora:last-version';
 const ls = { get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private */ } } };
 const newer = (l: Latest | null | undefined): l is Latest => !!l?.version && APP_VERSION !== 'dev' && isNewer(l.version, APP_VERSION);
@@ -31,7 +32,7 @@ async function known(): Promise<Latest | null> {
 
 function download(url: string) {
   // the zip goes straight to Downloads; for anything else (a Release page) open it
-  if (IS_EXTENSION && chrome.downloads && /\.zip(\?|$)/i.test(url)) chrome.downloads.download({ url, saveAs: false }).catch(() => window.open(url, '_blank'));
+  if (IS_EXTENSION && chrome.downloads && /\.(zip|cmd)(\?|$)/i.test(url)) chrome.downloads.download({ url, saveAs: false }).catch(() => window.open(url, '_blank'));
   else window.open(url, '_blank', 'noopener');
 }
 function openExtensionsPage() {
@@ -53,8 +54,10 @@ function Sheet({ latest, onClose }: { latest: Latest; onClose(): void }) {
         {latest.notes && <p className="upd-notes">{latest.notes}</p>}
         <ol className="upd-steps">
           <li>
-            <b>در پوشه‌ی اورآ، روی Ora-Update دوبار کلیک کن</b>
-            <span>همان پوشه‌ای که اورآ را از آن نصب کردی. خودش نسخه‌ی تازه را می‌گیرد و جایگزین می‌کند، و اورآ تا یک دقیقه بعد خودش دوباره بالا می‌آید. اگر ویندوز پرسید «اجرا شود؟»، More info و بعد Run anyway.</span>
+            <b>Ora-Update را بگیر و رویش دوبار کلیک کن</b>
+            <span>یک فایل کوچک ویندوزی. از هر جا اجرایش کنی، پوشه‌ی اورآ را خودش پیدا می‌کند، نسخه‌ی تازه را می‌گیرد و جایگزین می‌کند. اورآ هم تا یک دقیقه بعد خودش دوباره بالا می‌آید.</span>
+            <button className="btn btn-accent" onClick={() => { download(UPDATER); setGot(true); }}><IconDownload size={16} />{got ? 'دوباره بگیر' : 'دانلود Ora-Update'}</button>
+            <span className="upd-hint">اگر کروم پرسید فایل نگه داشته شود، Keep. اگر ویندوز پرسید اجرا شود، More info و بعد Run anyway. این فایل داخل پوشه‌ی اورآ هم هست.</span>
           </li>
         </ol>
         <details className="upd-manual">

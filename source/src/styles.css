@@ -1901,3 +1901,4 @@ body:has(.srch.full) .ora-tip, body:has(.srch.full) .tour-nudge { display: none;
 @media (max-width: 720px) { .upd-bar { bottom: calc(92px + env(safe-area-inset-bottom)); } }
 .upd-manual { border-top: 1px solid var(--line); padding-top: 10px; }
 .upd-manual summary { cursor: pointer; font-size: 13px; color: var(--text-2); margin-bottom: 10px; }
+.upd-hint { font-size: 12px !important; color: var(--text-3) !important; }

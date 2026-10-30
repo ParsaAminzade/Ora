@@ -1,11 +1,11 @@
 {
   "name": "nova-tab",
   "private": true,
-  "version": "2.4.3",
+  "version": "2.4.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "node scripts/make-updater.mjs && tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "build:web": "node scripts/build-web.mjs"
   },
