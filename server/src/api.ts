@@ -2,6 +2,7 @@
 //
 // GET  /api/pack      new lines, fixes to built-in lines, latest version, announcement (nothing about the user is sent)
 // GET  /api/legal     the current terms text
+// GET  /api/latest    just the newest version (the extension asks every couple of hours to tell you about updates)
 // POST /api/sync      what the user agreed to share: sentence feedback, search categories, profile
 // POST /api/feedback  a message the user typed and sent on purpose
 // POST /api/delete    erase everything stored for an install id
@@ -55,6 +56,7 @@ export async function handleApi(req: Request, env: Env, url: URL): Promise<Respo
     if (p === '/api/pack' && req.method === 'GET') return await pack(req, env, url);
     if (p === '/api/icon' && req.method === 'GET') return await icon(req, url);
     if (p === '/api/legal' && req.method === 'GET') return out(LEGAL);
+    if (p === '/api/latest' && req.method === 'GET') return out((await kvGet(env.DB, 'latest', null)) ?? {}, 200, { 'Cache-Control': 'public, max-age=300' });
     if (p === '/api/sync' && req.method === 'POST') return await sync(req, env);
     if (p === '/api/feedback' && req.method === 'POST') return await feedback(req, env);
     if (p === '/api/delete' && req.method === 'POST') return await del(req, env);

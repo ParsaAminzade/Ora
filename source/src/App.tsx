@@ -30,6 +30,7 @@ import { usePhone } from './core/platform';
 import { PhoneShell } from './ui/Phone';
 import { LegalHost } from './ui/Legal';
 import { TourHost } from './ui/Tour';
+import { UpdateHost } from './ui/Update';
 import { remoteTick } from './core/remote';
 
 /** Pick black or white text for a given accent colour. */
@@ -172,6 +173,7 @@ export default function App() {
       <CoachHost />
       <LegalHost />
       <TourHost />
+      <UpdateHost />
       <NightLayer />
     </>
   );

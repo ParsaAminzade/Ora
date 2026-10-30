@@ -3,7 +3,7 @@
 import { useStore } from './state';
 import { kvGet, kvSet } from './kv';
 import { db, type Sentence } from './db';
-import { APP_VERSION, IS_WEB_BUILD } from './platform';
+import { APP_VERSION, IS_EXTENSION, IS_WEB_BUILD } from './platform';
 import LEGAL from '../data/legal.json';
 
 export interface Legal { version: string; updated: string; title: string; summary: string[]; sections: { title: string; body: string }[] }
@@ -54,7 +54,10 @@ export const privacyOf = (): PrivacySettings => {
   return r;
 };
 export const profileOf = (): Profile => ({ ...DEFAULT_PROFILE, ...useStore.getState().settings.profile });
-export const setPrivacy = (patch: Partial<PrivacySettings>) => useStore.getState().setSettings({ privacy: { ...privacyOf(), ...patch } });
+export const setPrivacy = (patch: Partial<PrivacySettings>) => {
+  useStore.getState().setSettings({ privacy: { ...privacyOf(), ...patch } });
+  if ('server' in patch || 'receive' in patch) void tellWorker();
+};
 export const setProfile = (patch: Partial<Profile>) => useStore.getState().setSettings({ profile: { ...profileOf(), ...patch } });
 
 /** The terms in force: the bundled ones, or newer ones the server sent. */
@@ -294,16 +297,9 @@ export async function fetchPack(force = false): Promise<Pack | null> {
   const t = privacyOf().terms;
   if (t && k.legal && t.v !== k.legal) dispatchEvent(new Event('ora:legal'));
   const v = appVersion();
-  // The phone app updates itself, so «a new version came» is only for the extension.
-  if (!IS_WEB_BUILD && k.latest?.version && v !== 'dev' && isNewer(k.latest.version, v) && (await kvGet<string>('ora:update-told')) !== k.latest.version) {
-    await kvSet('ora:update-told', k.latest.version);
-    const url = k.latest.url;
-    say({
-      title: `نسخه‌ی ${k.latest.version} اورآ آمد`,
-      text: (k.latest.notes || 'نسخه‌ی تازه آماده است.').slice(0, 280) + '\nفایل را روی همان پوشه‌ی اورآ باز کن و در chrome://extensions «بارگذاری دوباره» را بزن؛ داده‌هایت می‌مانند.',
-      sticky: true,
-      action: url ? { label: 'دریافت نسخه‌ی تازه', run: () => openLink(url) } : undefined,
-    });
+  // A newer extension: the update bar and the worker's notification take it from here (ui/Update.tsx).
+  if (!IS_WEB_BUILD && k.latest?.version && v !== 'dev' && isNewer(k.latest.version, v)) {
+    dispatchEvent(new CustomEvent('ora:update-available', { detail: k.latest }));
   } else if (k.announce?.id && (await kvGet<string>('ora:announce-seen')) !== k.announce.id) {
     await kvSet('ora:announce-seen', k.announce.id);
     const link = k.announce.link;
@@ -312,8 +308,16 @@ export async function fetchPack(force = false): Promise<Pack | null> {
   return k;
 }
 
+/** The extension's background worker checks for new versions on its own (public/sw.js); it reads
+ *  the server address and the «receive» switch from here. */
+export async function tellWorker(): Promise<void> {
+  if (!IS_EXTENSION || !chrome.storage?.local) return;
+  const p = privacyOf();
+  await chrome.storage.local.set({ oraServer: serverBase(p) ?? '', oraReceive: p.receive }).catch(() => {});
+}
 /** Called a few seconds after start and every few hours. */
 export async function remoteTick(): Promise<void> {
+  await tellWorker();
   await fetchPack().catch(() => null);
   await syncNow().catch(() => null);
 }

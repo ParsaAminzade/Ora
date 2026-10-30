@@ -1878,3 +1878,26 @@ body:has(.srch.full) .ora-tip, body:has(.srch.full) .tour-nudge { display: none;
 .sc-img.on-light { background: rgba(236,238,244,.92); padding: 4px; border-radius: 10px; filter: none; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
 .srch-ico-img { background: none; }
 .srch-mark.on-light { background: rgba(236,238,244,.92); padding: 3px; border-radius: 7px; }
+
+/* ---------- 2.4.3: a new version is out ---------- */
+.upd-bar { position: fixed; z-index: 96; bottom: 18px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px;
+  padding: 6px 8px 6px 14px; border-radius: 999px; font-size: 13px; --glass-solid: rgba(14,16,22,.9); box-shadow: var(--glass-shadow); animation: tour-up .4s ease-out; white-space: nowrap; }
+.upd-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); animation: upd-pulse 2.4s infinite; }
+@keyframes upd-pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 70%, 100% { box-shadow: 0 0 0 8px transparent; } }
+.upd-x { width: 26px; height: 26px; }
+.upd-backdrop { z-index: 125; }
+.upd-sheet { width: min(460px, 100%); padding: 18px; display: flex; flex-direction: column; gap: 14px; border-radius: var(--r-sheet); --glass-solid: rgba(12,14,20,.95); box-shadow: var(--glass-shadow); }
+.upd-head { display: flex; align-items: flex-start; gap: 10px; }
+.upd-head > div { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.upd-head h2 { margin: 0; font-size: 18px; }
+.upd-head .faint { font-size: 12px; }
+.upd-notes { margin: 0; font-size: 13.5px; line-height: 1.9; color: var(--text-2); padding: 10px 12px; border-radius: var(--r-md); background: var(--fill); }
+.upd-steps { margin: 0; padding: 0; list-style: none; counter-reset: s; display: flex; flex-direction: column; gap: 10px; }
+.upd-steps li { counter-increment: s; position: relative; padding: 2px 38px 0 0; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.upd-steps li::before { content: counter(s, persian); position: absolute; right: 0; top: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 13px; display: grid; place-items: center; }
+.upd-steps b { font-size: 14.5px; }
+.upd-steps span { font-size: 13px; line-height: 1.85; color: var(--text-2); }
+.upd-steps .btn { gap: 6px; }
+@media (max-width: 720px) { .upd-bar { bottom: calc(92px + env(safe-area-inset-bottom)); } }
+.upd-manual { border-top: 1px solid var(--line); padding-top: 10px; }
+.upd-manual summary { cursor: pointer; font-size: 13px; color: var(--text-2); margin-bottom: 10px; }
