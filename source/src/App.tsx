@@ -34,6 +34,8 @@ import { UpdateHost } from './ui/Update';
 import { NotifyHost } from './ui/NotifyAsk';
 import { CauseHost } from './ui/CauseCard';
 import { MirrorHost } from './ui/Mirror';
+import { InstallHost } from './ui/Install';
+import { IS_WEB_BUILD as WEB_APP } from './core/platform';
 import { remoteTick } from './core/remote';
 import { watchOpen } from './core/rhythm';
 
@@ -183,6 +185,7 @@ export default function App() {
       <NotifyHost />
       <CauseHost />
       <MirrorHost />
+      {WEB_APP && <InstallHost />}
       <NightLayer />
     </>
   );

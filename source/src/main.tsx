@@ -25,5 +25,10 @@ void useStore.getState().load();
 (globalThis as unknown as { novaDb: () => Promise<unknown> }).novaDb = () => import('./core/db').then((m) => m.db);
 void installLocalOriginRule();
 // The phone/web app: offline cache, «new version» prompt, and home-screen shortcuts.
+// Phone app: keep Chrome's «install» offer for our own «add Ora to your home screen» card (ui/Install.tsx).
+if (import.meta.env.VITE_TARGET === 'web') {
+  addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); (globalThis as { oraInstall?: Event }).oraInstall = e; dispatchEvent(new Event('ora:installable')); });
+  addEventListener('appinstalled', () => { (globalThis as { oraInstall?: Event }).oraInstall = undefined; try { localStorage.setItem('ora:installed', String(Date.now())); } catch { /* */ } dispatchEvent(new Event('ora:installed')); });
+}
 if (import.meta.env.VITE_TARGET === 'web') void import('./web/pwa').then((m) => m.startPwa());
 createRoot(document.getElementById('root')!).render(<ErrorBoundary label="Ora" page><App /></ErrorBoundary>);

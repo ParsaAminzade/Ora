@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "اورآ (Ora) · تب شخصی",
   "short_name": "Ora",
-  "version": "2.6.2",
+  "version": "2.6.3",
   "description": "صفحه‌ی تب جدید شخصی: ویجت‌های قابل چیدمان، تقویم شمسی، تسک‌ها و پس‌زمینه‌ی دلخواه. بدون تبلیغ و ردیابی.",
   "chrome_url_overrides": {
     "newtab": "index.html"

@@ -10,14 +10,15 @@
 // erasable) in «اورآ درباره‌ی تو چه می‌داند».
 import { kvGet, kvSet } from './kv';
 
-export type FbKind = 'ritual-morning' | 'ritual-evening' | 'tip' | 'tour';
-export type FbReason = 'later' | 'bad-time' | 'too-often' | 'not-useful' | 'tired' | 'already' | 'unclear' | 'know' | 'no-tour';
+export type FbKind = 'ritual-morning' | 'ritual-evening' | 'tip' | 'tour' | 'install';
+export type FbReason = 'later' | 'bad-time' | 'too-often' | 'not-useful' | 'tired' | 'already' | 'unclear' | 'know' | 'no-tour' | 'how' | 'space' | 'browser' | 'why';
 
 export const REASONS: Record<FbKind, [FbReason, string][]> = {
   'ritual-morning': [['later', 'الان وقتش نیست'], ['bad-time', 'ساعتش برام خوب نیست'], ['already', 'خودم برنامه‌مو دارم'], ['too-often', 'هر روز زیاده'], ['tired', 'حوصله‌شو ندارم'], ['not-useful', 'به کارم نمیاد'], ['unclear', 'نمی‌دونم دقیقاً چیه']],
   'ritual-evening': [['later', 'الان وقتش نیست'], ['bad-time', 'ساعتش برام خوب نیست'], ['tired', 'خسته‌ام'], ['already', 'خودم تو ذهنم جمعش کردم'], ['too-often', 'هر روز زیاده'], ['not-useful', 'به کارم نمیاد'], ['unclear', 'نمی‌دونم دقیقاً چیه']],
   tip: [['know', 'اینو بلدم'], ['later', 'الان نه'], ['too-often', 'زیاد نکته می‌دی'], ['not-useful', 'نکته لازم ندارم']],
   tour: [['know', 'اینو بلدم'], ['later', 'بعداً نگاه می‌کنم'], ['too-often', 'زیاد یادم می‌اندازی'], ['no-tour', 'آموزش نمی‌خوام']],
+  install: [['later', 'الان نه'], ['how', 'بلد نیستم چطوری'], ['space', 'جا روی گوشیم کمه'], ['browser', 'تو مرورگر راحت‌ترم'], ['why', 'فایده‌ش چیه؟'], ['too-often', 'زیاد می‌پرسی']],
 };
 
 type Ev = { k: FbKind; r: FbReason | 'yes' | 'skip' | 'ignored'; at: number; h: number; d: number };
@@ -96,4 +97,4 @@ export async function summary(): Promise<{ k: FbKind; label: string; n: number }
   }
   return [...out.values()].sort((a, b) => b.n - a.n).slice(0, 8);
 }
-export const KIND_LABEL: Record<FbKind, string> = { 'ritual-morning': 'برنامه‌ریزی صبح', 'ritual-evening': 'جمع‌بندی شب', tip: 'نکته‌ها', tour: 'آشنایی با اورآ' };
+export const KIND_LABEL: Record<FbKind, string> = { 'ritual-morning': 'برنامه‌ریزی صبح', 'ritual-evening': 'جمع‌بندی شب', tip: 'نکته‌ها', tour: 'آشنایی با اورآ', install: 'نصب روی گوشی' };

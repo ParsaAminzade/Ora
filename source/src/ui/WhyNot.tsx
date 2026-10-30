@@ -13,7 +13,7 @@ const WHAT: Partial<Record<FbKind, string>> = {
   'ritual-morning': 'صبح‌ها اورآ می‌پرسد «برنامه‌ی امروز را بچینیم؟». دو دقیقه: سه کار مهم امروز را انتخاب می‌کنی و می‌بینی به وقتت جا می‌شوند یا نه — قبل از اینکه روز شلوغ شود.',
   'ritual-evening': 'شب‌ها اورآ می‌پرسد «روز رو ببندیم؟». دو دقیقه: هر کار مهم تا کجا رفت، یک نمره به امروز، و مانده‌ها می‌روند برای فردا — که ذهنت شب آزاد باشد.',
 };
-const KIND_NAME: Partial<Record<FbKind, string>> = { 'ritual-morning': 'برنامه‌ریزی صبح', 'ritual-evening': 'جمع‌بندی شب', tip: 'نکته‌ها' };
+const KIND_NAME: Partial<Record<FbKind, string>> = { 'ritual-morning': 'برنامه‌ریزی صبح', 'ritual-evening': 'جمع‌بندی شب', tip: 'نکته‌ها', install: 'این پیشنهاد' };
 
 type Btn = { label: string; run(): void; main?: boolean };
 export function WhyNot({ kind, tour, tipId, onDone }: { kind: FbKind; tour?: TourId; tipId?: number; onDone(): void }) {
@@ -37,6 +37,7 @@ export function WhyNot({ kind, tour, tipId, onDone }: { kind: FbKind; tour?: Tou
   };
   const pick = async (r: FbReason) => {
     await note(kind, r);
+    dispatchEvent(new CustomEvent('ora:fb', { detail: { kind, reason: r } })); // the part of Ora that asked can adapt too
     const s = await fbStore();
     const n = count(s, kind, r);
     switch (r) {
@@ -74,6 +75,18 @@ export function WhyNot({ kind, tour, tipId, onDone }: { kind: FbKind; tour?: Tou
         if (tour) void understood(tour);
         if (tipId !== undefined) knowTip(tipId);
         setReply({ text: 'باشه؛ این یکی رو دیگه نمی‌گم.' });
+        break;
+      case 'how':
+        setReply({ text: 'سخت نیست؛ دو لمس. نشونت بدم؟', btns: [{ label: 'نشونم بده', main: true, run: () => { onDone(); dispatchEvent(new CustomEvent('ora:install-open', { detail: { steps: true } })); } }, { label: 'بعداً', run: onDone }] });
+        break;
+      case 'space':
+        setReply({ text: 'اورآ حدود ۵ مگابایته؛ از چند تا عکس هم کمتر. هر وقت هم نخواستی، مثل هر برنامه‌ای پاکش می‌کنی.' });
+        break;
+      case 'browser':
+        setReply({ text: 'باشه؛ تا دو هفته نمی‌پرسم. دکمه‌ی «نصب» بالای صفحه هست، هر وقت خواستی.' });
+        break;
+      case 'why':
+        setReply({ text: 'با یه لمس از صفحه‌ی اصلی باز می‌شه، تمام‌صفحه و بدون نوار مرورگر؛ بدون اینترنت هم کار می‌کنه؛ و یادآوری کارهات به‌موقع می‌رسه.', btns: [{ label: 'نصب کن', main: true, run: () => { void note(kind, 'yes'); onDone(); dispatchEvent(new CustomEvent('ora:install-open', { detail: {} })); } }, { label: 'نه، الان نه', run: onDone }] });
         break;
       case 'no-tour':
         setReply({ text: 'باشه؛ دیگه کارت آموزشی نشون نمی‌دم. اگه خواستی، از تنظیمات › «آشنایی با اورآ» همه‌شون هست.' });

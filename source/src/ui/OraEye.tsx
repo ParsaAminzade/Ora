@@ -9,6 +9,7 @@ import { IconX } from './icons';
 import { openPlanner, ritualDone, ritualDue } from '../core/planner';
 import { fbStore, gapX, note, offDay, shouldAsk, snoozed, type FbKind } from '../core/feedback';
 import { knownTips, WhyNot } from './WhyNot';
+import { installDue } from './Install';
 
 interface Tip { kind?: FbKind; tipId?: number; text: string; action?: { label: string; run(): void }; sticky?: boolean; mood?: 'firm'; choices?: { label: string; run(): void }[]; title?: string; said?: boolean }
 
@@ -131,6 +132,7 @@ export function OraEye({ size = 30 }: { size?: number }) {
     const t = window.setTimeout(() => {
       if (useStore.getState().panel !== 'none' || useStore.getState().editing) return;
       if (Date.now() - (Number(read(LS.at)) || 0) < gap) return; // something else spoke meanwhile
+      if (installDue()) return; // on the phone, «add Ora to your home screen» goes first
       write(LS.at, String(Date.now()));
       void show(true, true);
     }, 7000);

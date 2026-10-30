@@ -1,4 +1,6 @@
 // The phone layout: the same widgets as one scrolling column, with a bottom bar. Order and hiding are phone-only.
+import { InstallButton } from './Install';
+import { IS_WEB_BUILD } from '../core/platform';
 import { useCallback, useMemo, useState } from 'react';
 import { GRID, useStore, type WidgetInstance } from '../core/state';
 import { allWidgets, getWidget } from '../core/widgets';
@@ -80,6 +82,7 @@ export function PhoneShell() {
       <header className="phone-top glass">
         <OraEye size={28} />
         <div className="phone-title"><b>اورآ</b><span>{today}</span></div>
+        {IS_WEB_BUILD && <InstallButton />}
         <ModeButton />
         <button className="icon-btn" aria-label="گفتگو با اورآ" onClick={() => send('ora:coach')}><IconChat /></button>
       </header>
