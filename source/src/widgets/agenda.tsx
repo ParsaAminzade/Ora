@@ -8,6 +8,7 @@ import { sortEvents, syncRange } from '../core/calendar-service';
 import { useNow } from '../ui/hooks';
 import { IconClock, IconLayers } from '../ui/icons';
 import { openCalendar } from '../ui/Schedule';
+import { emptyAgendaLine } from '../core/voice';
 import { openEventEditor } from '../ui/cal/EventEditor';
 import { timeLabel } from '../core/events';
 import { NONE } from '../core/none';
@@ -58,7 +59,7 @@ defineWidget<Config>({
           </select>
         </div>
         <div className="scroll" style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {upcoming.length === 0 && <div className="w-empty"><IconClock /><b>برنامه‌ای در این بازه نیست</b><span>رویدادها را از تقویم اضافه کن.</span></div>}
+          {upcoming.length === 0 && <div className="w-empty"><IconClock /><b>{emptyAgendaLine() || 'برنامه‌ای در این بازه نیست'}</b><span>رویدادها را از تقویم اضافه کن.</span></div>}
           {[...groups].map(([day, list]) => (
             <div key={day} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <span style={{ fontSize: 12, fontWeight: 600, color: day === from ? 'var(--accent)' : 'var(--text-2)' }}>{dayLabel(day, from, tomorrow)}</span>

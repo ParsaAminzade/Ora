@@ -93,6 +93,8 @@ export interface Settings {
   panelBlurPhone?: number;
   /** The highest trust step Ora may reach on its own (0–4, «اورآ درباره‌ی تو چه می‌داند»). */
   trustCap?: number;
+  /** «لحن اورآ»: how Ora puts data into words (weather, prayer, an empty day). */
+  voice?: 'friendly' | 'formal' | 'numbers';
   panelOpacity: number;
   /** Panel material: the premium glass (same as the sentence plate) or the simple flat glass. */
   panelStyle?: 'premium' | 'plain';

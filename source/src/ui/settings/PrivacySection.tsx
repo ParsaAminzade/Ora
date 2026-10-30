@@ -12,6 +12,8 @@ import { ask } from '../Dialog';
 import { IS_WEB_BUILD } from '../../core/platform';
 import { Row, Section, Segmented } from '../Panels';
 import { Switch } from '../Legal';
+import { prayerLine, TONE_LABEL, weatherLine, type Tone } from '../../core/voice';
+import type { Weather } from '../../core/location';
 
 const input = { height: 36, borderRadius: 10, border: '1px solid var(--line-2)', background: 'rgba(0,0,0,.25)', padding: '0 10px', fontSize: 13 } as const;
 const when = (t: number) => new Date(t).toLocaleString('fa-IR', { dateStyle: 'medium', timeStyle: 'short' });
@@ -141,12 +143,20 @@ export function ProfileSection() {
   };
   const preset = [...INTEREST_THEMES.map(([k]) => k), POETRY_INTEREST];
   const custom = prof.interests.filter((i) => !preset.includes(i));
+  const voice = useStore((s) => s.settings.voice ?? 'friendly');
+  const setSettings = useStore((s) => s.setSettings);
+  const sampleW: Weather = { fetchedAt: 0, key: '', current: { temp: 13, feels: 12, code: 2, isDay: true, humidity: 50, wind: 10 }, daily: [{ date: '', code: 2, max: 16, min: 8 }, { date: '', code: 2, max: 17, min: 9 }] };
+  const sample = (t: Tone) => t === 'numbers' ? '۱۳° · نیمه‌ابری · احساس ۱۲°' : `${weatherLine(sampleW, new Date(new Date().setHours(10)), t)} ${prayerLine('maghrib', new Date(Date.now() + 25 * 60_000), new Date(), t)}`;
   const emailOk = !email.trim() || /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email.trim());
   return (
     <Section title="پروفایل من" hint={`روی همین مرورگر می‌ماند. علایقت باعث می‌شود جمله‌های مرتبط کمی بیشتر بیایند. ${shared ? 'اشتراک پروفایل روشن است؛ تغییرها فرستاده می‌شوند.' : 'فقط اگر «پروفایل من» را در حریم خصوصی روشن کنی فرستاده می‌شود.'}`}>
       <Row label="نام یا لقب" hint="اختیاری.">
         <input value={name} onChange={(e) => setName(e.target.value.slice(0, 40))} onBlur={() => { if (name !== prof.name) { setProfile({ name: name.trim() }); resync(); } }} aria-label="نام یا لقب" style={{ ...input, width: 200 }} />
       </Row>
+      <Row label="لحن اورآ" hint={TONE_LABEL.find(([k]) => k === voice)?.[2]}>
+        <Segmented label="لحن اورآ" value={voice} options={TONE_LABEL.map(([k, l]) => [k, l] as const)} onChange={(v) => setSettings({ voice: v })} />
+      </Row>
+      <p className="voice-sample" aria-live="polite">«{sample(voice)}»</p>
       <div className="profile-interests">
         <span className="set-row-label">علایق</span>
         <div className="day-pills">

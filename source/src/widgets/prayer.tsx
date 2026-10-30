@@ -1,6 +1,7 @@
 import { defineWidget } from '../core/widgets';
 import { useStore } from '../core/state';
 import { formatInZone, nextPrayer, prayerTimes } from '../core/prayer';
+import { prayerLine } from '../core/voice';
 import { useNow } from '../ui/hooks';
 import { IconBell, IconMosque } from '../ui/icons';
 import { DEFAULT_REMINDER, type PrayerKey } from '../core/reminders';
@@ -26,10 +27,12 @@ defineWidget<Config>({
     const setSettings = useStore((s) => s.setSettings);
     const toggle = (k: PrayerKey) => setSettings({ prayerReminder: { ...r, enabled: true, keys: r.keys.includes(k) ? r.keys.filter((x) => x !== k) : [...r.keys, k] } });
     const next = nextPrayer(place, now);
+    const voice = useStore((s) => s.settings.voice ?? 'friendly');
+    const line = prayerLine(next.key, next.time, now, voice);
 
     if (config.compact) {
       return (
-        <button onClick={() => setConfig({ compact: false })} title="نمایش فهرستی"
+        <button onClick={() => setConfig({ compact: false })} title={line ? `${line} (نمایش فهرستی)` : 'نمایش فهرستی'}
           style={{ width: '100%', height: '100%', border: 0, background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 12px', minHeight: 64, borderRadius: 'inherit' }}>
           {times.map((t) => {
             const isNext = t.key === next.key;
@@ -53,6 +56,7 @@ defineWidget<Config>({
           <span className="w-meta">{place.name}</span>
           <button className="btn btn-sm" style={{ border: 0 }} onClick={() => setConfig({ compact: true })}>فشرده</button>
         </div>
+        {line && <p className="w-say">{line}</p>}
         {times.map((t) => {
           const isNext = t.key === next.key;
           return (

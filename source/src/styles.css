@@ -1973,3 +1973,8 @@ body:has(.srch.full) .ora-tip, body:has(.srch.full) .tour-nudge { display: none;
 .tour-nudge .why-not { padding: 4px 2px; }
 .mirror-sim { align-self: flex-start; font-size: 10.5px; padding: 2px 8px; border-radius: 99px; background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--accent); }
 .mirror-trace { font-size: 12.5px; line-height: 1.8; margin: 4px 0 0; padding-inline-start: 18px; }
+/* «لحن اورآ»: the line that says what the numbers mean */
+.wx-say, .w-say { margin: 0; font-size: 13px; line-height: 1.7; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--text-2); text-wrap: pretty; }
+.w-say { color: var(--accent); font-size: 13px; }
+.voice-sample { margin: -2px 0 6px; font-size: 13px; color: var(--text-2); padding: 10px 12px; border-radius: 12px; background: var(--fill); line-height: 1.8; }
+.wx-say { flex-shrink: 0; }
