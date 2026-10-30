@@ -84,7 +84,31 @@ function Sheet({ latest, onClose }: { latest: Latest; onClose(): void }) {
   );
 }
 
+/** The phone/web app: a new version is downloaded and waiting; the bar stays until it is taken. */
+function WebUpdateBar() {
+  const [apply, setApply] = useState<(() => void) | null>(() => (globalThis as { oraWebUpdate?: () => void }).oraWebUpdate ?? null);
+  useEffect(() => {
+    const on = (e: Event) => setApply(() => (e as CustomEvent<{ apply: () => void }>).detail.apply);
+    addEventListener('ora:web-update-ready', on);
+    return () => removeEventListener('ora:web-update-ready', on);
+  }, []);
+  if (!apply) return null;
+  return createPortal(
+    <div className="upd-bar glass" role="status">
+      <span className="upd-dot" aria-hidden="true" />
+      <span>نسخه‌ی تازه‌ی اورآ آماده است</span>
+      <button className="btn btn-accent btn-sm" onClick={() => apply()}>بارگذاری دوباره</button>
+    </div>,
+    document.body,
+  );
+}
+
 export function UpdateHost() {
+  if (IS_WEB_BUILD) return <WebUpdateBar />;
+  return <ExtensionUpdate />;
+}
+
+function ExtensionUpdate() {
   const loaded = useStore((s) => s.loaded);
   const [latest, setLatest] = useState<Latest | null>(null);
   const [sheet, setSheet] = useState(false);
@@ -128,7 +152,7 @@ export function UpdateHost() {
     return () => { removeEventListener('ora:update-available', on); document.removeEventListener('visibilitychange', vis); window.clearInterval(iv); unsub(); };
   }, [loaded, refresh]);
 
-  if (!latest || IS_WEB_BUILD) return null;
+  if (!latest) return null;
   const hideToday = () => {
     const end = new Date(); end.setHours(24, 0, 0, 0);
     ls.set(HIDE, JSON.stringify({ v: latest.version, until: end.getTime() }));
