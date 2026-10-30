@@ -131,6 +131,7 @@ export async function understood(id: TourId): Promise<void> {
 }
 export async function resetTour(): Promise<void> {
   await kvSet(KEY, {});
+  try { localStorage.removeItem('ora:tour-off'); localStorage.removeItem(LATER); } catch { /* private */ }
   dispatchEvent(new Event('ora:tour-changed'));
 }
 export const openTour = (id?: TourId) => dispatchEvent(new CustomEvent('ora:tour', { detail: { id } }));
@@ -150,8 +151,10 @@ type Later = Partial<Record<TourId, { n: number; until: number }>>;
 const later = (): Later => { try { return JSON.parse(ls.get(LATER) ?? '{}'); } catch { return {}; } };
 
 export function nudgeDue(): boolean {
+  if (ls.get('ora:tour-off')) return false; // «آموزش نمی‌خوام»
   const newcomer = Date.now() - firstSeen() < 14 * 24 * H;
-  if (Date.now() - Number(ls.get(NUDGE) ?? 0) < (newcomer ? 3 : 20) * H) return false;
+  const x = Math.max(1, Number(ls.get('ora:tour-gapx')) || 1); // «زیاد یادم می‌اندازی»
+  if (Date.now() - Number(ls.get(NUDGE) ?? 0) < (newcomer ? 3 : 20) * x * H) return false;
   if (Date.now() - Number(ls.get('ora:tip-at') ?? 0) < 60_000) return false;
   return true;
 }

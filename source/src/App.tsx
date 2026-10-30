@@ -33,6 +33,7 @@ import { TourHost } from './ui/Tour';
 import { UpdateHost } from './ui/Update';
 import { NotifyHost } from './ui/NotifyAsk';
 import { CauseHost } from './ui/CauseCard';
+import { MirrorHost } from './ui/Mirror';
 import { remoteTick } from './core/remote';
 import { watchOpen } from './core/rhythm';
 
@@ -181,6 +182,7 @@ export default function App() {
       <UpdateHost />
       <NotifyHost />
       <CauseHost />
+      <MirrorHost />
       <NightLayer />
     </>
   );

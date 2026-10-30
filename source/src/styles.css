@@ -1962,3 +1962,14 @@ body:has(.srch.full) .ora-tip, body:has(.srch.full) .tour-nudge { display: none;
 .cause-in { height: 40px; border-radius: 10px; border: 1px solid var(--line-input); background: rgba(0,0,0,.25); padding: 0 10px; font-size: 14px; }
 .cause-done { color: var(--text-2); }
 @media (max-width: 720px) { .cause { left: 12px; right: 12px; width: auto; bottom: calc(84px + env(safe-area-inset-bottom)); } }
+
+/* «چرا نه؟» after declining something Ora offered */
+.why-not { display: flex; flex-direction: column; gap: 8px; max-width: 290px; }
+.why-q { font-size: 13px; font-weight: 600; }
+.why-q i { font-style: normal; font-weight: 400; opacity: .6; font-size: 11.5px; }
+.why-chips { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.why-skip { font-size: 12px; opacity: .65; margin-inline-start: 4px; }
+.why-reply { font-size: 13px; line-height: 1.7; }
+.tour-nudge .why-not { padding: 4px 2px; }
+.mirror-sim { align-self: flex-start; font-size: 10.5px; padding: 2px 8px; border-radius: 99px; background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--accent); }
+.mirror-trace { font-size: 12.5px; line-height: 1.8; margin: 4px 0 0; padding-inline-start: 18px; }

@@ -94,3 +94,25 @@ export async function normal(): Promise<Normal> {
   const busiest = hours.map((x, h) => [x.active, h] as const).filter(([a]) => a > 0).sort((a, b) => b[0] - a[0]).slice(0, 3).map(([, h]) => h).sort((a, b) => a - b);
   return { days: days.size, learning: days.size < LEARN_DAYS, hours, purposeful: o ? p / o : 0, busiest };
 }
+
+/** Your normal for one 10-minute slot at this hour: median and spread (MAD) of tab switches and new
+ *  tabs, over the days you were there at that hour. Plus what the last 10 minutes looked like. */
+export interface SlotNormal { days: number; s: { med: number; mad: number }; o: { med: number; mad: number }; nowS: number; nowO: number; nowP: number }
+export async function slotNormal(at = new Date(), r?: Rhythm): Promise<SlotNormal> {
+  r ??= await read();
+  const h = pad(at.getHours());
+  const today = slotKey(at).slice(0, 10);
+  const rows: Slot[] = [];
+  const days = new Set<string>();
+  for (const [k, v] of Object.entries(r.slots)) {
+    if (k.slice(11, 13) !== h || k.startsWith(today)) continue;
+    rows.push(v); days.add(k.slice(0, 10));
+  }
+  const stat = (xs: number[]) => { const m = median(xs); return { med: m, mad: median(xs.map((x) => Math.abs(x - m))) }; };
+  const cur = r.slots[slotKey(at)] ?? {};
+  const prev = r.slots[slotKey(new Date(at.getTime() - 600_000))] ?? {};
+  // the last ~10 minutes: this slot plus the part of the previous one
+  const frac = 1 - (at.getMinutes() % 10) / 10;
+  const last = (f: keyof Slot) => (cur[f] ?? 0) + Math.round((prev[f] ?? 0) * frac);
+  return { days: days.size, s: stat(rows.map((x) => x.s ?? 0)), o: stat(rows.map((x) => x.o ?? 0)), nowS: last('s'), nowO: last('o'), nowP: last('p') };
+}

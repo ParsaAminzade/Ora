@@ -192,6 +192,12 @@ export function ritualDone(kind: 'morning' | 'evening', now = new Date()): void 
   try { localStorage.setItem(RIT, JSON.stringify({ ...ritual(), [kind]: dayKey(now) })); } catch { /* private */ }
 }
 
+/** «الان وقتش نیست»: forget today's ask so it can come once more later today. */
+export function ritualUndo(kind: 'morning' | 'evening'): void {
+  const r = ritual(); delete r[kind];
+  try { localStorage.setItem(RIT, JSON.stringify(r)); } catch { /* private */ }
+}
+
 /** One-time upgrade: before 1.7 every open task was simply «today's». Keep it that way. */
 export async function migrateTasks(): Promise<void> {
   const KEY = 'ora:tasks-v2';

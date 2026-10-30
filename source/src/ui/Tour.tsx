@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from 're
 import { createPortal } from 'react-dom';
 import { useStore } from '../core/state';
 import { fa } from '../core/dates';
+import { note, shouldAsk } from '../core/feedback';
+import { WhyNot } from './WhyNot';
 import { nextToNudge, nudgeDue, nudged, openTour, putOff, resetTour, tourItems, tourSeen, understood, used, type TourId, type TourItem } from '../core/tour';
 import { IconCheck, IconChevronL, IconChevronR, IconOra, IconX } from './icons';
 import { Section } from './Panels';
@@ -354,13 +356,16 @@ function TourSheet({ start, onClose }: { start?: TourId; onClose(): void }) {
 /* ---------- the daily reminder card ---------- */
 function TourNudge({ item, index, total, onClose }: { item: TourItem; index: number; total: number; onClose(): void }) {
   const phone = matchMedia('(max-width: 720px)').matches;
+  const [why, setWhy] = useState(false);
+  const no = async () => { putOff(item.id); if (await shouldAsk('tour')) setWhy(true); else { void note('tour', 'skip'); onClose(); } };
+  if (why) return <div className="tour-nudge glass" role="dialog" aria-label="چرا نه؟"><WhyNot kind="tour" tour={item.id} onDone={onClose} /></div>;
   return (
     <div className="tour-nudge glass" role="dialog" aria-label={`اورآ: ${item.title}`}>
-      <button className="icon-btn tour-nudge-x" aria-label="بعداً" title="بعداً" onClick={() => { putOff(item.id); onClose(); }}><IconX size={16} /></button>
+      <button className="icon-btn tour-nudge-x" aria-label="بعداً" title="بعداً" onClick={() => void no()}><IconX size={16} /></button>
       <span className="tour-nudge-h">این را می‌دانستی؟</span>
       <TourCard item={item} index={index} total={total} done={false} compact phone={phone}
-        onGot={() => { void understood(item.id); onClose(); }}
-        onMore={() => { onClose(); openTour(item.id); }} />
+        onGot={() => { void understood(item.id); void note('tour', 'yes'); onClose(); }}
+        onMore={() => { void note('tour', 'yes'); onClose(); openTour(item.id); }} />
     </div>
   );
 }
