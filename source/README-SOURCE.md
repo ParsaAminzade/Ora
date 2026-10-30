@@ -1,4 +1,4 @@
-# Ora source (2.4.4)
+# Ora source (2.5.0)
 
 The full source of the Chrome extension and the phone/web app.
 

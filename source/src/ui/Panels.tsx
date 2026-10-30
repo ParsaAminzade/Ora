@@ -5,7 +5,8 @@ import { PlannerSection } from './settings/PlannerSection';
 import { CoachSection } from './settings/CoachSection';
 import { PrivacySection, ProfileSection } from './settings/PrivacySection';
 import { TourSection } from './Tour';
-import { APP_VERSION, IS_EXTENSION, usePhone } from '../core/platform';
+import { APP_VERSION, IS_EXTENSION, IS_WEB_BUILD, usePhone } from '../core/platform';
+import { NotifySection } from './NotifyAsk';
 import { effectiveLook } from '../core/state';
 import { useAssetUrl } from './hooks';
 import { bgStill } from '../core/backgrounds';
@@ -584,6 +585,7 @@ const GROUPS: { name: string; items: { title: string; short?: string; keys: stri
     { title: 'موتور جستجو', short: 'جستجو', keys: 'جستجو search گوگل duckduckgo' },
   ] },
   { name: 'داده', items: [
+    ...(IS_WEB_BUILD ? [{ title: 'یادآوری کارها', short: 'یادآوری', keys: 'نوتیف اعلان یادآوری notification push' }] : []),
     { title: 'پروفایل من', short: 'پروفایل', keys: 'پروفایل نام علایق ایمیل' },
     { title: 'حریم خصوصی و داده‌ها', short: 'حریم خصوصی', keys: 'حریم خصوصی سرور قوانین اشتراک داده بازخورد پیام ایمیل حذف نسخه آپدیت' },
     { title: 'پشتیبان‌گیری و پایداری', short: 'پشتیبان', keys: 'پشتیبان backup بازگردانی خروجی' },
@@ -807,6 +809,7 @@ export function SettingsPanel() {
 
       <SearchSection />
 
+      <NotifySection />
       <ProfileSection />
       <PrivacySection />
 

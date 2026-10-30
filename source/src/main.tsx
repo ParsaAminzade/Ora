@@ -21,6 +21,8 @@ void useStore.getState().load();
 (globalThis as unknown as { novaStore: typeof useStore }).novaStore = useStore;
 // For tests and the curious: the sentence engine (loaded on demand).
 (globalThis as unknown as { novaSentences: () => Promise<unknown> }).novaSentences = () => import('./core/sentences');
+// For tests and the curious: the database (loaded on demand).
+(globalThis as unknown as { novaDb: () => Promise<unknown> }).novaDb = () => import('./core/db').then((m) => m.db);
 void installLocalOriginRule();
 // The phone/web app: offline cache, «new version» prompt, and home-screen shortcuts.
 if (import.meta.env.VITE_TARGET === 'web') void import('./web/pwa').then((m) => m.startPwa());

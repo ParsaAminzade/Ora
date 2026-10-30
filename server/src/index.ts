@@ -5,6 +5,7 @@ import { handleApi } from './api';
 import { ensureSchema } from './db';
 import { home, privacy } from './site';
 import { json, type Env } from './util';
+import { sendDue } from './push';
 
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
@@ -24,5 +25,9 @@ export default {
       console.error('ora error', p, e);
       return p.startsWith('/api/') ? json({ ok: false, error: 'server' }, 500, { 'Access-Control-Allow-Origin': '*' }) : new Response('خطای سرور. چند لحظه بعد دوباره امتحان کن.', { status: 500, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
     }
+  },
+  // every minute: send the task reminders that are due (push.ts)
+  async scheduled(_e: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(ensureSchema(env.DB).then(() => sendDue(env)).catch((e) => console.error('push cron', e)));
   },
 } satisfies ExportedHandler<Env>;

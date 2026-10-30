@@ -2,6 +2,7 @@
 //
 // GET  /api/pack      new lines, fixes to built-in lines, latest version, announcement (nothing about the user is sent)
 // GET  /api/legal     the current terms text
+// GET  /api/push/key · POST /api/push/schedule|snooze|remove   task reminders on the phone (see push.ts)
 // GET  /api/latest    just the newest version (the extension asks every couple of hours to tell you about updates)
 // POST /api/sync      what the user agreed to share: sentence feedback, search categories, profile
 // POST /api/feedback  a message the user typed and sent on purpose
@@ -12,6 +13,7 @@
 import { all, eraseInstall, kvGet, one, run } from './db';
 import { json, now, today, type Env } from './util';
 import LEGAL from './legal.json';
+import { pushKey, pushRemove, pushSchedule, pushSnooze } from './push';
 
 const ID_RE = /^[a-z0-9]{20,40}$/;
 const LINE_RE = /^[A-Za-z0-9:_-]{1,80}$/;
@@ -60,6 +62,14 @@ export async function handleApi(req: Request, env: Env, url: URL): Promise<Respo
     if (p === '/api/sync' && req.method === 'POST') return await sync(req, env);
     if (p === '/api/feedback' && req.method === 'POST') return await feedback(req, env);
     if (p === '/api/delete' && req.method === 'POST') return await del(req, env);
+    if (p === '/api/push/key' && req.method === 'GET') return out(await pushKey(env), 200, { 'Cache-Control': 'public, max-age=3600' });
+    if (p.startsWith('/api/push/') && req.method === 'POST') {
+      const data = await body(req);
+      if (!data) return out({ ok: false, error: 400 }, 400);
+      if (p === '/api/push/schedule') return out(await pushSchedule(env, data));
+      if (p === '/api/push/snooze') return out(await pushSnooze(env, data));
+      if (p === '/api/push/remove') return out(await pushRemove(env, data));
+    }
   } catch (e) {
     console.error('api error', p, e);
     return out({ ok: false, error: 500 }, 500);

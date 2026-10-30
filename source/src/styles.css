@@ -1902,3 +1902,22 @@ body:has(.srch.full) .ora-tip, body:has(.srch.full) .tour-nudge { display: none;
 .upd-manual { border-top: 1px solid var(--line); padding-top: 10px; }
 .upd-manual summary { cursor: pointer; font-size: 13px; color: var(--text-2); margin-bottom: 10px; }
 .upd-hint { font-size: 12px !important; color: var(--text-3) !important; }
+
+/* ---------- 2.5: «سر وقت یادت بیاورم؟» ---------- */
+.nask-backdrop { z-index: 126; }
+.nask { width: min(420px, 100%); padding: 20px; display: flex; flex-direction: column; gap: 14px; border-radius: var(--r-sheet); --glass-solid: rgba(12,14,20,.96); box-shadow: var(--glass-shadow); }
+.nask h2 { margin: 0; font-size: 18px; line-height: 1.6; }
+.nask p { margin: 0; font-size: 14px; line-height: 1.9; color: var(--text-2); }
+.nask-demo { display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 16px; background: rgba(255,255,255,.08); border: 1px solid var(--line-2); box-shadow: 0 10px 30px -14px rgba(0,0,0,.6); animation: nask-in .5s cubic-bezier(.2,.8,.2,1) .15s both; }
+.nask-demo b { font-size: 14.5px; }
+.nask-demo > span { font-size: 13px; color: var(--text-2); }
+.nask-app { display: flex; align-items: center; gap: 6px; font-size: 11.5px !important; color: var(--text-3) !important; }
+.nask-app i { width: 14px; height: 14px; border-radius: 4px; background: var(--accent); }
+.nask-btns { display: flex; gap: 8px; margin-top: 6px; }
+.nask-btns em { font-style: normal; font-size: 12.5px; padding: 4px 12px; border-radius: 999px; background: rgba(255,255,255,.1); color: var(--text); }
+@keyframes nask-in { from { opacity: 0; transform: translateY(-10px) scale(.97); } to { opacity: 1; transform: none; } }
+.nask-promise { margin: 0; padding: 0 18px 0 0; display: flex; flex-direction: column; gap: 6px; font-size: 13px; line-height: 1.8; color: var(--text-2); }
+.nask-steps { margin: 0; padding: 0 18px 0 0; font-size: 13.5px; line-height: 2; list-style-type: persian; }
+.nask-actions { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+.nask-yes { height: 48px; justify-content: center; font-size: 15px; }
+.nask-no { align-self: center; font-size: 13.5px; color: var(--text-2); }

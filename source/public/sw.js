@@ -11,6 +11,7 @@ chrome.alarms.onAlarm.addListener((a) => {
   if (a.name === CHECK) { void checkUpdate(); return; }
   if (a.name === DISK) { void reloadIfReplaced(); return; }
   const kind = a.name.split('|')[0];
+  if (kind === 'task') { taskNote(a.name); return; }
   if (kind !== 'prayer' && kind !== 'event') return;
   const parts = a.name.split('|');
   const at = parts[2];
@@ -19,6 +20,19 @@ chrome.alarms.onAlarm.addListener((a) => {
   if (Date.now() - Number(at) > 20 * 60 * 1000) return;
   chrome.notifications.create(a.name, { type: 'basic', iconUrl: 'icons/128.png', title: kind === 'event' ? 'اورآ · تقویم' : 'اورآ', message: text, priority: 2 });
 });
+
+/* ---------- task reminders («task|id|at|title|body», scheduled by the page) ---------- */
+function taskNote(name) {
+  const [, , at, title, body] = name.split('|');
+  if (Date.now() - Number(at) > 20 * 60 * 1000) return; // the computer was asleep; too late now
+  chrome.notifications.create(name, { type: 'basic', iconUrl: 'icons/128.png', title: title || 'اورآ', message: body || '', buttons: [{ title: 'شروع' }, { title: '۱۵ دقیقه بعد' }], requireInteraction: true, priority: 2 });
+}
+function snoozeTask(name) {
+  const p = name.split('|');
+  const when = Date.now() + 15 * 60 * 1000;
+  p[2] = String(when);
+  chrome.alarms.create(p.join('|'), { when });
+}
 
 /* ---------- new versions ---------- */
 const DISK = 'ora-disk-check';
@@ -79,10 +93,15 @@ async function checkUpdate(force = false) {
 const openUpdate = () => chrome.tabs.create({ url: chrome.runtime.getURL('index.html?update=1') });
 chrome.notifications.onClicked.addListener((id) => {
   if (id.startsWith('update|')) openUpdate();
+  if (id.startsWith('task|')) chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
   chrome.notifications.clear(id);
 });
-chrome.notifications.onButtonClicked.addListener((id) => {
+chrome.notifications.onButtonClicked.addListener((id, i) => {
   if (id.startsWith('update|')) { openUpdate(); chrome.notifications.clear(id); }
+  if (id.startsWith('task|')) {
+    if (i === 1) snoozeTask(id); else chrome.tabs.create({ url: chrome.runtime.getURL('index.html') });
+    chrome.notifications.clear(id);
+  }
 });
 // The page can ask for a check right away (after the server address changes, for example).
 chrome.runtime.onMessage.addListener((m) => { if (m === 'ora:check-update') void checkUpdate(); if (m === 'ora:disk-check') void reloadIfReplaced(); });

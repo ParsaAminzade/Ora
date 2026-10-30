@@ -16,6 +16,10 @@ binding = "DB"
 database_name = "ora-db"
 database_id = "9ae8eb08-c2ee-40cf-ac16-62af47622ba0"
 
+# every minute: send task reminders that are due to phones (src/push.ts)
+[triggers]
+crons = ["* * * * *"]
+
 [observability]
 enabled = true
 

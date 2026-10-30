@@ -43,9 +43,35 @@ self.addEventListener('fetch', (e) => {
   })());
 });
 
-// Reminders sent by the page while it is open show as system notifications.
+// Task reminders from the Ora server (Web Push). The browser opens the sealed message for us;
+// the server never could. Buttons: «شروع» opens Ora, «۱۵ دقیقه بعد» asks the server to send the
+// same sealed reminder again in 15 minutes.
+self.addEventListener('push', (e) => {
+  let m = {};
+  try { m = e.data ? e.data.json() : {}; } catch { m = { t: e.data ? e.data.text() : 'اورآ' }; }
+  e.waitUntil(self.registration.showNotification(m.t || 'اورآ', {
+    body: m.b || '',
+    tag: m.id || 'ora',
+    renotify: true,
+    dir: 'rtl',
+    lang: 'fa',
+    icon: './icons/app-192.png',
+    badge: './icons/app-192.png',
+    data: { id: m.id, s: m.s },
+    actions: [{ action: 'start', title: 'شروع' }, { action: 'later', title: '۱۵ دقیقه بعد' }],
+  }));
+});
+
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
+  const d = e.notification.data || {};
+  if (e.action === 'later' && d.id && d.s) {
+    e.waitUntil((async () => {
+      const sub = await self.registration.pushManager.getSubscription();
+      if (sub) await fetch(`${d.s}/api/push/snooze`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ endpoint: sub.endpoint, id: d.id, minutes: 15 }) }).catch(() => {});
+    })());
+    return;
+  }
   e.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     if (all.length) return all[0].focus();

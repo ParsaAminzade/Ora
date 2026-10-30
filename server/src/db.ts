@@ -20,6 +20,11 @@ const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS hidden (id TEXT PRIMARY KEY, at INTEGER NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, value TEXT)`,
   `CREATE TABLE IF NOT EXISTS login_fail (at INTEGER NOT NULL)`,
+  // task reminders for phones (push.ts): only the delivery address, the time and the sealed text
+  `CREATE TABLE IF NOT EXISTS push_jobs (
+    endpoint TEXT NOT NULL, id TEXT NOT NULL, at INTEGER NOT NULL, body TEXT NOT NULL, sent INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (endpoint, id))`,
+  `CREATE INDEX IF NOT EXISTS push_due ON push_jobs(sent, at)`,
 ];
 
 let ready: Promise<void> | null = null;

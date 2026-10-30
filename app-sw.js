@@ -1,7 +1,7 @@
 // Ora web app: works offline. Everything the app needs is cached at install; a new version is
 // fetched in the background and takes over when you tap «بارگذاری دوباره» (or on the next start).
-const VERSION = '5bc50a588005';
-const FILES = ["./","./app.webmanifest","./assets/ai-BEqGd6_c.js","./assets/dates-KBkGdMio.js","./assets/index-_OOYQIcf.css","./assets/index-lt-vx_EC.js","./assets/markdown-CLEEhsSJ.js","./assets/markdown-VvdwByQe.css","./assets/meanings-Dgtu1YaX.js","./assets/nova-sentences-C9Y0VbuM.js","./assets/pdf-EX3KQX08.js","./assets/pdf.worker.min-CjEcRF4W.mjs","./assets/pdf.worker.min-DI4FfYVf.js","./assets/planner-C_yRG_gw.js","./assets/preload-helper-uBIymjUX.js","./assets/pwa-mf56G3oM.js","./assets/recurrence-Cu1sNjmU.js","./assets/rolldown-runtime-hePW80VL.js","./assets/schedule-e0tqwGK8.js","./assets/state-9O9NeIzN.js","./assets/taskparse-D8ovPRQ-.js","./assets/three-B8_0Ia1u.js","./bgframe.html","./icons/128.png","./icons/app-192.png","./icons/app-512.png","./icons/apple-180.png","./icons/maskable-512.png","./index.html","./sandbox.html"];
+const VERSION = 'dd1dca0885ff';
+const FILES = ["./","./app.webmanifest","./assets/ai-Bdw1Ef3T.js","./assets/dates-KBkGdMio.js","./assets/db-BepsHdCD.js","./assets/index-BFxq5FUR.js","./assets/index-C1HNgask.css","./assets/markdown-CLEEhsSJ.js","./assets/markdown-VvdwByQe.css","./assets/meanings-Dgtu1YaX.js","./assets/nova-sentences-C9Y0VbuM.js","./assets/pdf-EX3KQX08.js","./assets/pdf.worker.min-CjEcRF4W.mjs","./assets/pdf.worker.min-DI4FfYVf.js","./assets/planner-Kb9nleF2.js","./assets/preload-helper-uBIymjUX.js","./assets/pwa-mf56G3oM.js","./assets/recurrence-Cu1sNjmU.js","./assets/schedule-BHpTtG10.js","./assets/state-B1_2zlRq.js","./assets/taskparse-D2Ujux3e.js","./assets/three-B8_0Ia1u.js","./bgframe.html","./icons/128.png","./icons/app-192.png","./icons/app-512.png","./icons/apple-180.png","./icons/maskable-512.png","./index.html","./sandbox.html"];
 const CACHE = `ora-${VERSION}`;
 
 self.addEventListener('install', (e) => {
@@ -43,9 +43,35 @@ self.addEventListener('fetch', (e) => {
   })());
 });
 
-// Reminders sent by the page while it is open show as system notifications.
+// Task reminders from the Ora server (Web Push). The browser opens the sealed message for us;
+// the server never could. Buttons: «شروع» opens Ora, «۱۵ دقیقه بعد» asks the server to send the
+// same sealed reminder again in 15 minutes.
+self.addEventListener('push', (e) => {
+  let m = {};
+  try { m = e.data ? e.data.json() : {}; } catch { m = { t: e.data ? e.data.text() : 'اورآ' }; }
+  e.waitUntil(self.registration.showNotification(m.t || 'اورآ', {
+    body: m.b || '',
+    tag: m.id || 'ora',
+    renotify: true,
+    dir: 'rtl',
+    lang: 'fa',
+    icon: './icons/app-192.png',
+    badge: './icons/app-192.png',
+    data: { id: m.id, s: m.s },
+    actions: [{ action: 'start', title: 'شروع' }, { action: 'later', title: '۱۵ دقیقه بعد' }],
+  }));
+});
+
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
+  const d = e.notification.data || {};
+  if (e.action === 'later' && d.id && d.s) {
+    e.waitUntil((async () => {
+      const sub = await self.registration.pushManager.getSubscription();
+      if (sub) await fetch(`${d.s}/api/push/snooze`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ endpoint: sub.endpoint, id: d.id, minutes: 15 }) }).catch(() => {});
+    })());
+    return;
+  }
   e.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     if (all.length) return all[0].focus();
