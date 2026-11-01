@@ -111,7 +111,14 @@ function Copy-Ora($from, $dest) {
   Copy-Item -LiteralPath (Join-Path $from 'manifest.json') -Destination (Join-Path $dest 'manifest.json') -Force # last: Ora reloads when it sees it
   Get-ChildItem -LiteralPath $dest -Recurse -File | Unblock-File -ErrorAction SilentlyContinue
   # the updater lives next to Ora too, so updating later is one double-click
-  if ($env:ORA_SELF -and (Test-Path -LiteralPath (Join-Path $dest 'Ora-Update.cmd'))) { Copy-Item -LiteralPath (Join-Path $dest 'Ora-Update.cmd') -Destination (Join-Path $OraHome 'Ora-Update.cmd') -Force -ErrorAction SilentlyContinue }
+  # a shortcut to the updater in %LOCALAPPDATA%\Ora — nice to have, never a reason to fail
+  try {
+    $upd = Join-Path $dest 'Ora-Update.cmd'
+    if (Test-Path -LiteralPath $upd) {
+      New-Item -ItemType Directory -Path $OraHome -Force | Out-Null
+      if ((Resolve-Path -LiteralPath $dest).Path -ne $Dir) { Copy-Item -LiteralPath $upd -Destination (Join-Path $OraHome 'Ora-Update.cmd') -Force }
+    }
+  } catch { Write-Host "  (updater shortcut skipped: $($_.Exception.Message))" }
 }
 
 # ---------- the live guide ----------
