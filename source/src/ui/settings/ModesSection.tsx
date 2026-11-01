@@ -99,6 +99,7 @@ function ModeEditor({ m }: { m: Mode }) {
             فونت جمله
             <select value={m.sentenceFont ?? ''} onChange={(e) => update(m.id, { sentenceFont: e.target.value || undefined })} aria-label={`فونت جمله · ${m.name}`} style={select}>
               <option value="">مثل تنظیم جمله‌ها</option>
+              <option value="diba">دیبا</option>
               <option value="naskh">نسخ</option>
               <option value="vazir">وزیرمتن</option>
               {fonts.map((f) => <option key={f.id} value={f.id}>{fontName(f.name)}</option>)}

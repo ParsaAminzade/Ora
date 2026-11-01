@@ -286,7 +286,14 @@ export const useStore = create<Store>((set, get) => ({
     const saved = await kvGet<Snapshot>(KEY);
     if (saved?.schema === 1) {
       const widgets = saved.widgets.filter((x) => getWidget(x.type));
-      set({ settings: withModes(mergeSettings(saved.settings), widgets), widgets, loaded: true });
+      const settings = withModes(mergeSettings(saved.settings), widgets);
+      try {
+        if (!localStorage.getItem('ora:diba-default')) {
+          localStorage.setItem('ora:diba-default', '1');
+          if (settings.sentences.font === 'naskh' || settings.sentences.font === 'vazir') settings.sentences = { ...settings.sentences, font: 'diba' };
+        }
+      } catch { /* private */ }
+      set({ settings, widgets, loaded: true });
     } else {
       const widgets = defaultLayout();
       set({ settings: withModes(DEFAULT_SETTINGS, widgets), widgets, loaded: true });

@@ -59,7 +59,7 @@ export function SentencesSection() {
           <label className="muted" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12 }}>
             قلم
             <select value={cfg.font} onChange={(e) => set({ font: e.target.value as typeof cfg.font })} aria-label="قلم جمله" style={select}>
-              <option value="naskh">نسخ</option><option value="vazir">وزیرمتن</option><option value="custom">فونت شخصی</option>
+              <option value="diba">دیبا</option><option value="naskh">نسخ</option><option value="vazir">وزیرمتن</option><option value="custom">فونت شخصی</option>
             </select>
           </label>
         </div>

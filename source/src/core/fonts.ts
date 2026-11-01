@@ -29,6 +29,7 @@ export const stack = (family: string) => `'${family}', 'Vazirmatn', system-ui, s
 
 /** Built-in choices for the sentence (besides uploaded fonts). */
 export const SENTENCE_BUILTIN: Record<string, string> = {
+  diba: "'Diba', 'Vazirmatn', system-ui, sans-serif",
   naskh: "'Noto Naskh Arabic', 'Vazirmatn', serif",
   vazir: "'Vazirmatn', system-ui, sans-serif",
 };

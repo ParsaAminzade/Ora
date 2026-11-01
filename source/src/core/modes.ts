@@ -20,7 +20,7 @@ export interface Mode {
   tone?: string;
   /** Uploaded font (asset id) for the whole page in this mode. */
   font?: string;
-  /** Font for the background sentence: an asset id, 'naskh' or 'vazir'. */
+  /** Font for the background sentence: an asset id, 'diba', 'naskh' or 'vazir'. */
   sentenceFont?: string;
   /** Domains closed while this mode is on, e.g. instagram.com */
   block: string[];

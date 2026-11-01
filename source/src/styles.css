@@ -1,3 +1,8 @@
+/* Ora's default font: Diba for Persian letters (Latin letters and digits fall back to Vazirmatn) */
+@font-face { font-family: 'Diba'; font-weight: 100 900; font-display: swap; src: url('./fonts/diba.woff2') format('woff2');
+  unicode-range: U+0600-065F, U+066A-06EF, U+06FA-06FF, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF, U+00AB, U+00BB; }
+/* Digits stay in Vazirmatn: Diba's numerals have uneven heights (its zero is a small low dot), so the
+   clock, timers, times and dates would not line up. Vazirmatn's sit on one line at one height. */
 :root {
   --accent: #D9B77E;
   --on-accent: #14110C;
@@ -19,7 +24,7 @@
   --blur: 24px;
   --danger: #E9A08F;
   --radius: 20px;
-  --font: 'Vazirmatn', system-ui, sans-serif;
+  --font: 'Diba', 'Vazirmatn', system-ui, sans-serif;
   color-scheme: dark;
 }
 
@@ -58,7 +63,7 @@ input::placeholder, textarea::placeholder { color: var(--text-3); }
 :root[data-panels='premium'] .glass {
   background:
     linear-gradient(180deg, rgba(255,255,255,calc(var(--panel-a) + .05)), rgba(255,255,255,calc(var(--panel-a) * .3)) 55%, rgba(255,255,255,calc(var(--panel-a) * .6 + .01))),
-    var(--glass-solid, rgba(9, 10, 15, calc(.2 + var(--panel-a) * 2.5)));
+    var(--glass-solid, rgba(9, 10, 15, calc(.2 + var(--panel-a) * 2.5 + var(--bg-light, 0) * .42)));
   border-color: transparent;
   backdrop-filter: blur(var(--blur)) saturate(135%);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.13), inset 0 -1px 0 rgba(0,0,0,.24), var(--glass-shadow);
@@ -1993,3 +1998,12 @@ body:has(.srch.full) .ora-tip, body:has(.srch.full) .tour-nudge { display: none;
 /* the two first-day questions */
 .quick-h { font-size: 12.5px; color: var(--text-2); line-height: 1.7; padding-inline-end: 26px; }
 .quick-col { flex-direction: column; align-items: stretch; }
+
+/* Readable on any background, even a white photo: a soft dark halo under all light text.
+   Not on things that already sit on a solid colour (accent buttons, selected pills) or where you type. */
+body { text-shadow: 0 1px 2px rgba(0,0,0,.45), 0 0 10px rgba(0,0,0,.28); }
+/* a light background (a white photo, a pale colour): panels get darker and the halo stronger */
+:root[data-bg-light] body { text-shadow: 0 1px 2px rgba(0,0,0,.7), 0 0 12px rgba(0,0,0,.45); }
+:root[data-bg-light][data-panels='plain'] .glass { background: var(--glass-solid, rgba(10, 11, 16, calc(.42 + var(--panel-a)))); }
+.btn-accent, .btn-accent *, .pill[aria-pressed="true"], input, textarea, select, [contenteditable="true"], .sc-img, svg text, .on-accent { text-shadow: none; }
+:root[data-bg-light] .sc-name { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.85), 0 0 8px rgba(0,0,0,.6); }

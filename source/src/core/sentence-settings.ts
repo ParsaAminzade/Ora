@@ -4,7 +4,7 @@ export type SourceGroup = 'nova' | 'classic' | 'mine' | 'insight' | 'packs' | 'a
 export interface SentenceSettings {
   weights: Record<SourceGroup, number>;
   rotate: 'tab' | 'hour' | 'day';
-  font: 'naskh' | 'vazir' | 'custom';
+  font: 'diba' | 'naskh' | 'vazir' | 'custom';
   apiUrl: string;
   apiName: string;
   /** Last successful API fetch / model line (ms). */
@@ -29,7 +29,7 @@ export interface SentenceSettings {
 export const DEFAULT_SENTENCES: SentenceSettings = {
   weights: { nova: 7, classic: 5, mine: 8, insight: 7, packs: 5, api: 4, ai: 0 },
   rotate: 'hour',
-  font: 'naskh',
+  font: 'diba',
   apiUrl: '',
   apiName: 'API',
   apiLast: 0,

@@ -177,6 +177,7 @@ export function Background() {
   const saved = effectiveLook(settings).background;
   const bg = safeMode ? { ...saved, kind: 'color' as const, color: '#0B0D14', dim: 0 } : saved;
   const url = useAssetUrl(bg.kind === 'image' || bg.kind === 'video' ? bg.assetId : undefined);
+  useLightBackground(bg.kind, bg.kind === 'color' ? bg.color : undefined, url, bg.dim);
 
   return (
     <div aria-hidden="true" style={{ position: 'fixed', inset: 0, zIndex: 0, background: bg.kind === 'color' ? bg.color : '#05060A' }}>
@@ -190,4 +191,39 @@ export function Background() {
       {bg.dim > 0 && <div style={{ position: 'absolute', inset: 0, background: `rgba(0,0,0,${bg.dim / 100})` }} />}
     </div>
   );
+}
+
+/** How bright the background really is (after the dim). On a light one, Ora's light text needs help:
+ *  `data-bg-light` on <html> darkens the panels and strengthens the text halo (styles.css). */
+function useLightBackground(kind: string, color: string | undefined, url: string | undefined, dim: number) {
+  useEffect(() => {
+    let alive = true;
+    const apply = (lum: number) => {
+      if (!alive) return;
+      const light = lum * (1 - dim / 100) > 0.55;
+      const root = document.documentElement;
+      if (light) { root.dataset.bgLight = '1'; root.style.setProperty('--bg-light', '1'); }
+      else { delete root.dataset.bgLight; root.style.removeProperty('--bg-light'); }
+    };
+    const fromPixels = (src: CanvasImageSource) => {
+      try {
+        const c = document.createElement('canvas'); c.width = c.height = 24;
+        const x = c.getContext('2d', { willReadFrequently: true })!; x.drawImage(src, 0, 0, 24, 24);
+        const d = x.getImageData(0, 0, 24, 24).data; let sum = 0;
+        for (let i = 0; i < d.length; i += 4) sum += (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255;
+        apply(sum / (d.length / 4));
+      } catch { apply(0); }
+    };
+    if (kind === 'color' && color) {
+      const m = /^#?([0-9a-f]{6})$/i.exec(color.trim());
+      const n = m ? parseInt(m[1], 16) : 0;
+      apply(m ? (0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255 : 0);
+    } else if (kind === 'image' && url) {
+      const im = new Image(); im.onload = () => fromPixels(im); im.onerror = () => apply(0); im.src = url;
+    } else if (kind === 'video' && url) {
+      const t = window.setTimeout(() => { const v = document.querySelector('video'); if (v && v.readyState >= 2) fromPixels(v); }, 1500);
+      return () => { alive = false; window.clearTimeout(t); };
+    } else apply(0);
+    return () => { alive = false; };
+  }, [kind, color, url, dim]);
 }
