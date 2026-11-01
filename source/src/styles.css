@@ -1985,3 +1985,11 @@ body:has(.srch.full) .ora-tip, body:has(.srch.full) .tour-nudge { display: none;
 .install-steps li { margin-bottom: 4px; }
 .install .btn-accent { display: inline-flex; align-items: center; gap: 6px; }
 .install-steps { list-style-type: persian; }
+/* «به دردت خورد؟» under every tip */
+.tip-rate { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-2); }
+.tip-thanks { color: var(--accent); }
+.why-why { font-size: 12px; margin-inline-start: 4px; }
+.why-explain { font-size: 12.5px; line-height: 1.8; color: var(--text-2); }
+/* the two first-day questions */
+.quick-h { font-size: 12.5px; color: var(--text-2); line-height: 1.7; padding-inline-end: 26px; }
+.quick-col { flex-direction: column; align-items: stretch; }

@@ -58,6 +58,7 @@ export function OraEye({ size = 30 }: { size?: number }) {
   const [blink, setBlink] = useState(false);
   const [tip, setTip] = useState<Tip | null>(null);
   const [why, setWhy] = useState(false); // after a «نه»: the «چرا؟» row
+  const [rated, setRated] = useState(''); // «به دردت خورد؟» answered
   const [pos, setPos] = useState({ top: 0, right: 0 });
   const target = useRef({ ...REST });
   const cur = useRef({ ...REST });
@@ -109,11 +110,11 @@ export function OraEye({ size = 30 }: { size?: number }) {
     const next = await pickTip(context);
     setBlink(true); window.setTimeout(() => setBlink(false), 150);
     target.current = { x: -MAX, y: 0 }; // look at the bubble
-    setWhy(false);
+    setWhy(false); setRated('');
     // only a tip Ora offered on its own asks «چرا؟» when closed; one you asked for by clicking doesn't
     setTip(unasked ? { ...next, kind: 'tip' } : next);
   }, []);
-  const hide = useCallback(() => { setTip(null); setWhy(false); target.current = { ...REST }; }, []);
+  const hide = useCallback(() => { setTip(null); setWhy(false); setRated(''); target.current = { ...REST }; }, []);
   /** You said no to something Ora offered: ask why (unless you've been skipping that question). */
   const decline = useCallback(async () => {
     const k = tip?.kind;
@@ -207,6 +208,17 @@ export function OraEye({ size = 30 }: { size?: number }) {
               {tip.choices && (
                 <span className="ora-tip-choices">
                   {tip.choices.map((c) => <button key={c.label} className="pill pill-xs" onClick={() => { accept(tip); hide(); c.run(); }}>{c.label}</button>)}
+                </span>
+              )}
+              {!tip.said && (
+                <span className="tip-rate" aria-label="این نکته به دردت خورد؟">
+                  {rated ? <span className="tip-thanks">{rated}</span> : (
+                    <>
+                      <span>به دردت خورد؟</span>
+                      <button className="pill pill-xs" onClick={() => { void note('tip', 'yes'); setRated('ممنون! از این جور نکته‌ها بیشتر می‌گم.'); }}>آره</button>
+                      <button className="pill pill-xs" onClick={() => { setTip({ ...tip, kind: 'tip' }); setWhy(true); }}>نه</button>
+                    </>
+                  )}
                 </span>
               )}
               <span className="ora-tip-row">

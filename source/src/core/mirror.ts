@@ -20,6 +20,7 @@ import { isQuiet, quietRestOfDay } from './safety';
 import { LEARN_DAYS, rhythm, slotKey, slotNormal, type Rhythm, type SlotNormal } from './rhythm';
 import { useStore } from './state';
 import { today } from './planner';
+import { inBands, loadSelf } from './selfreport';
 
 export type Answer = 'working' | 'tired' | 'avoid' | 'meaning' | 'cant' | 'lost' | 'bored' | 'waiting' | 'step' | 'not-now' | 'stop' | 'none';
 type Ev = { at: number; h: number; act: 'shown' | 'held' | 'braked'; why?: string; sig?: Signal['kind']; ans?: Answer; sim?: boolean; outcome?: 1 | 0 };
@@ -63,12 +64,16 @@ export async function trustStep(): Promise<{ step: number; base: number; up: num
   const r = await rhythm();
   const days = new Set(Object.keys(r.slots).map((k) => k.slice(0, 10))).size;
   const age = (Date.now() - r.since) / 86_400_000;
-  let base = age < 3 ? 0 : days < LEARN_DAYS ? 1 : 2;
+  // You answered the two first-day questions: Ora may start today, within what you said.
+  // Otherwise: the first day only listening, then a few days of learning your rhythm.
+  const self = await loadSelf();
+  let base = self?.at ? 2 : age < 1 ? 0 : days < LEARN_DAYS ? 1 : 2;
   if (simOn()) base = Math.max(base, 2);
   const s = await store();
   const good = s.events.filter((e) => e.act === 'shown' && (e.ans === 'step' || e.outcome === 1) && !e.sim).length;
   const up = base >= 2 ? (good >= 3 ? 1 : 0) + (good >= 10 ? 1 : 0) : 0;
-  const cap = useStore.getState().settings.trustCap ?? 4;
+  let cap = useStore.getState().settings.trustCap ?? 4;
+  if (self?.when === 'asked') cap = Math.min(cap, 1); // «فقط وقتی خودم خواستم»: never speaks on its own
   return { step: Math.max(0, Math.min(cap, base + up - s.down)), base, up, down: s.down, days };
 }
 
@@ -126,12 +131,19 @@ export async function decide(force = false, now = new Date()): Promise<Trace> {
   const real = await rhythm();
   const sim = simOn();
   const n = await slotNormal(now, sim ? simRhythm(real) : real);
+  // Before Ora knows your own rhythm, it leans on what you told it on day one: in the hours you said
+  // you lose time, a plain ordinary baseline; elsewhere it doesn't guess (only the bedtime signal).
+  const self = await loadSelf();
+  const learning = !sim && n.days < LEARN_DAYS;
+  const mine = !!self?.bands.length && inBands(self.bands, now.getHours());
+  if (learning && mine) { n.s = { med: 6, mad: 3 }; n.o = { med: 1, mad: 1 }; }
   const { step } = await trustStep();
-  const sigs = signals(n, now);
+  const sigs = signals(n, now).filter((x) => !learning || mine || x.kind === 'late');
   const threshold = step >= 3 ? 0.6 : 0.75;
   const s = await store();
   const log = (e: Omit<Ev, 'at' | 'h'>) => { s.events.push({ at: Date.now(), h: now.getHours(), sim, ...e }); void save(); };
   let brake = await brakes(step, now);
+  if (!brake && self?.when === 'my-hours' && self.bands.length && !mine) brake = 'بیرون از ساعت‌هایی که گفتی';
   if (force && brake && !/ساکت|تمرکز|باز است/.test(brake)) brake = null; // the test button: cap/ladder off, safety on
   if (brake) { if (sigs[0]?.p >= threshold) log({ act: 'braked', why: brake, sig: sigs[0].kind }); return { brake, signals: sigs, threshold, normal: n }; }
   const best = force ? sigs[0] ?? { kind: 'switching' as const, p: 1, mirror: `${fa(n.nowS)} بار تب عوض کردی در ده دقیقه.`, why: '(دکمه‌ی آزمایش: بدون نشانه‌ی واقعی)' } : sigs.find((x) => x.p >= threshold);

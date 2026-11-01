@@ -111,7 +111,14 @@ function Copy-Ora($from, $dest) {
   Copy-Item -LiteralPath (Join-Path $from 'manifest.json') -Destination (Join-Path $dest 'manifest.json') -Force # last: Ora reloads when it sees it
   Get-ChildItem -LiteralPath $dest -Recurse -File | Unblock-File -ErrorAction SilentlyContinue
   # the updater lives next to Ora too, so updating later is one double-click
-  if ($env:ORA_SELF -and (Test-Path -LiteralPath (Join-Path $dest 'Ora-Update.cmd'))) { Copy-Item -LiteralPath (Join-Path $dest 'Ora-Update.cmd') -Destination (Join-Path $OraHome 'Ora-Update.cmd') -Force -ErrorAction SilentlyContinue }
+  # a shortcut to the updater in %LOCALAPPDATA%\Ora — nice to have, never a reason to fail
+  try {
+    $upd = Join-Path $dest 'Ora-Update.cmd'
+    if (Test-Path -LiteralPath $upd) {
+      New-Item -ItemType Directory -Path $OraHome -Force | Out-Null
+      if ((Resolve-Path -LiteralPath $dest).Path -ne $Dir) { Copy-Item -LiteralPath $upd -Destination (Join-Path $OraHome 'Ora-Update.cmd') -Force }
+    }
+  } catch { Write-Host "  (updater shortcut skipped: $($_.Exception.Message))" }
 }
 
 # ---------- the live guide ----------
@@ -158,7 +165,7 @@ function Show-Guide($b) {
   $timer.Add_Tick({
     if (Dev-Mode $b) { $s1[0].Text = '✓'; $s1[0].ForeColor = $ok; $s1[1].ForeColor = $dim }
     $paths = Ora-Paths $b
-    if ($paths.Count -gt 0) {
+    if (($env:ORA_FRESH -and ($paths -contains $Dir)) -or (-not $env:ORA_FRESH -and $paths.Count -gt 0)) {
       $timer.Stop(); $script:done = $true
       $s1[0].Text = '✓'; $s1[0].ForeColor = $ok; $s2[0].Text = '✓'; $s2[0].ForeColor = $ok; $s2[1].ForeColor = $dim
       $title.Text = 'تمام شد! اورآ نصب شد.'; $title.ForeColor = $ok
@@ -184,7 +191,8 @@ try {
 
   # already there? then this is an update
   $have = @(foreach ($x in $Browsers) { if ($x.Path) { Ora-Paths $x } }) | Select-Object -Unique
-  if ($have.Count) {
+  # ORA_FRESH=1: test the newcomer path on a computer that already has Ora (load it into a new browser profile)
+  if ($have.Count -and -not $env:ORA_FRESH) {
     foreach ($d in $have) { if ((Version-Of $d) -lt $theirs) { Copy-Ora $src $d } }
     Say "اورآ از قبل نصب است و حالا نسخه‌ی $theirs را دارد.`n`nیک تب تازه باز کن."
     exit 0

@@ -5,7 +5,7 @@
 //   p  of those, how many went somewhere within 8 seconds without touching Ora (a purposeful tab)
 //   s  how often you switched tabs (extension only: Chrome tells the worker «a tab became active»,
 //      never which one or what is in it — Ora has no permission to see addresses or pages)
-// From these, Ora learns your normal rhythm for each hour of the day over the first 14 days. Later
+// From these, Ora learns your normal rhythm for each hour of the day over the first few days. Later
 // (step 2) it compares the moment with *your* normal — not with a fixed number — before it speaks.
 import { IS_EXTENSION } from './platform';
 
@@ -13,7 +13,7 @@ export type Slot = { o?: number; p?: number; s?: number };
 export type Rhythm = { since: number; slots: Record<string, Slot>; paused?: boolean };
 const KEY = 'oraRhythm';
 const KEEP_DAYS = 21;
-export const LEARN_DAYS = 14;
+export const LEARN_DAYS = 4; // was 14: people can't wait two weeks; day-one answers (selfreport.ts) bridge the gap
 
 const pad = (n: number) => String(n).padStart(2, '0');
 export const slotKey = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${Math.floor(d.getMinutes() / 10)}`;

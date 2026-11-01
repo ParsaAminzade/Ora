@@ -7,6 +7,7 @@ import { fa } from '../core/dates';
 import { openPlanner, plannerOf, ritualUndo } from '../core/planner';
 import { understood, type TourId } from '../core/tour';
 import { useStore } from '../core/state';
+import { WHY_ASK } from './QuickStart';
 
 const HOURS: Record<'ritual-morning' | 'ritual-evening', number[]> = { 'ritual-morning': [6, 7, 8, 9, 10, 11], 'ritual-evening': [18, 19, 20, 21, 22] };
 const WHAT: Partial<Record<FbKind, string>> = {
@@ -20,6 +21,7 @@ export function WhyNot({ kind, tour, tipId, onDone }: { kind: FbKind; tour?: Tou
   const setSettings = useStore((s) => s.setSettings);
   const [chips, setChips] = useState<[FbReason, string][] | null>(null);
   const [reply, setReply] = useState<{ text: string; btns?: Btn[] } | null>(null);
+  const [whyAsk, setWhyAsk] = useState(false);
   useEffect(() => { void reasonsFor(kind).then(setChips); }, [kind]);
   // a reply with nothing to choose closes by itself
   useEffect(() => {
@@ -104,7 +106,8 @@ export function WhyNot({ kind, tour, tipId, onDone }: { kind: FbKind; tour?: Tou
   }
   return (
     <span className="why-not" role="group" aria-label="چرا نه؟">
-      <span className="why-q">چرا نه؟ <i>(کمکم می‌کنه بهتر بشناسمت)</i></span>
+      <span className="why-q">چرا نه؟ <i>جوابت همین الان کار اورآ رو عوض می‌کنه.</i> <button className="btn-link why-why" aria-expanded={whyAsk} onClick={() => setWhyAsk((x) => !x)}>چرا می‌پرسی؟</button></span>
+      {whyAsk && <span className="why-explain">{WHY_ASK}</span>}
       <span className="why-chips">
         {chips?.map(([r, l]) => <button key={r} className="pill pill-xs" onClick={() => void pick(r)}>{l}</button>)}
         <button className="btn-link why-skip" onClick={() => { void note(kind, 'skip'); onDone(); }}>رد شو</button>

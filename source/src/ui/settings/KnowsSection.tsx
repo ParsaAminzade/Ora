@@ -13,6 +13,7 @@ import { reasonLabel } from '../../core/review';
 import type { Reason } from '../../core/db';
 import { ask } from '../Dialog';
 import { decide, eraseMirror, mirrorLog, setSim, simOn, trustStep, type Trace } from '../../core/mirror';
+import { bandLabel, eraseSelf, loadSelf, type SelfReport } from '../../core/selfreport';
 import { eraseFeedback, KIND_LABEL, summary as fbSummary, type FbKind } from '../../core/feedback';
 import { Row, Section, Segmented } from '../Panels';
 import { IS_EXTENSION } from '../../core/platform';
@@ -46,6 +47,7 @@ export function KnowsSection() {
   const [sim, setSimS] = useState(simOn());
   const [trace, setTrace] = useState<Trace | null>(null);
   const [mlog, setMlog] = useState<{ shown: number; held: number; braked: number }>({ shown: 0, held: 0, braked: 0 });
+  const [self, setSelf] = useState<SelfReport | null>(null);
   const [said, setSaid] = useState<{ k: FbKind; label: string; n: number }[]>([]);
   const [tick, setTick] = useState(0);
   useEffect(() => {
@@ -55,6 +57,7 @@ export function KnowsSection() {
     void reasonSummary(60).then(setReason);
     void loadTaste().then((t) => setLikes(t.events));
     void fbSummary().then(setSaid);
+    void loadSelf().then((x) => setSelf(x ?? null));
     void trustStep().then(setTrust);
     void mirrorLog().then((l) => setMlog({ shown: l.filter((e) => e.act === 'shown').length, held: l.filter((e) => e.act === 'held').length, braked: l.filter((e) => e.act === 'braked').length }));
   }, [tick]);
@@ -73,7 +76,7 @@ export function KnowsSection() {
         <div className="knows-card">
           <b>ریتم تو</b>
           <div className="knows-bar" role="progressbar" aria-valuemin={0} aria-valuemax={LEARN_DAYS} aria-valuenow={day}><i style={{ width: `${(day / LEARN_DAYS) * 100}%` }} /></div>
-          <span>{paused ? 'یادگیری ریتم متوقف است.' : n?.learning ? `روز ${fa(day)} از ${fa(LEARN_DAYS)} آشنایی. تا آن موقع اورآ فقط یاد می‌گیرد و حرفی از خودش نمی‌زند.` : 'حالت عادی‌ات را یاد گرفته.'}</span>
+          <span>{paused ? 'یادگیری ریتم متوقف است.' : n?.learning ? `روز ${fa(day)} از ${fa(LEARN_DAYS)} آشنایی. ${self?.at ? 'تا آن موقع به جواب‌های روز اولت تکیه می‌کند.' : 'تا آن موقع اورآ فقط یاد می‌گیرد و حرفی از خودش نمی‌زند.'}` : 'حالت عادی‌ات را یاد گرفته.'}</span>
           {n && n.days > 0 && (
             <>
               <div className="knows-hours" aria-label="ساعت‌هایی که معمولاً پشت سیستمی">
@@ -110,6 +113,20 @@ export function KnowsSection() {
             <li>سلیقه‌ی جمله‌ها: {likes ? `${fa(likes)} بار گفته‌ای چه دوست داری یا نه` : 'هنوز چیزی نگفته‌ای'}</li>
           </ul>
           <div className="knows-acts"><button className="btn btn-sm" onClick={() => go('مربی')}>جزئیات و پاک کردن</button><button className="btn btn-sm" onClick={() => go('جمله‌ها')}>سلیقه‌ی جمله‌ها</button></div>
+        </div>
+
+        <div className="knows-card">
+          <b>جواب‌های روز اولت</b>
+          {self?.at ? (
+            <ul>
+              <li>وقتی بیشتر هدر می‌رود: {self.bands.length ? bandLabel(self.bands) : 'گفتی نمی‌دانی'}</li>
+              <li>کِی تلنگر بزند: {{ needed: 'هر وقت لازم دید', 'my-hours': 'فقط همان ساعت‌ها', asked: 'فقط وقتی خودت بخواهی' }[self.when ?? 'needed']}</li>
+            </ul>
+          ) : <span className="faint">هنوز جواب نداده‌ای. با دو سؤال یه‌لمسی، اورآ از همین امروز به کارت می‌آید.</span>}
+          <div className="knows-acts">
+            <button className="btn btn-sm" onClick={() => { useStore.getState().setPanel('none'); window.setTimeout(() => dispatchEvent(new Event('ora:quick-start')), 250); }}>{self?.at ? 'دوباره جواب بده' : 'جواب بده'}</button>
+            {self?.at && <button className="btn btn-sm" style={{ color: 'var(--danger)' }} onClick={async () => { await eraseSelf(); setTick((x) => x + 1); }}>پاک کن</button>}
+          </div>
         </div>
 
         <div className="knows-card">

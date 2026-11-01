@@ -34,6 +34,7 @@ import { UpdateHost } from './ui/Update';
 import { NotifyHost } from './ui/NotifyAsk';
 import { CauseHost } from './ui/CauseCard';
 import { MirrorHost } from './ui/Mirror';
+import { QuickStartHost } from './ui/QuickStart';
 import { InstallHost } from './ui/Install';
 import { IS_WEB_BUILD as WEB_APP } from './core/platform';
 import { remoteTick } from './core/remote';
@@ -185,6 +186,7 @@ export default function App() {
       <NotifyHost />
       <CauseHost />
       <MirrorHost />
+      <QuickStartHost />
       {WEB_APP && <InstallHost />}
       <NightLayer />
     </>
