@@ -92,6 +92,19 @@ h2 { margin: 0 0 18px; line-height: 0; }
 .pane::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
   background: radial-gradient(120% 60% at var(--mx, 70%) 0%, rgba(255,255,255,.12), transparent 50%); }
 
+
+/* «شیشه‌ی دونه‌دونه»: patterned (pyramid-cell) glass, like a reeded-grid window pane.
+   Chromium: each little cell bends the light behind it (SVG displacement on the backdrop).
+   Other browsers: frosted blur plus the same cell highlights, so it still reads as textured glass. */
+.pane::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: .9;
+  background-image:
+    radial-gradient(circle at 32% 30%, rgba(255,255,255,.13), rgba(255,255,255,0) 55%),
+    linear-gradient(135deg, rgba(255,255,255,.05) 0 50%, rgba(0,0,0,.10) 50% 100%);
+  background-size: var(--cell) var(--cell); mix-blend-mode: overlay; }
+.pane > * { position: relative; z-index: 1; }  /* the words sit above the texture, never behind it */
+:root { --cell: 9px; }
+.ribbed .pane { backdrop-filter: url(#ora-cells) blur(1.2px) saturate(1.35) brightness(1.08); -webkit-backdrop-filter: blur(16px) saturate(1.4); }
+
 /* purpose */
 .domino { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 34px; perspective: 900px; }
 .domino .pane { padding: 22px; transform: translateZ(calc(var(--i) * 30px)) rotateY(calc((var(--i) - 1.5) * -4deg)); }
@@ -138,6 +151,13 @@ footer a { color: var(--ink-2); }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="ora-cells" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feImage id="ora-cell-img" x="0" y="0" width="9" height="9" preserveAspectRatio="none" result="cell"/>
+    <feTile in="cell" result="map"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="11" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
 <div class="stage-fallback" aria-hidden="true"></div>
 <canvas id="stage" aria-hidden="true"></canvas>
 <div class="grain" aria-hidden="true"></div>
@@ -300,6 +320,25 @@ footer a { color: var(--ink-2); }
     }
   };
   if (!reduce) { addEventListener('scroll', onScroll, { passive: true }); onScroll(); }
+
+
+  /* ---------- the patterned glass: draw one cell of the displacement map (a little four-sided pyramid) ---------- */
+  (() => {
+    const chromium = /Chrome\/|Chromium\//.test(navigator.userAgent);
+    if (!chromium || reduce) return;          // elsewhere: blur + highlights only (CSS)
+    const n = 18, c = document.createElement('canvas'); c.width = c.height = n;
+    const x = c.getContext('2d'), img = x.createImageData(n, n);
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+      const u = (i + .5) / n * 2 - 1, v = (j + .5) / n * 2 - 1;
+      // which face of the pyramid this pixel is on decides where the light behind it comes from
+      const fx = Math.abs(u) > Math.abs(v) ? Math.sign(u) : 0, fy = Math.abs(v) >= Math.abs(u) ? Math.sign(v) : 0;
+      const k = 4 * (j * n + i);
+      img.data[k] = 128 + fx * 110 * Math.min(1, Math.abs(u) * 1.4); img.data[k + 1] = 128 + fy * 110 * Math.min(1, Math.abs(v) * 1.4); img.data[k + 2] = 128; img.data[k + 3] = 255;
+    }
+    x.putImageData(img, 0, 0);
+    document.getElementById('ora-cell-img').setAttribute('href', c.toDataURL());
+    document.documentElement.classList.add('ribbed');
+  })();
 
   /* ---------- the living glass: Ora's ring and its pupil, raymarched, refracting light ---------- */
   const cv = document.getElementById('stage');
