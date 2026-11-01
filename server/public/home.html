@@ -101,9 +101,10 @@ h2 { margin: 0 0 18px; line-height: 0; }
     radial-gradient(circle at 32% 30%, rgba(255,255,255,.13), rgba(255,255,255,0) 55%),
     linear-gradient(135deg, rgba(255,255,255,.05) 0 50%, rgba(0,0,0,.10) 50% 100%);
   background-size: var(--cell) var(--cell); mix-blend-mode: overlay; }
-.pane > * { position: relative; z-index: 1; }  /* the words sit above the texture, never behind it */
+.pane > * { position: relative; z-index: 1; }
+.glassgl .pane { background: rgba(255,255,255,.015); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.glassgl .pane::after { display: none; }  /* the words sit above the texture, never behind it */
 :root { --cell: 9px; }
-.ribbed .pane { backdrop-filter: url(#ora-cells) blur(1.2px) saturate(1.35) brightness(1.08); -webkit-backdrop-filter: blur(16px) saturate(1.4); }
 
 /* purpose */
 .domino { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 34px; perspective: 900px; }
@@ -151,13 +152,6 @@ footer a { color: var(--ink-2); }
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <filter id="ora-cells" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
-    <feImage id="ora-cell-img" x="0" y="0" width="9" height="9" preserveAspectRatio="none" result="cell"/>
-    <feTile in="cell" result="map"/>
-    <feDisplacementMap in="SourceGraphic" in2="map" scale="11" xChannelSelector="R" yChannelSelector="G"/>
-  </filter>
-</svg>
 <div class="stage-fallback" aria-hidden="true"></div>
 <canvas id="stage" aria-hidden="true"></canvas>
 <div class="grain" aria-hidden="true"></div>
@@ -322,23 +316,6 @@ footer a { color: var(--ink-2); }
   if (!reduce) { addEventListener('scroll', onScroll, { passive: true }); onScroll(); }
 
 
-  /* ---------- the patterned glass: draw one cell of the displacement map (a little four-sided pyramid) ---------- */
-  (() => {
-    const chromium = /Chrome\/|Chromium\//.test(navigator.userAgent);
-    if (!chromium || reduce) return;          // elsewhere: blur + highlights only (CSS)
-    const n = 18, c = document.createElement('canvas'); c.width = c.height = n;
-    const x = c.getContext('2d'), img = x.createImageData(n, n);
-    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
-      const u = (i + .5) / n * 2 - 1, v = (j + .5) / n * 2 - 1;
-      // which face of the pyramid this pixel is on decides where the light behind it comes from
-      const fx = Math.abs(u) > Math.abs(v) ? Math.sign(u) : 0, fy = Math.abs(v) >= Math.abs(u) ? Math.sign(v) : 0;
-      const k = 4 * (j * n + i);
-      img.data[k] = 128 + fx * 110 * Math.min(1, Math.abs(u) * 1.4); img.data[k + 1] = 128 + fy * 110 * Math.min(1, Math.abs(v) * 1.4); img.data[k + 2] = 128; img.data[k + 3] = 255;
-    }
-    x.putImageData(img, 0, 0);
-    document.getElementById('ora-cell-img').setAttribute('href', c.toDataURL());
-    document.documentElement.classList.add('ribbed');
-  })();
 
   /* ---------- the living glass: Ora's ring and its pupil, raymarched, refracting light ---------- */
   const cv = document.getElementById('stage');
@@ -426,34 +403,106 @@ void main(){
   col = pow(col, vec3(.92));
   gl_FragColor = vec4(col, 1.);
 }`;
+  // Two passes. 1: Ora's glass ring is rendered into a texture. 2: that picture goes to the screen, and
+  // wherever a pane sits, it is seen through pressed patterned glass: every little cell is a lens.
+  // A view ray hits the cell, bends by Snell's law at the cell's own slope (a rounded pyramid),
+  // travels a fixed depth to the scene behind, and picks up the colour there — so each cell shows its
+  // own tiny, shifted, flipped piece of what's behind (the same trick as voronoi-glass, per square cell).
+  const fs2 = `
+precision highp float;
+uniform sampler2D B; uniform vec2 R; uniform float D; uniform vec4 P[10]; uniform int N;
+uniform float C; uniform float DEPTH;
+float sdRound(vec2 p, vec2 b, float r){ vec2 q = abs(p) - b + r; return length(max(q, 0.)) + min(max(q.x, q.y), 0.) - r; }
+vec3 scene(vec2 px){ return texture2D(B, clamp(px / R, vec2(.001), vec2(.999))).rgb; }
+vec3 look(vec2 css){ return scene(vec2(css.x, R.y / D - css.y) * D); }
+void main(){
+  vec2 px = gl_FragCoord.xy;
+  vec3 col = scene(px);
+  vec2 css = vec2(px.x, R.y - px.y) / D;
+  float inside = 0.;
+  for (int i = 0; i < 10; i++) {
+    if (i >= N) break;
+    vec4 r = P[i];
+    float d = sdRound(css - (r.xy + r.zw * .5), r.zw * .5, 26.);
+    inside = max(inside, 1. - smoothstep(-.8, .8, d));
+  }
+  if (inside > 0.) {
+    vec2 f = fract(css / C) - .5;                   // where we are inside this cell, -0.5 .. 0.5
+    float m = max(abs(f.x), abs(f.y));
+    // a pressed pyramid with soft, slightly domed faces; steeper towards the groove
+    vec2 face = abs(f.x) > abs(f.y) ? vec2(sign(f.x), 0.) : vec2(0., sign(f.y));
+    vec2 slope = mix(f * 2., face, .6) * (.25 + 1.9 * m);
+    vec3 n = normalize(vec3(-slope, 1.));
+    vec3 rd = refract(vec3(0., 0., -1.), n, 1. / 1.52);
+    vec2 off = rd.xy / max(-rd.z, .2) * DEPTH;
+    // a whisper of dispersion and frost, so it reads as real glass rather than a mosaic
+    vec2 j = vec2(.9, -.7);
+    vec3 g;
+    g.r = (look(css + off * 1.03 + j).r + look(css + off * 1.03 - j.yx).r) * .5;
+    g.g = (look(css + off + j.yx).g + look(css + off - j).g) * .5;
+    g.b = (look(css + off * .97 - j).b + look(css + off * .97 + j.yx).b) * .5;
+    vec3 glass = g * .82 + vec3(.05, .05, .056);                     // a little milky, like the sample
+    float key = max(dot(n, normalize(vec3(-.5, -.6, .65))), 0.);      // light from the upper left
+    glass += vec3(1., .96, .9) * (pow(key, 14.) * .32 + pow(key, 2.) * .03);
+    glass *= 1. - smoothstep(.40, .5, m) * .38;                       // the dark seam between cells
+    col = mix(col, glass, inside);
+  }
+  gl_FragColor = vec4(col, 1.);
+}`;
   const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
-  let prog;
-  try {
-    prog = gl.createProgram();
-    gl.attachShader(prog, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
-  } catch (e) { console.warn(e); cv.remove(); document.querySelector('.stage-fallback').style.display = ''; return; }
-  gl.useProgram(prog);
+  const link = (f) => { const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, f)); gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr)); return pr; };
+  let prog, comp;
+  try { prog = link(fs); comp = link(fs2); }
+  catch (e) { console.warn(e); cv.remove(); document.querySelector('.stage-fallback').style.display = ''; return; }
   const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-  const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  for (const pr of [prog, comp]) { const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0); }
   const U = { R: gl.getUniformLocation(prog, 'R'), T: gl.getUniformLocation(prog, 'T'), S: gl.getUniformLocation(prog, 'S'), M: gl.getUniformLocation(prog, 'M') };
+  const V = { B: gl.getUniformLocation(comp, 'B'), R: gl.getUniformLocation(comp, 'R'), D: gl.getUniformLocation(comp, 'D'), P: gl.getUniformLocation(comp, 'P'), N: gl.getUniformLocation(comp, 'N'), C: gl.getUniformLocation(comp, 'C'), DEPTH: gl.getUniformLocation(comp, 'DEPTH') };
+  document.documentElement.classList.add('glassgl'); // the panes let the canvas draw their glass
 
-  // resolution adapts to keep it smooth on any machine
-  let scale = Math.min(1, (phone ? .55 : .7) * (devicePixelRatio || 1));
-  const size = () => { cv.width = Math.round(innerWidth * scale); cv.height = Math.round(innerHeight * scale); gl.viewport(0, 0, cv.width, cv.height); };
+  // the scene is drawn at a reduced size (it is soft anyway); the glass is drawn sharp
+  const D = Math.min(phone ? 2 : 1.5, devicePixelRatio || 1);
+  let scale = phone ? .45 : .6;
+  const tex = gl.createTexture(), fbo = gl.createFramebuffer();
+  let fw = 1, fh = 1;
+  const size = () => {
+    cv.width = Math.round(innerWidth * D); cv.height = Math.round(innerHeight * D);
+    fw = Math.max(1, Math.round(innerWidth * D * scale)); fh = Math.max(1, Math.round(innerHeight * D * scale));
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, fw, fh, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  };
   size(); addEventListener('resize', size);
+  const panes = [...document.querySelectorAll('.pane')];
+  const rects = new Float32Array(40);
   let s = 0, sm = { x: 0, y: 0 }, last = performance.now(), slow = 0, t0 = performance.now(), visible = true;
   document.addEventListener('visibilitychange', () => { visible = document.visibilityState === 'visible'; if (visible) requestAnimationFrame(frame); });
   function frame(now) {
     if (!visible) return;
     const dt = now - last; last = now;
-    if (dt > 34 && scale > .35) { if (++slow > 20) { scale *= .85; size(); slow = 0; } } else slow = Math.max(0, slow - 1);
+    if (dt > 34 && scale > .3) { if (++slow > 20) { scale *= .85; size(); slow = 0; } } else slow = Math.max(0, slow - 1);
     const target = Math.min(1, scrollY / (innerHeight * 2.2));
     s += (target - s) * .06; sm.x += (mx - sm.x) * .04; sm.y += (my - sm.y) * .04;
-    gl.uniform2f(U.R, cv.width, cv.height);
-    gl.uniform1f(U.T, reduce ? 4 : (now - t0) / 1000);
-    gl.uniform1f(U.S, s); gl.uniform2f(U.M, sm.x, sm.y);
+    // pass 1: the scene, into the texture
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo); gl.viewport(0, 0, fw, fh); gl.useProgram(prog);
+    gl.uniform2f(U.R, fw, fh); gl.uniform1f(U.T, reduce ? 4 : (now - t0) / 1000); gl.uniform1f(U.S, s); gl.uniform2f(U.M, sm.x, sm.y);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    // pass 2: to the screen, through the patterned glass of every pane in view
+    let n = 0;
+    for (const el of panes) {
+      if (n >= 10) break;
+      const r = el.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > innerHeight || r.width < 2) continue;
+      rects.set([r.left, r.top, r.width, r.height], n * 4); n++;
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, cv.width, cv.height); gl.useProgram(comp);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex); gl.uniform1i(V.B, 0);
+    gl.uniform2f(V.R, cv.width, cv.height); gl.uniform1f(V.D, D); gl.uniform4fv(V.P, rects); gl.uniform1i(V.N, n);
+    gl.uniform1f(V.C, phone ? 8 : 9); gl.uniform1f(V.DEPTH, 46);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     if (!reduce || Math.abs(target - s) > .001) requestAnimationFrame(frame);
   }
