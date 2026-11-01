@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>اورآ · دستیاری که کنارته</title>
+<meta name="description" content="اورآ روی هر تب تازه کنارته: کارهای امروز، تقویم شمسی، و یک همراه که فقط وقتی لازمه حرف می‌زنه. رایگان، بدون تبلیغ، و همه‌چیز روی دستگاه خودت.">
+<meta name="theme-color" content="#07080c">
+<link rel="icon" href="/static/icon.png">
+<style>
+@font-face { font-family: Vazirmatn; font-weight: 400; font-display: swap; src: url(/static/vazir-400.woff2) format('woff2'); unicode-range: U+0600-06FF, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF; }
+@font-face { font-family: Vazirmatn; font-weight: 700; font-display: swap; src: url(/static/vazir-700.woff2) format('woff2'); unicode-range: U+0600-06FF, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF; }
+@font-face { font-family: Vazirmatn; font-weight: 400 700; font-display: swap; src: url(/static/vazir-latin-400.woff2) format('woff2'); unicode-range: U+0000-00FF; }
+:root {
+  --bg: #07080c; --ink: #efe9dd; --ink-2: #b9b2a5; --ink-3: #7d786f;
+  --gold: #e3bd7a; --gold-2: #f6dcaa; --teal: #7fd3c8;
+  --glass: rgba(255,255,255,.055); --glass-2: rgba(255,255,255,.09); --line: rgba(255,255,255,.12);
+  --r: 26px;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); color: var(--ink); scroll-behavior: smooth; }
+body { margin: 0; font-family: Vazirmatn, Tahoma, sans-serif; font-size: 17px; line-height: 1.85; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; }
+::selection { background: rgba(227,189,122,.35); }
+
+/* the living glass, behind everything */
+#stage { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; display: block; }
+.stage-fallback { position: fixed; inset: 0; z-index: 0; background:
+  radial-gradient(40vmax 40vmax at 30% 35%, rgba(227,189,122,.22), transparent 60%),
+  radial-gradient(35vmax 35vmax at 70% 65%, rgba(127,211,200,.16), transparent 60%), var(--bg); }
+.grain { position: fixed; inset: -50%; z-index: 1; pointer-events: none; opacity: .07; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+main { position: relative; z-index: 2; }
+
+/* top bar */
+.bar { position: fixed; z-index: 10; top: 14px; inset-inline: 14px; display: flex; align-items: center; gap: 14px; padding: 10px 14px 10px 10px;
+  border-radius: 999px; background: rgba(10,11,16,.35); border: 1px solid var(--line); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); max-width: 1080px; margin: 0 auto; }
+.bar img { width: 30px; height: 30px; border-radius: 9px; }
+.bar b { font-size: 18px; letter-spacing: -.01em; }
+.bar nav { margin-inline-start: auto; display: flex; gap: 4px; }
+.bar nav a { text-decoration: none; font-size: 14.5px; color: var(--ink-2); padding: 6px 12px; border-radius: 999px; }
+.bar nav a:hover { color: var(--ink); background: var(--glass); }
+.bar .get { color: #1a140b; background: var(--gold); font-weight: 700; }
+.bar .get:hover { background: var(--gold-2); color: #1a140b; }
+@media (max-width: 640px) { .bar nav a:not(.get) { display: none; } }
+
+/* hero */
+.hero { min-height: 100svh; display: grid; place-items: end center; padding: 0 20px 9vh; text-align: center; }
+.hero-in { max-width: 760px; }
+.kicker { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink-2); padding: 5px 14px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.kicker i { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 12px var(--teal); animation: beat 2.4s ease-in-out infinite; }
+@keyframes beat { 50% { opacity: .35; } }
+h1 { font-size: clamp(42px, 8vw, 92px); line-height: 1.08; margin: 18px 0 10px; font-weight: 700; letter-spacing: -.02em;
+  background: linear-gradient(180deg, #fff8ea 10%, #e7d3ad 60%, #b8956a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* words stay readable over the glass */
+.lead { text-shadow: 0 2px 24px rgba(7,8,12,.85); }
+.lead { font-size: clamp(17px, 2.2vw, 21px); color: var(--ink-2); margin: 0 auto 26px; max-width: 600px; }
+/* Ora talking */
+.speech { display: inline-flex; align-items: center; gap: 12px; min-height: 58px; max-width: 100%; padding: 12px 20px 12px 16px; border-radius: 22px;
+  background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.03)); border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 1px 0 rgba(255,255,255,.18) inset, 0 20px 60px rgba(0,0,0,.45); backdrop-filter: blur(22px) saturate(1.5); -webkit-backdrop-filter: blur(22px) saturate(1.5); margin-bottom: 28px; text-align: start; }
+.speech .eye { flex: none; width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--gold); display: grid; place-items: center; }
+.speech .eye::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #fff1d6; transform: translate(var(--ex, 2px), var(--ey, -2px)); transition: transform .35s; }
+.speech span { font-size: 17px; }
+.speech .caret { display: inline-block; width: 2px; height: 1.1em; margin-inline-start: 2px; background: var(--gold); vertical-align: -3px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.ctas { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font: inherit; font-size: 16px; font-weight: 700; padding: 13px 24px; border-radius: 16px; border: 1px solid var(--line); cursor: pointer;
+  color: var(--ink); background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); transition: transform .2s, background .2s; }
+.btn:hover { transform: translateY(-2px); background: var(--glass-2); }
+.btn.gold { color: #1a140b; background: linear-gradient(180deg, var(--gold-2), var(--gold)); border-color: transparent; box-shadow: 0 10px 30px rgba(227,189,122,.25); }
+.btn svg { width: 18px; height: 18px; }
+.scroll-hint { margin-top: 34px; font-size: 13px; color: var(--ink-3); }
+.scroll-hint i { display: block; width: 1px; height: 34px; margin: 8px auto 0; background: linear-gradient(var(--ink-3), transparent); animation: drip 2s ease-in-out infinite; }
+@keyframes drip { 0% { transform: scaleY(0); transform-origin: top; } 50% { transform: scaleY(1); transform-origin: top; } 51% { transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
+
+/* sections that come in through depth */
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+section.s { padding: 16vh 0 4vh; perspective: 1400px; }
+/* transform only: opacity, filters or preserve-3d here would cut the panes' glass off from the light behind them */
+.depth { transform: translate3d(0, calc((1 - var(--p, 1)) * 90px), calc((1 - var(--p, 1)) * -300px)) rotateX(calc((1 - var(--p, 1)) * 16deg)); transform-origin: 50% 100%; }
+.eyebrow { font-size: 13.5px; color: var(--gold); letter-spacing: .02em; margin-bottom: 8px; }
+h2 { font-size: clamp(30px, 4.6vw, 52px); line-height: 1.2; margin: 0 0 16px; letter-spacing: -.015em; }
+.s p.big { font-size: clamp(18px, 2.2vw, 22px); color: var(--ink-2); max-width: 720px; }
+.pane { position: relative; border-radius: var(--r); padding: 28px; background: linear-gradient(145deg, rgba(255,255,255,.085), rgba(255,255,255,.025));
+  border: 1px solid rgba(255,255,255,.13); box-shadow: 0 1px 0 rgba(255,255,255,.14) inset, 0 30px 80px rgba(0,0,0,.45);
+  backdrop-filter: blur(26px) saturate(1.5); -webkit-backdrop-filter: blur(26px) saturate(1.5); }
+.pane::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(120% 60% at var(--mx, 70%) 0%, rgba(255,255,255,.12), transparent 50%); }
+
+/* purpose */
+.domino { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 34px; perspective: 900px; }
+.domino .pane { padding: 22px; transform: translateZ(calc(var(--i) * 30px)) rotateY(calc((var(--i) - 1.5) * -4deg)); }
+.domino b { display: block; font-size: 15px; color: var(--gold); margin-bottom: 4px; }
+.domino span { font-size: 15.5px; color: var(--ink-2); }
+@media (max-width: 820px) { .domino { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 520px) { .domino { grid-template-columns: 1fr; } .domino .pane { transform: none; } }
+
+/* how Ora talks */
+.talks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 30px; }
+.talk { display: flex; flex-direction: column; gap: 12px; }
+.talk .ctx { font-size: 13px; color: var(--ink-3); }
+.talk .before { font-size: 14px; color: var(--ink-3); text-decoration: line-through; text-decoration-color: rgba(255,255,255,.25); }
+.talk .say { font-size: 19px; line-height: 1.7; }
+.talk .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.talk .chips i { font-style: normal; font-size: 13.5px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.04); color: var(--ink-2); }
+@media (max-width: 720px) { .talks { grid-template-columns: 1fr; } }
+
+/* never */
+.never { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; margin-top: 28px; align-items: stretch; }
+.never ul { margin: 0; padding-inline-start: 20px; color: var(--ink-2); }
+.never li { margin: 6px 0; }
+.never li::marker { color: var(--teal); }
+@media (max-width: 720px) { .never { grid-template-columns: 1fr; } }
+
+/* get */
+.get-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; margin-top: 30px; }
+.get-grid .pane.main { border-color: rgba(227,189,122,.35); }
+.get-grid h3 { margin: 0 0 6px; font-size: 22px; }
+.get-grid .pane p { color: var(--ink-2); margin: 0 0 16px; }
+.steps { counter-reset: s; list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 10px; }
+.steps li { counter-increment: s; position: relative; padding-inline-start: 44px; color: var(--ink-2); font-size: 15.5px; }
+.steps li::before { content: counter(s, persian); position: absolute; inset-inline-start: 0; top: 2px; width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; font-weight: 700; color: var(--gold); background: rgba(227,189,122,.1); border: 1px solid rgba(227,189,122,.25); }
+.note { font-size: 13.5px; color: var(--ink-3); margin-top: 14px; }
+.side { display: grid; gap: 16px; }
+.ver { font-size: 13.5px; color: var(--ink-3); }
+.here { outline: 2px solid var(--gold); outline-offset: 4px; }
+code { font-family: ui-monospace, Consolas, monospace; font-size: .9em; direction: ltr; unicode-bidi: embed; background: rgba(255,255,255,.07); padding: 1px 6px; border-radius: 6px; }
+@media (max-width: 820px) { .get-grid { grid-template-columns: 1fr; } }
+
+footer { padding: 14vh 20px 50px; text-align: center; color: var(--ink-3); font-size: 14px; }
+footer a { color: var(--ink-2); }
+@media (prefers-reduced-motion: reduce) { .depth { transform: none !important; } .kicker i, .speech .caret, .scroll-hint i { animation: none; } }
+</style>
+</head>
+<body>
+<div class="stage-fallback" aria-hidden="true"></div>
+<canvas id="stage" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="bar">
+  <img src="/static/icon.png" alt="">
+  <b>اورآ</b>
+  <nav>
+    <a href="#why">چرا اورآ</a>
+    <a href="#talk">چطور حرف می‌زند</a>
+    <a href="#never">حریم تو</a>
+    <a class="get" href="#get">دریافت</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-in">
+      <span class="kicker"><i></i>رایگان · بدون تبلیغ · روی دستگاه خودت</span>
+      <h1>اورآ، کنارته.</h1>
+      <p class="lead">روی هر تب تازه: کارهای امروز، تقویم شمسی، و همراهی که فقط وقتی لازمه حرف می‌زنه، و همیشه آخرش اختیار با خودته.</p>
+      <div class="speech" aria-live="polite"><span class="eye" aria-hidden="true"></span><span id="say">صبح بخیر!</span><i class="caret" aria-hidden="true"></i></div>
+      <div class="ctas" id="ctas">
+        <a class="btn gold" href="#get" id="cta-main">دریافت اورآ</a>
+        <a class="btn" href="#why">اورآ چیه؟</a>
+      </div>
+      <div class="scroll-hint">پایین برو<i></i></div>
+    </div>
+  </section>
+
+  <section class="s" id="why"><div class="wrap depth">
+    <div class="eyebrow">چرا اورآ</div>
+    <h2>یه بینش کوچیک، درست سر وقتش؛<br>بقیه‌ش مثل دومینو.</h2>
+    <p class="big">اورآ برای کسیه که می‌خواد روزش معنی داشته باشه، ولی گاهی گم می‌شه. لازم نیست زندگیت رو یه‌شبه عوض کنی. یه لحظه‌ی درست، یه قدم کوچیک، و بعد قدم بعدی خودش راه می‌افته.</p>
+    <div class="domino">
+      <div class="pane" style="--i:0"><b>می‌بینه</b><span>ریتم خودت رو یاد می‌گیره؛ می‌شمره، هیچ‌وقت نمی‌خونه.</span></div>
+      <div class="pane" style="--i:1"><b>صبر می‌کنه</b><span>تا وقتی مطمئن نیست، ساکته. سکوت بی‌جا ارزون‌تر از حرف بی‌جاست.</span></div>
+      <div class="pane" style="--i:2"><b>می‌پرسه</b><span>به‌جای حکم، یه سؤال. «الان ذهنت کجاست؟» و جوابت رو باور می‌کنه.</span></div>
+      <div class="pane" style="--i:3"><b>کم‌رنگ می‌شه</b><span>هدف آخرش اینه که کم‌کم کمتر لازمش داشته باشی.</span></div>
+    </div>
+  </div></section>
+
+  <section class="s" id="talk"><div class="wrap depth">
+    <div class="eyebrow">لحن اورآ</div>
+    <h2>به‌جای عدد خالی، معنی‌ش رو می‌گه.</h2>
+    <p class="big">مثل دوستی که قبل از بیرون رفتنت پنجره رو نگاه کرده. لحنش هم دست خودته: خودمونی، رسمی، یا فقط عدد.</p>
+    <div class="talks">
+      <div class="pane talk"><span class="ctx">آب‌وهوا</span><span class="before">۱۳° · نیمه‌ابری</span><span class="say">خنکه؛ یه ژاکت نازک بردار. فردا حسابی سردتر می‌شه.</span></div>
+      <div class="pane talk"><span class="ctx">اوقات شرعی</span><span class="before">مغرب ۱۷:۳۰</span><span class="say">تا اذان مغرب ۲۵ دقیقه مونده.</span></div>
+      <div class="pane talk"><span class="ctx">وقتی ده دقیقه تب‌ها رو بی‌هدف عوض می‌کنی</span><span class="say">۲۸ بار تب عوض کردی. الان ذهنت کجاست؟</span><span class="chips"><i>دارم کار می‌کنم</i><i>نمی‌دونم از کجا شروع کنم</i><i>منتظر جوابم</i><i>الان نه</i></span></div>
+      <div class="pane talk"><span class="ctx">وقتی پیشنهادش رو رد می‌کنی</span><span class="say">چرا نه؟ (کمکم می‌کنه بهتر بشناسمت)</span><span class="chips"><i>ساعتش برام خوب نیست</i><i>هر روز زیاده</i><i>رد شو</i></span></div>
+    </div>
+  </div></section>
+
+  <section class="s" id="never"><div class="wrap depth">
+    <div class="eyebrow">حریم تو</div>
+    <h2>چیزهایی که اورآ هرگز نمی‌بیند.</h2>
+    <div class="never">
+      <div class="pane"><ul>
+        <li>آدرس سایت‌ها، متن صفحه‌ها و جست‌وجوهایت</li>
+        <li>کارها، یادداشت‌ها و تقویمت؛ همه روی دستگاه خودت می‌مانند</li>
+        <li>متن یادآوری‌های گوشی؛ روی خود گوشی مهر و موم می‌شود و سرور فقط بسته‌ی قفل‌شده را می‌بیند</li>
+        <li>هیچ تبلیغی، هیچ فروش داده‌ای</li>
+      </ul></div>
+      <div class="pane"><p style="margin:0;color:var(--ink-2)">هر چیزی که اورآ یاد گرفته، در صفحه‌ی «اورآ درباره‌ی تو چه می‌داند» به زبان ساده هست، با دکمه‌ی پاک کردن. خاموش کردن هر چیزی به همان آسانیِ روشن کردنش است.</p>
+        <p style="margin:14px 0 0"><a href="/privacy">متن کامل قوانین و حریم خصوصی</a></p></div>
+    </div>
+  </div></section>
+
+  <section class="s" id="get"><div class="wrap depth">
+    <div class="eyebrow">دریافت</div>
+    <h2>اورآ رو بیار پیش خودت.</h2>
+    <div class="get-grid">
+      <div class="pane main" id="windows">
+        <h3>ویندوز · کروم، اج یا بریو</h3>
+        <p>یک فایل، یک دوبار کلیک. یک پنجره‌ی کوچک بقیه‌ی راه را قدم‌به‌قدم با تو می‌آید.</p>
+        <a class="btn gold" href="/Ora-Setup.cmd" download="Ora-Setup.cmd" id="dl-setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></svg>دریافت نصب‌کننده‌ی ویندوز</a>
+        <ol class="steps">
+          <li>فایل <code>Ora-Setup.cmd</code> را بگیر. اگر مرورگر پرسید، «Keep» یا «نگه‌داشتن» را بزن.</li>
+          <li>رویش دوبار کلیک کن. اگر ویندوز گفت «Windows protected your PC»، روی «More info» و بعد «Run anyway» بزن.</li>
+          <li>صفحه‌ی افزونه‌ها و پوشه‌ی Ora خودشان باز می‌شوند. «Developer mode» را روشن کن و پوشه‌ی Ora را روی صفحه بکش. پنجره‌ی راهنما هر قدم را تیک می‌زند.</li>
+        </ol>
+        <p class="note">چرا یک قدم دستی؟ کروم برای جلوگیری از بدافزار، به هیچ فایلی اجازه نمی‌دهد خودش افزونه‌ای را بیرون از فروشگاه کروم نصب کند. بعد از نصب، به‌روزرسانی‌ها خودکار خبر داده می‌شوند و با یک دوبار کلیک انجام می‌شوند.</p>
+      </div>
+      <div class="side">
+        <div class="pane" id="phone">
+          <h3>گوشی · اندروید و آیفون</h3>
+          <p>اپ گوشی را باز کن؛ خودش یادت می‌دهد چطور روی صفحه‌ی اصلی بنشیند.</p>
+          <a class="btn" href="/app/">باز کردن اورآ برای گوشی</a>
+        </div>
+        <div class="pane">
+          <h3>دستی (zip)</h3>
+          <p>برای مک، لینوکس، یا اگر خودت می‌خواهی: فایل را باز کن و در صفحه‌ی افزونه‌ها با «Load unpacked» پوشه را انتخاب کن.</p>
+          <a class="btn" id="dl-zip" href="https://github.com/ParsaAminzade/Ora/raw/main/downloads/ora-extension-latest.zip">دریافت zip</a>
+          <p class="ver" id="ver" style="margin:12px 0 0"></p>
+        </div>
+      </div>
+    </div>
+  </div></section>
+
+  <footer>اورآ · ساخته‌ی یک نفر، برای آدم‌هایی که دنبال معنی‌اند. · <a href="/privacy">قوانین و حریم خصوصی</a></footer>
+</main>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fa = (s) => String(s).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[d]);
+
+  /* ---------- who is visiting: point to the right download ---------- */
+  const ua = navigator.userAgent;
+  const phone = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+  const windows = /Windows NT/.test(ua) && !phone;
+  const main = document.getElementById('cta-main');
+  if (windows) { main.textContent = 'نصب روی ویندوز'; main.href = '#windows'; }
+  else if (phone) { main.textContent = 'باز کردن روی گوشی'; main.href = '/app/'; }
+  if (location.hash === '#windows' || location.hash === '#phone') {
+    const el = document.querySelector(location.hash);
+    if (el) setTimeout(() => { el.classList.add('here'); el.scrollIntoView({ block: 'center' }); }, 300);
+  }
+  fetch('/api/latest').then((r) => r.json()).then((l) => {
+    if (!l || !l.version) return;
+    document.getElementById('ver').textContent = 'آخرین نسخه: ' + fa(l.version);
+    if (l.url && /\.zip(\?|$)/.test(l.url)) document.getElementById('dl-zip').href = l.url;
+  }).catch(() => {});
+
+  /* ---------- Ora talks ---------- */
+  const lines = ['صبح بخیر! سه کار مهم امروز چیه؟', 'خنکه؛ یه ژاکت نازک بردار.', 'تا اذان مغرب ۲۵ دقیقه مونده.', '۲۸ بار تب عوض کردی. الان ذهنت کجاست؟', 'روز رو ببندیم؟ دو دقیقه.', 'فقط دو دقیقه. بعدش اگه خواستی ببند.', 'باشه، مزاحم نمی‌شم.'];
+  const out = document.getElementById('say');
+  let li = 0;
+  const type = async () => {
+    for (;;) {
+      const t = lines[li++ % lines.length];
+      if (reduce) { out.textContent = t; await new Promise((r) => setTimeout(r, 4000)); continue; }
+      for (let i = 1; i <= t.length; i++) { out.textContent = t.slice(0, i); await new Promise((r) => setTimeout(r, 38 + Math.random() * 40)); }
+      await new Promise((r) => setTimeout(r, 2600));
+      for (let i = t.length; i >= 0; i -= 2) { out.textContent = t.slice(0, i); await new Promise((r) => setTimeout(r, 14)); }
+      await new Promise((r) => setTimeout(r, 350));
+    }
+  };
+  type();
+
+  /* ---------- pointer: the eye in the bubble and the light on the panes follow you ---------- */
+  let mx = 0, my = 0;
+  addEventListener('pointermove', (e) => {
+    mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1;
+    const s = document.querySelector('.speech');
+    s.style.setProperty('--ex', (-mx * 4).toFixed(1) + 'px'); s.style.setProperty('--ey', (my * 4).toFixed(1) + 'px');
+    for (const p of document.querySelectorAll('.pane')) { const r = p.getBoundingClientRect(); p.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(0) + '%'); }
+  }, { passive: true });
+
+  /* ---------- sections come in through depth as you scroll ---------- */
+  const depth = [...document.querySelectorAll('.depth')];
+  const onScroll = () => {
+    for (const d of depth) {
+      const r = d.getBoundingClientRect();
+      const p = Math.max(0, Math.min(1, (innerHeight - r.top) / (innerHeight * .55)));
+      d.style.setProperty('--p', p.toFixed(3));
+    }
+  };
+  if (!reduce) { addEventListener('scroll', onScroll, { passive: true }); onScroll(); }
+
+  /* ---------- the living glass: Ora's ring and its pupil, raymarched, refracting light ---------- */
+  const cv = document.getElementById('stage');
+  const gl = cv.getContext('webgl', { antialias: false, alpha: false, powerPreference: 'high-performance' });
+  if (!gl) { cv.remove(); return; }
+  document.querySelector('.stage-fallback').style.display = 'none';
+  const vs = 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }';
+  const fs = `
+precision highp float;
+uniform vec2 R; uniform float T; uniform float S; uniform vec2 M;
+mat2 rot(float a){ float c=cos(a), s=sin(a); return mat2(c,-s,s,c); }
+float smin(float a, float b, float k){ float h=clamp(.5+.5*(b-a)/k,0.,1.); return mix(b,a,h)-k*h*(1.-h); }
+vec3 tr(vec3 p){
+  p.yz *= rot(-.25 + S*1.15 + M.y*.18);
+  p.xz *= rot(.35*sin(T*.21) + S*2.1 + M.x*.3);
+  return p;
+}
+float map(vec3 p){
+  p = tr(p);
+  float w = .045*sin(p.x*3.1 + T*1.3)*sin(p.y*2.7 - T*1.1) + .03*sin(p.z*4. + T*1.7);
+  vec2 q = vec2(length(p.xy) - 1.05, p.z);
+  float ring = length(q) - .30 + w;
+  vec3 c = vec3(.18*sin(T*.7), .14*cos(T*.53), .22*sin(T*.41));
+  float pupil = length(p - c) - (.34 + .03*sin(T*2.1));
+  return smin(ring, pupil, .16);
+}
+vec3 nrm(vec3 p){ vec2 e=vec2(.0015,0.); return normalize(vec3(map(p+e.xyy)-map(p-e.xyy), map(p+e.yxy)-map(p-e.yxy), map(p+e.yyx)-map(p-e.yyx))); }
+vec3 env(vec3 d){
+  // a dark studio: a warm softbox up-left, a cool one right, a faint floor glow
+  vec3 col = vec3(.018,.02,.03) + .05*vec3(.4,.35,.3)*(d.y*.5+.5);
+  col += vec3(1.,.78,.48) * 2.4 * smoothstep(.86,.99, dot(d, normalize(vec3(-.6,.65,.45))));
+  col += vec3(.45,.85,.8) * 1.4 * smoothstep(.88,.995, dot(d, normalize(vec3(.8,.15,.4))));
+  col += vec3(.95,.85,.7) * .9 * smoothstep(.0,.06, d.y-.55) * smoothstep(.2,.0, abs(d.x+.1)-.5);
+  col += vec3(.9,.65,.4) * .25 * smoothstep(-.2,-.9, d.y);
+  float bands = smoothstep(.97,1., sin(d.x*9. + d.y*3. + T*.2)) * .25;
+  return col + bands*vec3(1.,.9,.75);
+}
+float march(vec3 ro, vec3 rd, float side){
+  float t = 0.;
+  for(int i=0;i<80;i++){ float d = side*map(ro+rd*t); if(d<.001) return t; t += max(d, .004); if(t>9.) break; }
+  return -1.;
+}
+vec3 bg(vec2 uv){
+  float g = .5+.5*uv.y;
+  vec3 c = mix(vec3(.02,.022,.03), vec3(.035,.03,.04), g);
+  c += vec3(.9,.65,.35)*.10*exp(-3.*length(uv-vec2(-.55,.35)));
+  c += vec3(.3,.75,.7)*.07*exp(-3.*length(uv-vec2(.7,-.4)));
+  return c;
+}
+void main(){
+  vec2 uv = (gl_FragCoord.xy - .5*R) / min(R.x, R.y);
+  float portrait = step(R.x, R.y);   // on a phone the glass floats above the words, a bit smaller
+  uv.y -= .2 + portrait*.3 - S*.3;           // the glass sits a little high, and rises as you scroll
+  float zoom = 4.3 + portrait*.9 + S*.8;
+  vec3 ro = vec3(0., 0., zoom), rd = normalize(vec3(uv, -1.45));
+  vec3 col = bg(uv);
+  float t = march(ro, rd, 1.);
+  if(t > 0.){
+    vec3 p = ro + rd*t, n = nrm(p);
+    float fr = pow(1. - max(dot(-rd, n), 0.), 3.);
+    vec3 refl = env(reflect(rd, n));
+    // through the glass, with a little dispersion: each colour bends a bit differently
+    vec3 inside = vec3(0.);
+    for(int k=0;k<3;k++){
+      float ior = 1.45 + float(k)*.025;
+      vec3 r1 = refract(rd, n, 1./ior);
+      float t2 = march(p - n*.01, r1, -1.);
+      vec3 p2 = p + r1*max(t2, .2);
+      vec3 n2 = -nrm(p2);
+      vec3 r2 = refract(r1, n2, ior);
+      if(dot(r2,r2) < .001) r2 = reflect(r1, n2);
+      vec3 e = env(r2) + bg(uv + r2.xy*.25)*.8;
+      float thick = max(t2, .0);
+      vec3 tint = exp(-thick*vec3(.35,.42,.55)*.9);   // a hint of warm amber in the thick parts
+      vec3 ch = e*tint;
+      inside[k] = ch[k];
+    }
+    col = mix(inside, refl, .12 + .88*fr);
+    col += vec3(1.,.9,.75) * pow(max(dot(reflect(rd,n), normalize(vec3(-.6,.65,.45))),0.), 60.) * 1.5;
+    col += vec3(.95,.8,.55) * fr * .18;
+  }
+  // gentle vignette and tone
+  col *= 1. - .35*dot(uv*.8, uv*.8);
+  col = col/(1.+col*.85);
+  col = pow(col, vec3(.92));
+  gl_FragColor = vec4(col, 1.);
+}`;
+  const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+  let prog;
+  try {
+    prog = gl.createProgram();
+    gl.attachShader(prog, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+  } catch (e) { console.warn(e); cv.remove(); document.querySelector('.stage-fallback').style.display = ''; return; }
+  gl.useProgram(prog);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const U = { R: gl.getUniformLocation(prog, 'R'), T: gl.getUniformLocation(prog, 'T'), S: gl.getUniformLocation(prog, 'S'), M: gl.getUniformLocation(prog, 'M') };
+
+  // resolution adapts to keep it smooth on any machine
+  let scale = Math.min(1, (phone ? .55 : .7) * (devicePixelRatio || 1));
+  const size = () => { cv.width = Math.round(innerWidth * scale); cv.height = Math.round(innerHeight * scale); gl.viewport(0, 0, cv.width, cv.height); };
+  size(); addEventListener('resize', size);
+  let s = 0, sm = { x: 0, y: 0 }, last = performance.now(), slow = 0, t0 = performance.now(), visible = true;
+  document.addEventListener('visibilitychange', () => { visible = document.visibilityState === 'visible'; if (visible) requestAnimationFrame(frame); });
+  function frame(now) {
+    if (!visible) return;
+    const dt = now - last; last = now;
+    if (dt > 34 && scale > .35) { if (++slow > 20) { scale *= .85; size(); slow = 0; } } else slow = Math.max(0, slow - 1);
+    const target = Math.min(1, scrollY / (innerHeight * 2.2));
+    s += (target - s) * .06; sm.x += (mx - sm.x) * .04; sm.y += (my - sm.y) * .04;
+    gl.uniform2f(U.R, cv.width, cv.height);
+    gl.uniform1f(U.T, reduce ? 4 : (now - t0) / 1000);
+    gl.uniform1f(U.S, s); gl.uniform2f(U.M, sm.x, sm.y);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    if (!reduce || Math.abs(target - s) > .001) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  if (reduce) addEventListener('scroll', () => requestAnimationFrame(frame), { passive: true });
+})();
+</script>
+</body>
+</html>

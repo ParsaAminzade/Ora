@@ -22,6 +22,9 @@ type Bip = Event & { prompt(): Promise<void>; userChoice: Promise<{ outcome: 'ac
 const ua = () => navigator.userAgent;
 export const installed = () => matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || !!(navigator as { standalone?: boolean }).standalone || (() => { try { return !!localStorage.getItem('ora:installed'); } catch { return false; } })();
 export const onPhone = () => /Android|iPhone|iPad|iPod|Mobile/i.test(ua()) || (matchMedia('(pointer: coarse)').matches && innerWidth < 900);
+/** A Windows computer in the browser (not a phone): Ora is better as the Chrome extension there. */
+export const onWindows = () => /Windows NT/.test(ua()) && !onPhone();
+export const SITE = 'https://ora.p128parsa.workers.dev';
 type Where = 'prompt' | 'ios-safari' | 'ios-other' | 'inapp' | 'samsung' | 'firefox' | 'android';
 export function where(): Where {
   const u = ua();
@@ -90,8 +93,39 @@ function Card({ steps: startSteps, onClose }: { steps: boolean; onClose(): void 
   );
 }
 
+function PcCard({ onClose }: { onClose(): void }) {
+  const [why, setWhy] = useState(false);
+  const [done, setDone] = useState<string | null>(null);
+  const no = async () => { later(); if (await shouldAsk('install-pc')) setWhy(true); else { void note('install-pc', 'skip'); onClose(); } };
+  const go = () => {
+    void note('install-pc', 'yes');
+    window.open(`${SITE}/?from=app#windows`, '_blank', 'noopener');
+    setDone('صفحه‌ی نصب باز شد. فایل «Ora-Setup» را بگیر و رویش دوبار کلیک کن؛ بقیه‌اش را قدم‌به‌قدم با هم می‌رویم.');
+  };
+  return createPortal(
+    <div className="cause install glass" role="dialog" aria-label="نصب اورآ روی کامپیوتر">
+      <button className="icon-btn cause-x" aria-label="بعداً" title="بعداً" onClick={() => (why || done ? onClose() : void no())}><IconX size={16} /></button>
+      {done ? <><p className="cause-done">{done}</p><div className="cause-acts"><button className="btn" onClick={onClose}>بستن</button></div></> : why ? <WhyNot kind="install-pc" onDone={onClose} /> : (
+        <>
+          <p className="cause-q">اورآ رو بیار توی کروم همین کامپیوتر</p>
+          <ul className="install-why">
+            <li>هر تب تازه‌ای که باز کنی، اورآ همون‌جاست</li>
+            <li>یادآوری کارها حتی وقتی این صفحه بسته‌ست</li>
+            <li>یه فایل، یه دوبار کلیک، و یه راهنمای قدم‌به‌قدم</li>
+          </ul>
+          <div className="cause-acts">
+            <button className="btn btn-accent" onClick={go}><IconDownload size={15} /> نصب روی ویندوز</button>
+            <button className="btn" onClick={() => void no()}>بعداً</button>
+          </div>
+        </>
+      )}
+    </div>,
+    document.body,
+  );
+}
+
 /** The install card is due on this visit: other unasked things (the eye's tips) step aside for it. */
-export const installDue = () => IS_WEB_BUILD && onPhone() && !installed() && Date.now() >= read().next;
+export const installDue = () => IS_WEB_BUILD && (onPhone() || onWindows()) && !installed() && Date.now() >= read().next;
 
 /** The card, on its schedule; plus «ora:install-open» from the header button or a «why not» answer. */
 export function InstallHost() {
@@ -101,7 +135,7 @@ export function InstallHost() {
     const on = (e: Event) => setOpen({ steps: !!(e as CustomEvent<{ steps?: boolean }>).detail?.steps });
     const fb = (e: Event) => {
       const d = (e as CustomEvent<{ kind: string; reason: string }>).detail;
-      if (d.kind !== 'install') return;
+      if (d.kind !== 'install' && d.kind !== 'install-pc') return;
       if (d.reason === 'browser') later(14);
       if (d.reason === 'too-often') { const a = read(); write({ n: a.n, next: Date.now() + 2 * Math.max(86_400_000, a.next - Date.now()) }); }
     };
@@ -110,7 +144,7 @@ export function InstallHost() {
     return () => { removeEventListener('ora:install-open', on); removeEventListener('ora:fb', fb); removeEventListener('ora:installed', gone); };
   }, []);
   useEffect(() => {
-    if (!loaded || installed() || !onPhone()) return;
+    if (!loaded || installed() || !(onPhone() || onWindows())) return;
     let t = 0;
     const tryShow = () => {
       if (installed() || Date.now() < read().next || isQuiet()) return;
@@ -125,7 +159,8 @@ export function InstallHost() {
     return () => { window.clearTimeout(t); window.clearInterval(iv); };
   }, [loaded]);
   const close = useCallback(() => setOpen(null), []);
-  return open && !installed() ? <Card steps={open.steps} onClose={close} /> : null;
+  if (!open || installed()) return null;
+  return onWindows() ? <PcCard onClose={close} /> : <Card steps={open.steps} onClose={close} />;
 }
 
 /** The small button in the phone header, there until Ora is installed. */

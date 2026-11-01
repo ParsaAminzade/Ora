@@ -20,6 +20,9 @@ export default {
       if (p.startsWith('/api/')) return await handleApi(req, env, url);
       if (p.startsWith('/admin')) return await handleAdmin(req, env, url);
       if (p === '/privacy') return privacy();
+      // the site (public/home.html): a static page that reads the newest version from /api/latest
+      const site = await env.ASSETS.fetch(new Request(`${url.origin}/home`, { headers: req.headers }));
+      if (site.ok) return new Response(site.body, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' } });
       return await home(env, url);
     } catch (e) {
       console.error('ora error', p, e);

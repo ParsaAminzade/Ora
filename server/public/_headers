@@ -16,3 +16,8 @@
 
 /static/*
   X-Content-Type-Options: nosniff
+
+/Ora-Setup.cmd
+  Content-Type: application/octet-stream
+  Content-Disposition: attachment; filename="Ora-Setup.cmd"
+  Cache-Control: no-cache

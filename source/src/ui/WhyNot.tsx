@@ -13,7 +13,7 @@ const WHAT: Partial<Record<FbKind, string>> = {
   'ritual-morning': 'صبح‌ها اورآ می‌پرسد «برنامه‌ی امروز را بچینیم؟». دو دقیقه: سه کار مهم امروز را انتخاب می‌کنی و می‌بینی به وقتت جا می‌شوند یا نه — قبل از اینکه روز شلوغ شود.',
   'ritual-evening': 'شب‌ها اورآ می‌پرسد «روز رو ببندیم؟». دو دقیقه: هر کار مهم تا کجا رفت، یک نمره به امروز، و مانده‌ها می‌روند برای فردا — که ذهنت شب آزاد باشد.',
 };
-const KIND_NAME: Partial<Record<FbKind, string>> = { 'ritual-morning': 'برنامه‌ریزی صبح', 'ritual-evening': 'جمع‌بندی شب', tip: 'نکته‌ها', install: 'این پیشنهاد' };
+const KIND_NAME: Partial<Record<FbKind, string>> = { 'ritual-morning': 'برنامه‌ریزی صبح', 'ritual-evening': 'جمع‌بندی شب', tip: 'نکته‌ها', install: 'این پیشنهاد', 'install-pc': 'این پیشنهاد' };
 
 type Btn = { label: string; run(): void; main?: boolean };
 export function WhyNot({ kind, tour, tipId, onDone }: { kind: FbKind; tour?: TourId; tipId?: number; onDone(): void }) {
@@ -77,16 +77,16 @@ export function WhyNot({ kind, tour, tipId, onDone }: { kind: FbKind; tour?: Tou
         setReply({ text: 'باشه؛ این یکی رو دیگه نمی‌گم.' });
         break;
       case 'how':
-        setReply({ text: 'سخت نیست؛ دو لمس. نشونت بدم؟', btns: [{ label: 'نشونم بده', main: true, run: () => { onDone(); dispatchEvent(new CustomEvent('ora:install-open', { detail: { steps: true } })); } }, { label: 'بعداً', run: onDone }] });
+        setReply({ text: kind === 'install-pc' ? 'سخت نیست: یه فایل می‌گیری و دوبار کلیک می‌کنی؛ یه پنجره‌ی کوچیک قدم‌به‌قدم کمکت می‌کنه. نشونت بدم؟' : 'سخت نیست؛ دو لمس. نشونت بدم؟', btns: [{ label: 'نشونم بده', main: true, run: () => { onDone(); dispatchEvent(new CustomEvent('ora:install-open', { detail: { steps: true } })); } }, { label: 'بعداً', run: onDone }] });
         break;
       case 'space':
         setReply({ text: 'اورآ حدود ۵ مگابایته؛ از چند تا عکس هم کمتر. هر وقت هم نخواستی، مثل هر برنامه‌ای پاکش می‌کنی.' });
         break;
       case 'browser':
-        setReply({ text: 'باشه؛ تا دو هفته نمی‌پرسم. دکمه‌ی «نصب» بالای صفحه هست، هر وقت خواستی.' });
+        setReply({ text: kind === 'install-pc' ? 'باشه؛ تا دو هفته نمی‌پرسم.' : 'باشه؛ تا دو هفته نمی‌پرسم. دکمه‌ی «نصب» بالای صفحه هست، هر وقت خواستی.' });
         break;
       case 'why':
-        setReply({ text: 'با یه لمس از صفحه‌ی اصلی باز می‌شه، تمام‌صفحه و بدون نوار مرورگر؛ بدون اینترنت هم کار می‌کنه؛ و یادآوری کارهات به‌موقع می‌رسه.', btns: [{ label: 'نصب کن', main: true, run: () => { void note(kind, 'yes'); onDone(); dispatchEvent(new CustomEvent('ora:install-open', { detail: {} })); } }, { label: 'نه، الان نه', run: onDone }] });
+        setReply({ text: kind === 'install-pc' ? 'هر تب تازه‌ای که باز کنی، اورآ همون‌جاست؛ یادآوری کارها حتی وقتی این صفحه بسته‌ست می‌رسه؛ و آینه‌ی اورآ فقط تو افزونه کار می‌کنه.' : 'با یه لمس از صفحه‌ی اصلی باز می‌شه، تمام‌صفحه و بدون نوار مرورگر؛ بدون اینترنت هم کار می‌کنه؛ و یادآوری کارهات به‌موقع می‌رسه.', btns: [{ label: 'نصب کن', main: true, run: () => { void note(kind, 'yes'); onDone(); dispatchEvent(new CustomEvent('ora:install-open', { detail: {} })); } }, { label: 'نه، الان نه', run: onDone }] });
         break;
       case 'no-tour':
         setReply({ text: 'باشه؛ دیگه کارت آموزشی نشون نمی‌دم. اگه خواستی، از تنظیمات › «آشنایی با اورآ» همه‌شون هست.' });

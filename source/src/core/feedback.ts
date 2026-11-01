@@ -10,7 +10,7 @@
 // erasable) in «اورآ درباره‌ی تو چه می‌داند».
 import { kvGet, kvSet } from './kv';
 
-export type FbKind = 'ritual-morning' | 'ritual-evening' | 'tip' | 'tour' | 'install';
+export type FbKind = 'ritual-morning' | 'ritual-evening' | 'tip' | 'tour' | 'install' | 'install-pc';
 export type FbReason = 'later' | 'bad-time' | 'too-often' | 'not-useful' | 'tired' | 'already' | 'unclear' | 'know' | 'no-tour' | 'how' | 'space' | 'browser' | 'why';
 
 export const REASONS: Record<FbKind, [FbReason, string][]> = {
@@ -18,6 +18,7 @@ export const REASONS: Record<FbKind, [FbReason, string][]> = {
   'ritual-evening': [['later', 'الان وقتش نیست'], ['bad-time', 'ساعتش برام خوب نیست'], ['tired', 'خسته‌ام'], ['already', 'خودم تو ذهنم جمعش کردم'], ['too-often', 'هر روز زیاده'], ['not-useful', 'به کارم نمیاد'], ['unclear', 'نمی‌دونم دقیقاً چیه']],
   tip: [['know', 'اینو بلدم'], ['later', 'الان نه'], ['too-often', 'زیاد نکته می‌دی'], ['not-useful', 'نکته لازم ندارم']],
   tour: [['know', 'اینو بلدم'], ['later', 'بعداً نگاه می‌کنم'], ['too-often', 'زیاد یادم می‌اندازی'], ['no-tour', 'آموزش نمی‌خوام']],
+  'install-pc': [['later', 'الان نه'], ['how', 'بلد نیستم چطوری'], ['browser', 'همین نسخه‌ی وب برام کافیه'], ['why', 'فایده‌ش چیه؟'], ['too-often', 'زیاد می‌پرسی']],
   install: [['later', 'الان نه'], ['how', 'بلد نیستم چطوری'], ['space', 'جا روی گوشیم کمه'], ['browser', 'تو مرورگر راحت‌ترم'], ['why', 'فایده‌ش چیه؟'], ['too-often', 'زیاد می‌پرسی']],
 };
 
@@ -97,4 +98,4 @@ export async function summary(): Promise<{ k: FbKind; label: string; n: number }
   }
   return [...out.values()].sort((a, b) => b.n - a.n).slice(0, 8);
 }
-export const KIND_LABEL: Record<FbKind, string> = { 'ritual-morning': 'برنامه‌ریزی صبح', 'ritual-evening': 'جمع‌بندی شب', tip: 'نکته‌ها', tour: 'آشنایی با اورآ', install: 'نصب روی گوشی' };
+export const KIND_LABEL: Record<FbKind, string> = { 'ritual-morning': 'برنامه‌ریزی صبح', 'ritual-evening': 'جمع‌بندی شب', tip: 'نکته‌ها', tour: 'آشنایی با اورآ', install: 'نصب روی گوشی', 'install-pc': 'نصب روی کامپیوتر' };
