@@ -83,7 +83,7 @@ export function WhyNot({ kind, tour, tipId, onDone }: { kind: FbKind; tour?: Tou
         setReply({ text: 'اورآ حدود ۵ مگابایته؛ از چند تا عکس هم کمتر. هر وقت هم نخواستی، مثل هر برنامه‌ای پاکش می‌کنی.' });
         break;
       case 'browser':
-        setReply({ text: kind === 'install-pc' ? 'باشه؛ تا دو هفته نمی‌پرسم.' : 'باشه؛ تا دو هفته نمی‌پرسم. دکمه‌ی «نصب» بالای صفحه هست، هر وقت خواستی.' });
+        setReply({ text: kind === 'install-pc' ? 'باشه؛ دیگه نمی‌پرسم. اگه یه روز خواستی، از سایت اورآ نصبش کن.' : 'باشه؛ دیگه نمی‌پرسم. دکمه‌ی «نصب» بالای صفحه هست، هر وقت خواستی.' });
         break;
       case 'why':
         setReply({ text: kind === 'install-pc' ? 'هر تب تازه‌ای که باز کنی، اورآ همون‌جاست؛ یادآوری کارها حتی وقتی این صفحه بسته‌ست می‌رسه؛ و آینه‌ی اورآ فقط تو افزونه کار می‌کنه.' : 'با یه لمس از صفحه‌ی اصلی باز می‌شه، تمام‌صفحه و بدون نوار مرورگر؛ بدون اینترنت هم کار می‌کنه؛ و یادآوری کارهات به‌موقع می‌رسه.', btns: [{ label: 'نصب کن', main: true, run: () => { void note(kind, 'yes'); onDone(); dispatchEvent(new CustomEvent('ora:install-open', { detail: {} })); } }, { label: 'نه، الان نه', run: onDone }] });

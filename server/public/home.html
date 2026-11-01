@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>اورآ · دستیاری که کنارته</title>
-<meta name="description" content="اورآ روی هر تب تازه کنارته: کارهای امروز، تقویم شمسی، و یک همراه که فقط وقتی لازمه حرف می‌زنه. رایگان، بدون تبلیغ، و همه‌چیز روی دستگاه خودت.">
+<title>اورآ · تب تازه‌ای که حواسش هست</title>
+<meta name="description" content="تب تازه باز کردی و یادت رفت برای چی؟ اورآ کارهای امروزت رو همون‌جا نشونت می‌ده، و اگه داری وقت هدر می‌دی فقط یه سؤال می‌پرسه. رایگان، بدون تبلیغ، کد باز.">
 <meta name="theme-color" content="#07080c">
 <link rel="icon" href="/static/icon.png">
 <link rel="preload" href="/static/diba.woff2" as="font" type="font/woff2" crossorigin>
@@ -53,7 +53,7 @@ main { position: relative; z-index: 2; }
 .kicker i { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 12px var(--teal); animation: beat 2.4s ease-in-out infinite; }
 @keyframes beat { 50% { opacity: .35; } }
 h1 { margin: 22px 0 8px; line-height: 0; }
-h1 img { width: min(560px, 84vw); height: auto; filter: drop-shadow(0 6px 30px rgba(7,8,12,.7)); }
+h1 img { width: min(600px, 86vw); height: auto; filter: drop-shadow(0 6px 30px rgba(7,8,12,.7)); }
 h2 img { width: calc(var(--w) * 1px * .8); max-width: 100%; height: auto; display: block; }
 .bar .mark { width: 34px; height: 34px; border-radius: 0; }
 /* words stay readable over the glass */
@@ -156,13 +156,13 @@ footer a { color: var(--ink-2); }
 <main>
   <section class="hero">
     <div class="hero-in">
-      <span class="kicker"><i></i>رایگان · بدون تبلیغ · روی دستگاه خودت</span>
-      <h1><img src="/static/t/t-hero.png" alt="اورآ، کنارته." width="442" height="137"></h1>
-      <p class="lead">روی هر تب تازه: کارهای امروز، تقویم شمسی، و همراهی که فقط وقتی لازمه حرف می‌زنه، و همیشه آخرش اختیار با خودته.</p>
+      <span class="kicker"><i></i>رایگان · بدون تبلیغ · بی‌اجازه‌ت چیزی نمی‌فرسته</span>
+      <h1><img src="/static/t/t-hero.png" alt="تب تازه باز کردی و یادت رفت برای چی؟" width="650" height="236"></h1>
+      <p class="lead">از این به بعد، همون تب تازه کارهای امروزت رو نشونت می‌ده. و اگه داری وقت هدر می‌دی، اورآ فقط یه سؤال می‌پرسه.</p>
       <div class="speech" aria-live="polite"><span class="eye" aria-hidden="true"></span><span id="say">صبح بخیر!</span><i class="caret" aria-hidden="true"></i></div>
       <div class="ctas" id="ctas">
         <a class="btn gold" href="#get" id="cta-main">دریافت اورآ</a>
-        <a class="btn" href="#why">اورآ چیه؟</a>
+        <a class="btn" href="#why">اورآ چی‌کار می‌کنه؟</a>
       </div>
       <div class="scroll-hint">پایین برو<i></i></div>
     </div>
@@ -170,67 +170,69 @@ footer a { color: var(--ink-2); }
 
   <section class="s" id="why"><div class="wrap depth">
     <div class="eyebrow">چرا اورآ</div>
-    <h2><img src="/static/t/t-why.png" alt="یه بینش کوچیک، درست سر وقتش؛ بقیه‌ش مثل دومینو." width="721" height="167" style="--w:721" loading="lazy"></h2>
-    <p class="big">اورآ برای کسیه که می‌خواد روزش معنی داشته باشه، ولی گاهی گم می‌شه. لازم نیست زندگیت رو یه‌شبه عوض کنی. یه لحظه‌ی درست، یه قدم کوچیک، و بعد قدم بعدی خودش راه می‌افته.</p>
+    <h2><img src="/static/t/t-why.png" alt="همون لحظه که داری وقت هدر می‌دی، اورآ می‌فهمه." width="755" height="167" style="--w:755" loading="lazy"></h2>
+    <p class="big">و یه جا، وسط روز، به خودت میای و می‌بینی داری کاری رو می‌کنی که واقعاً برات مهمه؛ کاری که اگه اورآ نبود، جاش داشتی یه چیز بی‌ارزش رو اسکرول می‌کردی.</p>
     <div class="domino">
-      <div class="pane" style="--i:0"><b>می‌بینه</b><span>ریتم خودت رو یاد می‌گیره؛ می‌شمره، هیچ‌وقت نمی‌خونه.</span></div>
-      <div class="pane" style="--i:1"><b>صبر می‌کنه</b><span>تا وقتی مطمئن نیست، ساکته. سکوت بی‌جا ارزون‌تر از حرف بی‌جاست.</span></div>
-      <div class="pane" style="--i:2"><b>می‌پرسه</b><span>به‌جای حکم، یه سؤال. «الان ذهنت کجاست؟» و جوابت رو باور می‌کنه.</span></div>
-      <div class="pane" style="--i:3"><b>کم‌رنگ می‌شه</b><span>هدف آخرش اینه که کم‌کم کمتر لازمش داشته باشی.</span></div>
+      <div class="pane" style="--i:0"><b>صبح، قبل از شلوغی</b><span>دو دقیقه: سه کار مهم امروز رو می‌چینی و می‌بینی به وقتت جا می‌شن یا نه.</span></div>
+      <div class="pane" style="--i:1"><b>ده دقیقه‌ست تب عوض می‌کنی</b><span>یه سؤال: «الان ذهنت کجاست؟» اگه بگی «دارم کار می‌کنم»، باور می‌کنه و ساکت می‌شه.</span></div>
+      <div class="pane" style="--i:2"><b>سه بار عقبش انداختی</b><span>به‌جای یادآوری چهارم، می‌پرسه چی جلوشو گرفته، و یه قدم کوچیک پیشنهاد می‌ده.</span></div>
+      <div class="pane" style="--i:3"><b>شب، قبل از خواب</b><span>روز رو می‌بندی؛ مونده‌ها می‌رن برای فردا و ذهنت آزاد می‌شه.</span></div>
     </div>
   </div></section>
 
   <section class="s" id="talk"><div class="wrap depth">
     <div class="eyebrow">لحن اورآ</div>
-    <h2><img src="/static/t/t-talk.png" alt="به‌جای عدد خالی، معنی‌ش رو می‌گه." width="708" height="97" style="--w:708" loading="lazy"></h2>
-    <p class="big">مثل دوستی که قبل از بیرون رفتنت پنجره رو نگاه کرده. لحنش هم دست خودته: خودمونی، رسمی، یا فقط عدد.</p>
+    <h2><img src="/static/t/t-talk.png" alt="۱۳ درجه یعنی چی؟ یعنی یه ژاکت نازک بردار." width="508" height="167" style="--w:508" loading="lazy"></h2>
+    <p class="big">اورآ عدد خالی جلوت نمی‌ذاره؛ می‌گه برای تو چه معنی‌ای داره. لحنش هم دست خودته: خودمونی، رسمی، یا فقط عدد.</p>
     <div class="talks">
       <div class="pane talk"><span class="ctx">آب‌وهوا</span><span class="before">۱۳° · نیمه‌ابری</span><span class="say">خنکه؛ یه ژاکت نازک بردار. فردا حسابی سردتر می‌شه.</span></div>
       <div class="pane talk"><span class="ctx">اوقات شرعی</span><span class="before">مغرب ۱۷:۳۰</span><span class="say">تا اذان مغرب ۲۵ دقیقه مونده.</span></div>
-      <div class="pane talk"><span class="ctx">وقتی ده دقیقه تب‌ها رو بی‌هدف عوض می‌کنی</span><span class="say">۲۸ بار تب عوض کردی. الان ذهنت کجاست؟</span><span class="chips"><i>دارم کار می‌کنم</i><i>نمی‌دونم از کجا شروع کنم</i><i>منتظر جوابم</i><i>الان نه</i></span></div>
+      <div class="pane talk"><span class="ctx">وقتی ده دقیقه تب‌ها رو بی‌هدف عوض می‌کنی (مثال)</span><span class="say">۲۸ بار تب عوض کردی. الان ذهنت کجاست؟</span><span class="chips"><i>دارم کار می‌کنم</i><i>نمی‌دونم از کجا شروع کنم</i><i>منتظر جوابم</i><i>الان نه</i></span></div>
       <div class="pane talk"><span class="ctx">وقتی پیشنهادش رو رد می‌کنی</span><span class="say">چرا نه؟ (کمکم می‌کنه بهتر بشناسمت)</span><span class="chips"><i>ساعتش برام خوب نیست</i><i>هر روز زیاده</i><i>رد شو</i></span></div>
     </div>
   </div></section>
 
   <section class="s" id="never"><div class="wrap depth">
     <div class="eyebrow">حریم تو</div>
-    <h2><img src="/static/t/t-never.png" alt="چیزهایی که اورآ هرگز نمی‌بیند." width="602" height="97" style="--w:602" loading="lazy"></h2>
+    <h2><img src="/static/t/t-never.png" alt="هر سایتی رفتی و هر چی نوشتی، پیش خودت می‌مونه." width="624" height="168" style="--w:624" loading="lazy"></h2>
     <div class="never">
       <div class="pane"><ul>
-        <li>آدرس سایت‌ها، متن صفحه‌ها و جست‌وجوهایت</li>
-        <li>کارها، یادداشت‌ها و تقویمت؛ همه روی دستگاه خودت می‌مانند</li>
-        <li>متن یادآوری‌های گوشی؛ روی خود گوشی مهر و موم می‌شود و سرور فقط بسته‌ی قفل‌شده را می‌بیند</li>
-        <li>هیچ تبلیغی، هیچ فروش داده‌ای</li>
+        <li>آدرس سایت‌ها و متن صفحه‌ها رو اصلاً نمی‌بینه؛ فقط می‌شمره چند بار تب عوض کردی.</li>
+        <li>کارها، یادداشت‌ها و تقویمت هیچ‌وقت از دستگاهت بیرون نمی‌رن.</li>
+        <li>متن جست‌وجوهات هیچ‌وقت فرستاده نمی‌شه. اگه خودت اجازه بدی، فقط دسته‌ی کلی‌شون (مثلاً «درس») و تعدادش.</li>
+        <li>متن یادآوری‌های گوشی روی خود گوشی قفل می‌شه؛ سرور فقط بسته‌ی قفل‌شده رو می‌بینه.</li>
+        <li>نه تبلیغ داره، نه داده‌ای می‌فروشه.</li>
       </ul></div>
-      <div class="pane"><p style="margin:0;color:var(--ink-2)">هر چیزی که اورآ یاد گرفته، در صفحه‌ی «اورآ درباره‌ی تو چه می‌داند» به زبان ساده هست، با دکمه‌ی پاک کردن. خاموش کردن هر چیزی به همان آسانیِ روشن کردنش است.</p>
-        <p style="margin:14px 0 0"><a href="/privacy">متن کامل قوانین و حریم خصوصی</a></p></div>
+      <div class="pane"><p style="margin:0;color:var(--ink-2)">هر چی اورآ ازت یاد گرفته، توی صفحه‌ی «اورآ درباره‌ی تو چه می‌داند» به زبون ساده هست، با دکمه‌ی پاک کردن. خاموش کردن هر چیزی همون‌قدر راحته که روشن کردنش.</p>
+        <p style="margin:14px 0 0;color:var(--ink-2)">کد کامل اورآ باز است و هر کسی می‌تونه بخونه‌ش: <a href="https://github.com/ParsaAminzade/Ora" rel="noopener">گیت‌هاب اورآ</a></p>
+        <p style="margin:10px 0 0"><a href="/privacy">متن کامل قوانین و حریم خصوصی</a></p></div>
     </div>
   </div></section>
 
   <section class="s" id="get"><div class="wrap depth">
     <div class="eyebrow">دریافت</div>
-    <h2><img src="/static/t/t-get.png" alt="اورآ رو بیار پیش خودت." width="484" height="98" style="--w:484" loading="lazy"></h2>
+    <h2><img src="/static/t/t-get.png" alt="فردا صبح که تب تازه رو باز کنی، اورآ اونجاست." width="622" height="167" style="--w:622" loading="lazy"></h2>
     <div class="get-grid">
       <div class="pane main" id="windows">
         <h3>ویندوز · کروم، اج یا بریو</h3>
-        <p>یک فایل، یک دوبار کلیک. یک پنجره‌ی کوچک بقیه‌ی راه را قدم‌به‌قدم با تو می‌آید.</p>
+        <p>یه فایل، یه دوبار کلیک، حدود یه دقیقه. یه پنجره‌ی کوچیک بقیه‌ی راه رو قدم‌به‌قدم باهات میاد و هر قدم رو خودش تیک می‌زنه.</p>
         <a class="btn gold" href="/Ora-Setup.cmd" download="Ora-Setup.cmd" id="dl-setup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></svg>دریافت نصب‌کننده‌ی ویندوز</a>
         <ol class="steps">
-          <li>فایل <code>Ora-Setup.cmd</code> را بگیر. اگر مرورگر پرسید، «Keep» یا «نگه‌داشتن» را بزن.</li>
-          <li>رویش دوبار کلیک کن. اگر ویندوز گفت «Windows protected your PC»، روی «More info» و بعد «Run anyway» بزن.</li>
-          <li>صفحه‌ی افزونه‌ها و پوشه‌ی Ora خودشان باز می‌شوند. «Developer mode» را روشن کن و پوشه‌ی Ora را روی صفحه بکش. پنجره‌ی راهنما هر قدم را تیک می‌زند.</li>
+          <li>فایل <code>Ora-Setup.cmd</code> رو بگیر. اگه مرورگر پرسید نگهش داری یا نه، «Keep» رو بزن.</li>
+          <li>روش دوبار کلیک کن. ویندوز برای هر فایلی که از شرکت‌های بزرگ نیست می‌گه «Windows protected your PC»؛ «More info» و بعد «Run anyway» رو بزن.</li>
+          <li>صفحه‌ی افزونه‌ها و پوشه‌ی Ora خودشون باز می‌شن. کلید «Developer mode» رو روشن کن (همون کلیدی که اجازه می‌ده افزونه‌ای بیرون از فروشگاه کروم نصب بشه) و پوشه‌ی Ora رو بکش روی صفحه.</li>
         </ol>
-        <p class="note">چرا یک قدم دستی؟ کروم برای جلوگیری از بدافزار، به هیچ فایلی اجازه نمی‌دهد خودش افزونه‌ای را بیرون از فروشگاه کروم نصب کند. بعد از نصب، به‌روزرسانی‌ها خودکار خبر داده می‌شوند و با یک دوبار کلیک انجام می‌شوند.</p>
+        <p class="note">این فایل یه متن ساده‌ست؛ اگه خواستی، قبل از اجرا با Notepad بازش کن و بخونش. چرا یه قدم دستی هست؟ کروم به هیچ فایلی اجازه نمی‌ده خودش افزونه‌ای رو بیرون از فروشگاه کروم نصب کنه، برای اینکه جلوی بدافزار رو بگیره. بعد از نصب، هر نسخه‌ی تازه خودش خبرت می‌کنه.</p>
       </div>
       <div class="side">
         <div class="pane" id="phone">
           <h3>گوشی · اندروید و آیفون</h3>
-          <p>اپ گوشی را باز کن؛ خودش یادت می‌دهد چطور روی صفحه‌ی اصلی بنشیند.</p>
+          <p>اپ گوشی رو باز کن؛ خودش یادت می‌ده چطوری بشینه روی صفحه‌ی اصلی.</p>
           <a class="btn" href="/app/">باز کردن اورآ برای گوشی</a>
         </div>
         <div class="pane">
           <h3>دستی (zip)</h3>
-          <p>برای مک، لینوکس، یا اگر خودت می‌خواهی: فایل را باز کن و در صفحه‌ی افزونه‌ها با «Load unpacked» پوشه را انتخاب کن.</p>
+          <p>برای مک، لینوکس، یا اگه خودت می‌خوای: فایل رو باز کن و توی صفحه‌ی افزونه‌ها با «Load unpacked» پوشه رو انتخاب کن.</p>
           <a class="btn" id="dl-zip" href="https://github.com/ParsaAminzade/Ora/raw/main/downloads/ora-extension-latest.zip">دریافت zip</a>
           <p class="ver" id="ver" style="margin:12px 0 0"></p>
         </div>
@@ -238,7 +240,7 @@ footer a { color: var(--ink-2); }
     </div>
   </div></section>
 
-  <footer>اورآ · ساخته‌ی یک نفر، برای آدم‌هایی که دنبال معنی‌اند. · <a href="/privacy">قوانین و حریم خصوصی</a></footer>
+  <footer>اورآ رو یه نفر می‌سازه و نگه می‌داره. · <a href="/privacy">قوانین و حریم خصوصی</a> · <a href="https://github.com/ParsaAminzade/Ora" rel="noopener">کد اورآ</a></footer>
 </main>
 
 <script>

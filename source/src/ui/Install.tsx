@@ -4,8 +4,9 @@
 // · a small «نصب» button stays in the phone header until Ora is on the home screen
 // · the card itself comes 15 s after the first visit, then again after 1, 2, 4 and 7 days, then once
 //   a week — never while something else is open or Ora has just said something
-// · «بعداً» asks «چرا؟» (one tap, skippable): «بلد نیستم» shows the steps, «تو مرورگر راحت‌ترم» waits
-//   two weeks, «زیاد می‌پرسی» doubles the wait
+// · «بعداً» asks «چرا؟» (one tap, skippable): «بلد نیستم» shows the steps, «تو مرورگر راحت‌ترم» stops
+//   the card for good, «زیاد می‌پرسی» doubles the wait
+// · from the second time, «دیگه نپرس» sits next to «بعداً»: a «no» is remembered (no nagging)
 // · Android Chrome/Edge/Samsung with an install offer: one tap («نصب»). Elsewhere: the exact steps for
 //   that browser. iPhone: Share → Add to Home Screen. Inside Telegram/Instagram/Eitaa…: open it in a
 //   real browser first.
@@ -50,6 +51,10 @@ type Ask = { n: number; next: number };
 const DAYS = [1, 2, 4, 7]; // then weekly
 const read = (): Ask => { try { return JSON.parse(localStorage.getItem(KEY) ?? 'null') ?? { n: 0, next: 0 }; } catch { return { n: 0, next: 0 }; } };
 const write = (a: Ask) => { try { localStorage.setItem(KEY, JSON.stringify(a)); } catch { /* */ } };
+/** «دیگه نپرس»: the card never comes by itself again; the header «نصب» button (opened by you) stays. */
+const NEVER = 'ora:install-never';
+const never = () => { try { return !!localStorage.getItem(NEVER); } catch { return false; } };
+export const stopAsking = () => { try { localStorage.setItem(NEVER, String(Date.now())); } catch { /* */ } };
 const later = (days?: number) => { const a = read(); const d = days ?? DAYS[Math.min(a.n, DAYS.length - 1)]; write({ n: a.n + 1, next: Date.now() + d * 86_400_000 }); };
 
 function Card({ steps: startSteps, onClose }: { steps: boolean; onClose(): void }) {
@@ -85,6 +90,7 @@ function Card({ steps: startSteps, onClose }: { steps: boolean; onClose(): void 
             {w === 'prompt' && <button className="btn btn-accent" onClick={() => void install()}><IconDownload size={15} /> نصب</button>}
             {w !== 'prompt' && steps && <button className="btn btn-accent" onClick={() => { void note('install', 'yes'); setDone('عالی! بعد از نصب، اورآ رو از صفحه‌ی اصلی باز کن.'); window.setTimeout(onClose, 3500); }}>انجام دادم</button>}
             <button className="btn" onClick={() => void no()}>بعداً</button>
+            {read().n >= 1 && <button className="btn-link" onClick={() => { void note('install', 'skip'); stopAsking(); onClose(); }}>دیگه نپرس</button>}
           </div>
         </>
       )}
@@ -116,6 +122,7 @@ function PcCard({ onClose }: { onClose(): void }) {
           <div className="cause-acts">
             <button className="btn btn-accent" onClick={go}><IconDownload size={15} /> نصب روی ویندوز</button>
             <button className="btn" onClick={() => void no()}>بعداً</button>
+            {read().n >= 1 && <button className="btn-link" onClick={() => { void note('install-pc', 'skip'); stopAsking(); onClose(); }}>دیگه نپرس</button>}
           </div>
         </>
       )}
@@ -125,7 +132,7 @@ function PcCard({ onClose }: { onClose(): void }) {
 }
 
 /** The install card is due on this visit: other unasked things (the eye's tips) step aside for it. */
-export const installDue = () => IS_WEB_BUILD && (onPhone() || onWindows()) && !installed() && Date.now() >= read().next;
+export const installDue = () => IS_WEB_BUILD && (onPhone() || onWindows()) && !installed() && !never() && Date.now() >= read().next;
 
 /** The card, on its schedule; plus «ora:install-open» from the header button or a «why not» answer. */
 export function InstallHost() {
@@ -136,7 +143,7 @@ export function InstallHost() {
     const fb = (e: Event) => {
       const d = (e as CustomEvent<{ kind: string; reason: string }>).detail;
       if (d.kind !== 'install' && d.kind !== 'install-pc') return;
-      if (d.reason === 'browser') later(14);
+      if (d.reason === 'browser') stopAsking();
       if (d.reason === 'too-often') { const a = read(); write({ n: a.n, next: Date.now() + 2 * Math.max(86_400_000, a.next - Date.now()) }); }
     };
     const gone = () => setOpen(null);
@@ -147,7 +154,7 @@ export function InstallHost() {
     if (!loaded || installed() || !(onPhone() || onWindows())) return;
     let t = 0;
     const tryShow = () => {
-      if (installed() || Date.now() < read().next || isQuiet()) return;
+      if (installed() || never() || Date.now() < read().next || isQuiet()) return;
       const st = useStore.getState();
       if (st.panel !== 'none' || st.editing || document.querySelector('[role="dialog"]')) return;
       try { if (Date.now() - Number(localStorage.getItem('ora:tip-at') ?? 0) < 60_000) return; localStorage.setItem('ora:tip-at', String(Date.now())); } catch { /* */ }
