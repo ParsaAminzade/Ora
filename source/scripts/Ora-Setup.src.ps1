@@ -144,13 +144,15 @@ function Show-Guide($b) {
   $s1 = Step '۱' 92 'بالا سمت راست صفحه‌ی افزونه‌ها، کلید «Developer mode» را روشن کن.'
   $s2 = Step '۲' 160 'پوشه‌ی «Ora» را از پنجره‌ی کناری بکش و روی صفحه‌ی افزونه‌ها رها کن. (یا «Load unpacked» را بزن، بعد Ctrl+V و Enter؛ مسیرش را کپی کرده‌ام.)'
 
-  $state = New-Object System.Windows.Forms.Label; $state.ForeColor = $dim; $state.SetBounds(16, 232, 400, 24); $state.Text = 'منتظرم… (بعد از هر کار، چند ثانیه طول می‌کشد تا مرورگر خبر بدهد.)'; $f.Controls.Add($state)
+  $state = New-Object System.Windows.Forms.Label; $state.ForeColor = $dim; $state.SetBounds(16, 226, 400, 40); $state.Text = 'صفحه‌ی افزونه‌ها باز نشد؟ دکمه‌ی پایین را بزن. بعد از هر کار چند ثانیه طول می‌کشد تا تیک بخورد.'; $f.Controls.Add($state)
 
   function Btn($text, $x, $w) { $x2 = New-Object System.Windows.Forms.Button; $x2.Text = $text; $x2.FlatStyle = 'Flat'; $x2.ForeColor = $gold; $x2.FlatAppearance.BorderColor = $gold; $x2.SetBounds($x, 270, $w, 40); $f.Controls.Add($x2); return $x2 }
   $bPage = Btn 'باز کردن دوباره‌ی صفحه' 226 188
   $bCopy = Btn 'کپی مسیر' 120 100
   $bFolder = Btn 'پوشه' 16 98
-  $bPage.Add_Click({ Start-Process -FilePath $b.Path -ArgumentList $b.Page })
+  # if the browser refuses to open its own extensions page from outside, the address goes to the
+  # clipboard and the line below says where to paste it
+  $bPage.Add_Click({ Start-Process -FilePath $b.Path -ArgumentList $b.Page; Set-Clipboard -Value $b.Page; $state.Text = 'اگر صفحه‌ی افزونه‌ها باز نشد: در نوار آدرس مرورگر Ctrl+V و Enter بزن (آدرسش کپی شد).' })
   $bCopy.Add_Click({ Set-Clipboard -Value $Dir; $state.Text = 'مسیر کپی شد: ' + $Dir })
   $bFolder.Add_Click({ Start-Process explorer.exe -ArgumentList "/select,`"$Dir`"" })
 
