@@ -7,10 +7,12 @@
 <meta name="description" content="اورآ روی هر تب تازه کنارته: کارهای امروز، تقویم شمسی، و یک همراه که فقط وقتی لازمه حرف می‌زنه. رایگان، بدون تبلیغ، و همه‌چیز روی دستگاه خودت.">
 <meta name="theme-color" content="#07080c">
 <link rel="icon" href="/static/icon.png">
+<link rel="preload" href="/static/diba.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/static/t/t-hero.png" as="image">
 <style>
-@font-face { font-family: Vazirmatn; font-weight: 400; font-display: swap; src: url(/static/vazir-400.woff2) format('woff2'); unicode-range: U+0600-06FF, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF; }
-@font-face { font-family: Vazirmatn; font-weight: 700; font-display: swap; src: url(/static/vazir-700.woff2) format('woff2'); unicode-range: U+0600-06FF, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF; }
-@font-face { font-family: Vazirmatn; font-weight: 400 700; font-display: swap; src: url(/static/vazir-latin-400.woff2) format('woff2'); unicode-range: U+0000-00FF; }
+/* Persian: Diba. Latin letters (Diba has none): Vazirmatn's Latin. Headings: Hasti, as pictures (static/t/). */
+@font-face { font-family: Diba; font-weight: 400 700; font-display: swap; src: url(/static/diba.woff2) format('woff2'); unicode-range: U+0600-06FF, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF, U+00AB, U+00BB; }
+@font-face { font-family: OraLatin; font-weight: 400 700; font-display: swap; src: url(/static/vazir-latin-400.woff2) format('woff2'); unicode-range: U+0000-00FF; }
 :root {
   --bg: #07080c; --ink: #efe9dd; --ink-2: #b9b2a5; --ink-3: #7d786f;
   --gold: #e3bd7a; --gold-2: #f6dcaa; --teal: #7fd3c8;
@@ -19,7 +21,7 @@
 }
 * { box-sizing: border-box; }
 html { background: var(--bg); color: var(--ink); scroll-behavior: smooth; }
-body { margin: 0; font-family: Vazirmatn, Tahoma, sans-serif; font-size: 17px; line-height: 1.85; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+body { margin: 0; font-family: Diba, OraLatin, Tahoma, sans-serif; font-size: 18px; line-height: 1.9; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 a { color: inherit; }
 ::selection { background: rgba(227,189,122,.35); }
 
@@ -47,11 +49,13 @@ main { position: relative; z-index: 2; }
 /* hero */
 .hero { min-height: 100svh; display: grid; place-items: end center; padding: 0 20px 9vh; text-align: center; }
 .hero-in { max-width: 760px; }
-.kicker { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink-2); padding: 5px 14px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.kicker { display: inline-flex; align-items: center; gap: 8px; font-size: 14.5px; color: var(--ink-2); padding: 5px 14px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 .kicker i { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 12px var(--teal); animation: beat 2.4s ease-in-out infinite; }
 @keyframes beat { 50% { opacity: .35; } }
-h1 { font-size: clamp(42px, 8vw, 92px); line-height: 1.08; margin: 18px 0 10px; font-weight: 700; letter-spacing: -.02em;
-  background: linear-gradient(180deg, #fff8ea 10%, #e7d3ad 60%, #b8956a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+h1 { margin: 22px 0 8px; line-height: 0; }
+h1 img { width: min(560px, 84vw); height: auto; filter: drop-shadow(0 6px 30px rgba(7,8,12,.7)); }
+h2 img { width: calc(var(--w) * 1px * .8); max-width: 100%; height: auto; display: block; }
+.bar .mark { width: 34px; height: 34px; border-radius: 0; }
 /* words stay readable over the glass */
 .lead { text-shadow: 0 2px 24px rgba(7,8,12,.85); }
 .lead { font-size: clamp(17px, 2.2vw, 21px); color: var(--ink-2); margin: 0 auto 26px; max-width: 600px; }
@@ -80,7 +84,7 @@ section.s { padding: 16vh 0 4vh; perspective: 1400px; }
 /* transform only: opacity, filters or preserve-3d here would cut the panes' glass off from the light behind them */
 .depth { transform: translate3d(0, calc((1 - var(--p, 1)) * 90px), calc((1 - var(--p, 1)) * -300px)) rotateX(calc((1 - var(--p, 1)) * 16deg)); transform-origin: 50% 100%; }
 .eyebrow { font-size: 13.5px; color: var(--gold); letter-spacing: .02em; margin-bottom: 8px; }
-h2 { font-size: clamp(30px, 4.6vw, 52px); line-height: 1.2; margin: 0 0 16px; letter-spacing: -.015em; }
+h2 { margin: 0 0 18px; line-height: 0; }
 .s p.big { font-size: clamp(18px, 2.2vw, 22px); color: var(--ink-2); max-width: 720px; }
 .pane { position: relative; border-radius: var(--r); padding: 28px; background: linear-gradient(145deg, rgba(255,255,255,.085), rgba(255,255,255,.025));
   border: 1px solid rgba(255,255,255,.13); box-shadow: 0 1px 0 rgba(255,255,255,.14) inset, 0 30px 80px rgba(0,0,0,.45);
@@ -99,7 +103,7 @@ h2 { font-size: clamp(30px, 4.6vw, 52px); line-height: 1.2; margin: 0 0 16px; le
 /* how Ora talks */
 .talks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 30px; }
 .talk { display: flex; flex-direction: column; gap: 12px; }
-.talk .ctx { font-size: 13px; color: var(--ink-3); }
+.talk .ctx { font-size: 14.5px; color: var(--ink-3); }
 .talk .before { font-size: 14px; color: var(--ink-3); text-decoration: line-through; text-decoration-color: rgba(255,255,255,.25); }
 .talk .say { font-size: 19px; line-height: 1.7; }
 .talk .chips { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -140,7 +144,7 @@ footer a { color: var(--ink-2); }
 
 <header class="bar">
   <img src="/static/icon.png" alt="">
-  <b>اورآ</b>
+  <img class="mark" src="/static/t/t-word.png" alt="اورآ" width="47" height="47">
   <nav>
     <a href="#why">چرا اورآ</a>
     <a href="#talk">چطور حرف می‌زند</a>
@@ -153,7 +157,7 @@ footer a { color: var(--ink-2); }
   <section class="hero">
     <div class="hero-in">
       <span class="kicker"><i></i>رایگان · بدون تبلیغ · روی دستگاه خودت</span>
-      <h1>اورآ، کنارته.</h1>
+      <h1><img src="/static/t/t-hero.png" alt="اورآ، کنارته." width="442" height="137"></h1>
       <p class="lead">روی هر تب تازه: کارهای امروز، تقویم شمسی، و همراهی که فقط وقتی لازمه حرف می‌زنه، و همیشه آخرش اختیار با خودته.</p>
       <div class="speech" aria-live="polite"><span class="eye" aria-hidden="true"></span><span id="say">صبح بخیر!</span><i class="caret" aria-hidden="true"></i></div>
       <div class="ctas" id="ctas">
@@ -166,7 +170,7 @@ footer a { color: var(--ink-2); }
 
   <section class="s" id="why"><div class="wrap depth">
     <div class="eyebrow">چرا اورآ</div>
-    <h2>یه بینش کوچیک، درست سر وقتش؛<br>بقیه‌ش مثل دومینو.</h2>
+    <h2><img src="/static/t/t-why.png" alt="یه بینش کوچیک، درست سر وقتش؛ بقیه‌ش مثل دومینو." width="721" height="167" style="--w:721" loading="lazy"></h2>
     <p class="big">اورآ برای کسیه که می‌خواد روزش معنی داشته باشه، ولی گاهی گم می‌شه. لازم نیست زندگیت رو یه‌شبه عوض کنی. یه لحظه‌ی درست، یه قدم کوچیک، و بعد قدم بعدی خودش راه می‌افته.</p>
     <div class="domino">
       <div class="pane" style="--i:0"><b>می‌بینه</b><span>ریتم خودت رو یاد می‌گیره؛ می‌شمره، هیچ‌وقت نمی‌خونه.</span></div>
@@ -178,7 +182,7 @@ footer a { color: var(--ink-2); }
 
   <section class="s" id="talk"><div class="wrap depth">
     <div class="eyebrow">لحن اورآ</div>
-    <h2>به‌جای عدد خالی، معنی‌ش رو می‌گه.</h2>
+    <h2><img src="/static/t/t-talk.png" alt="به‌جای عدد خالی، معنی‌ش رو می‌گه." width="708" height="97" style="--w:708" loading="lazy"></h2>
     <p class="big">مثل دوستی که قبل از بیرون رفتنت پنجره رو نگاه کرده. لحنش هم دست خودته: خودمونی، رسمی، یا فقط عدد.</p>
     <div class="talks">
       <div class="pane talk"><span class="ctx">آب‌وهوا</span><span class="before">۱۳° · نیمه‌ابری</span><span class="say">خنکه؛ یه ژاکت نازک بردار. فردا حسابی سردتر می‌شه.</span></div>
@@ -190,7 +194,7 @@ footer a { color: var(--ink-2); }
 
   <section class="s" id="never"><div class="wrap depth">
     <div class="eyebrow">حریم تو</div>
-    <h2>چیزهایی که اورآ هرگز نمی‌بیند.</h2>
+    <h2><img src="/static/t/t-never.png" alt="چیزهایی که اورآ هرگز نمی‌بیند." width="602" height="97" style="--w:602" loading="lazy"></h2>
     <div class="never">
       <div class="pane"><ul>
         <li>آدرس سایت‌ها، متن صفحه‌ها و جست‌وجوهایت</li>
@@ -205,7 +209,7 @@ footer a { color: var(--ink-2); }
 
   <section class="s" id="get"><div class="wrap depth">
     <div class="eyebrow">دریافت</div>
-    <h2>اورآ رو بیار پیش خودت.</h2>
+    <h2><img src="/static/t/t-get.png" alt="اورآ رو بیار پیش خودت." width="484" height="98" style="--w:484" loading="lazy"></h2>
     <div class="get-grid">
       <div class="pane main" id="windows">
         <h3>ویندوز · کروم، اج یا بریو</h3>
