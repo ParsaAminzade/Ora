@@ -121,61 +121,130 @@ function Copy-Ora($from, $dest) {
   } catch { Write-Host "  (updater shortcut skipped: $($_.Exception.Message))" }
 }
 
-# ---------- the live guide ----------
+# ---------- the live guide: one step at a time, with a picture of exactly where to click ----------
+# Step 1 «Developer mode» → step 2 «Load unpacked, Ctrl+V, Enter, Select Folder» → done.
+# It watches the browser's own settings and moves on by itself; the buttons move on too, in case
+# the browser is slow to save them.
 function Show-Guide($b) {
+  $edge = $b.Name -eq 'Edge'
+  $gold = [Drawing.Color]::FromArgb(222, 186, 120); $ink = [Drawing.Color]::FromArgb(236, 230, 218)
+  $dim = [Drawing.Color]::FromArgb(150, 146, 138); $ok = [Drawing.Color]::FromArgb(126, 211, 150)
+  $bg = [Drawing.Color]::FromArgb(14, 16, 22)
   $f = New-Object System.Windows.Forms.Form
   $f.Text = 'نصب اورآ'; $f.RightToLeft = 'Yes'; $f.RightToLeftLayout = $true
   $f.TopMost = $true; $f.FormBorderStyle = 'FixedToolWindow'; $f.StartPosition = 'Manual'
-  $f.BackColor = [Drawing.Color]::FromArgb(14, 16, 22); $f.ForeColor = [Drawing.Color]::FromArgb(236, 230, 218)
-  $f.Font = New-Object Drawing.Font('Tahoma', 10)
-  $f.ClientSize = New-Object Drawing.Size(430, 330)
+  $f.BackColor = $bg; $f.ForeColor = $ink; $f.Font = New-Object Drawing.Font('Tahoma', 10)
+  $f.ClientSize = New-Object Drawing.Size(460, 470)
   $wa = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea
-  $f.Location = New-Object Drawing.Point(($wa.Right - 450), ($wa.Bottom - 360))
-  $gold = [Drawing.Color]::FromArgb(222, 186, 120); $dim = [Drawing.Color]::FromArgb(150, 146, 138); $ok = [Drawing.Color]::FromArgb(126, 211, 150)
+  $f.Location = New-Object Drawing.Point(($wa.Right - 480), ($wa.Bottom - 500))
 
-  $title = New-Object System.Windows.Forms.Label
-  $title.Text = 'یک قدم مانده: اورآ را به ' + $b.Name + ' بده'; $title.Font = New-Object Drawing.Font('Tahoma', 12, [Drawing.FontStyle]::Bold)
-  $title.ForeColor = $gold; $title.SetBounds(16, 14, 400, 28); $f.Controls.Add($title)
+  $count = New-Object System.Windows.Forms.Label; $count.ForeColor = $gold; $count.SetBounds(16, 12, 428, 22); $f.Controls.Add($count)
+  $title = New-Object System.Windows.Forms.Label; $title.Font = New-Object Drawing.Font('Tahoma', 13, [Drawing.FontStyle]::Bold); $title.SetBounds(16, 36, 428, 30); $f.Controls.Add($title)
 
-  $sub = New-Object System.Windows.Forms.Label
-  $sub.Text = 'صفحه‌ی افزونه‌ها و پوشه‌ی Ora را برایت باز کردم. این دو کار را بکن؛ من خودم می‌فهمم و تیک می‌زنم.'
-  $sub.ForeColor = $dim; $sub.SetBounds(16, 44, 400, 40); $f.Controls.Add($sub)
+  # the picture: a little drawing of the browser's extensions page with the spot to click circled
+  $pic = New-Object System.Windows.Forms.Panel; $pic.SetBounds(16, 72, 428, 150); $pic.BackColor = [Drawing.Color]::FromArgb(32, 33, 36); $f.Controls.Add($pic)
+  $script:stage = 1
+  $pic.Add_Paint({
+    param($s, $e)
+    $g = $e.Graphics; $g.SmoothingMode = 'AntiAlias'
+    $fg = New-Object Drawing.SolidBrush([Drawing.Color]::FromArgb(220, 220, 220))
+    $soft = New-Object Drawing.SolidBrush([Drawing.Color]::FromArgb(140, 140, 140))
+    $font = New-Object Drawing.Font('Segoe UI', 9); $bold = New-Object Drawing.Font('Segoe UI', 10, [Drawing.FontStyle]::Bold)
+    $pen = New-Object Drawing.Pen($gold, 3)
+    # address bar
+    $g.FillRectangle((New-Object Drawing.SolidBrush([Drawing.Color]::FromArgb(53, 54, 58))), 10, 8, 408, 22)
+    $g.DrawString(($b.Page.TrimEnd('/')), $font, $soft, 18, 11)
+    if ($edge) {
+      # Edge: Developer mode sits at the bottom of the left menu; Load unpacked at the top of the page
+      $g.FillRectangle((New-Object Drawing.SolidBrush([Drawing.Color]::FromArgb(43, 43, 46))), 10, 36, 120, 108)
+      $g.DrawString('Extensions', $bold, $fg, 18, 42)
+      $g.DrawString('Developer mode', $font, $fg, 18, 118)
+      $tog = New-Object Drawing.Rectangle(108, 119, 18, 10)
+      $load = New-Object Drawing.Rectangle(145, 40, 100, 24)
+    } else {
+      $g.DrawString('Extensions', $bold, $fg, 14, 40)
+      $g.DrawString('Developer mode', $font, $fg, 290, 41)
+      $tog = New-Object Drawing.Rectangle(392, 43, 22, 12)
+      $load = New-Object Drawing.Rectangle(14, 70, 110, 26)
+    }
+    $on = $script:stage -ge 2
+    $g.FillEllipse((New-Object Drawing.SolidBrush($(if ($on) { [Drawing.Color]::FromArgb(138, 180, 248) } else { [Drawing.Color]::FromArgb(110, 110, 110) }))), $tog)
+    $knob = if ($on) { $tog.Right - $tog.Height } else { $tog.X }
+    $g.FillEllipse((New-Object Drawing.SolidBrush([Drawing.Color]::White)), $knob, $tog.Y, $tog.Height, $tog.Height)
+    if ($on) {
+      # the three buttons that appear once Developer mode is on; «Load unpacked» is the first
+      $g.DrawRectangle((New-Object Drawing.Pen([Drawing.Color]::FromArgb(138, 180, 248), 1)), $load)
+      $g.DrawString('Load unpacked', $font, (New-Object Drawing.SolidBrush([Drawing.Color]::FromArgb(138, 180, 248))), $load.X + 8, $load.Y + 5)
+      $g.DrawRectangle((New-Object Drawing.Pen([Drawing.Color]::FromArgb(90, 90, 90), 1)), $load.Right + 8, $load.Y, 90, $load.Height)
+      $g.DrawString('Pack extension', $font, $soft, $load.Right + 14, $load.Y + 5)
+      $ring = New-Object Drawing.Rectangle(($load.X - 6), ($load.Y - 6), ($load.Width + 12), ($load.Height + 12))
+    } else {
+      $ring = New-Object Drawing.Rectangle(($tog.X - 10), ($tog.Y - 10), ($tog.Width + 20), ($tog.Height + 20))
+    }
+    $g.DrawEllipse($pen, $ring)
+    # «اینجا» next to the circle
+    $sf = New-Object Drawing.StringFormat; $sf.FormatFlags = 'DirectionRightToLeft'
+    $here = New-Object Drawing.Font('Tahoma', 10, [Drawing.FontStyle]::Bold)
+    $hx = if ($ring.X -gt 214) { $ring.X - 70 } else { $ring.Right + 8 }
+    $g.DrawString('اینجا', $here, (New-Object Drawing.SolidBrush($gold)), $hx, ($ring.Y + 2))
+  })
 
-  function Step($n, $y, $text) {
-    $mark = New-Object System.Windows.Forms.Label; $mark.Text = $n; $mark.TextAlign = 'MiddleCenter'
-    $mark.Font = New-Object Drawing.Font('Tahoma', 11, [Drawing.FontStyle]::Bold); $mark.ForeColor = $gold; $mark.SetBounds(384, $y, 30, 30); $f.Controls.Add($mark)
-    $l = New-Object System.Windows.Forms.Label; $l.Text = $text; $l.SetBounds(16, $y, 364, 64); $f.Controls.Add($l)
-    return @($mark, $l)
+  $text = New-Object System.Windows.Forms.Label; $text.SetBounds(16, 232, 428, 150); $text.Font = New-Object Drawing.Font('Tahoma', 10.5); $f.Controls.Add($text)
+  $state = New-Object System.Windows.Forms.Label; $state.ForeColor = $dim; $state.SetBounds(16, 382, 428, 22); $f.Controls.Add($state)
+
+  function Btn($t, $x, $w, $main) { $x2 = New-Object System.Windows.Forms.Button; $x2.Text = $t; $x2.FlatStyle = 'Flat'; $x2.SetBounds($x, 414, $w, 40)
+    if ($main) { $x2.BackColor = $gold; $x2.ForeColor = [Drawing.Color]::FromArgb(26, 20, 11); $x2.FlatAppearance.BorderSize = 0 } else { $x2.ForeColor = $gold; $x2.FlatAppearance.BorderColor = $gold }
+    $f.Controls.Add($x2); return $x2 }
+  $bNext = Btn 'انجامش دادم' 284 160 $true
+  $bPage = Btn 'صفحه باز نشد' 150 126 $false
+  $bCopy = Btn 'کپی مسیر' 16 126 $false
+
+  function Show-Step($n) {
+    $script:stage = $n
+    switch ($n) {
+      1 {
+        $count.Text = 'قدم ۱ از ۲'
+        $title.Text = 'کلید «Developer mode» را روشن کن'
+        $text.Text = $(if ($edge) { "صفحه‌ی افزونه‌های Edge برایت باز شده. پایینِ منوی سمت چپ، کلیدی هست به اسم «Developer mode». رویش بزن تا روشن (آبی) شود.`n`nاگر Edge فارسی است، کلیدی است که کنارش «برنامه‌نویس» نوشته شده." } else { "صفحه‌ی افزونه‌های $($b.Name) برایت باز شده. گوشه‌ی بالا سمت راستِ همان صفحه، کلید کوچکی هست به اسم «Developer mode». رویش بزن تا روشن (آبی) شود.`n`nاگر مرورگرت فارسی است، همین کلید بالا سمت چپ است و کنارش «برنامه‌نویس» نوشته شده." })
+        $bNext.Text = 'روشنش کردم'
+      }
+      2 {
+        $count.Text = 'قدم ۲ از ۲'
+        $title.Text = 'روی «Load unpacked» بزن و پوشه را بده'
+        $text.Text = "حالا بالای همان صفحه سه دکمه آمده. روی اولی، «Load unpacked»، بزن.`n`nیک پنجره‌ی انتخاب پوشه باز می‌شود. بالای آن پنجره، توی نوار آدرس کلیک کن، Ctrl+V بزن و Enter (مسیر اورآ را خودم کپی کرده‌ام). بعد دکمه‌ی «Select Folder» را بزن."
+        $bNext.Text = 'انجامش دادم'
+        Set-Clipboard -Value $Dir
+      }
+      3 {
+        $count.Text = 'تمام!'; $count.ForeColor = $ok
+        $title.Text = 'اورآ نصب شد'; $title.ForeColor = $ok
+        $text.Text = "یک تب تازه باز کن تا اورآ را ببینی.`n`nاگر مرورگر پرسید «این صفحه را نگه داری؟»، «Keep it» را بزن."
+        $bNext.Text = 'باز کردن اورآ'; $bPage.Visible = $false; $bCopy.Visible = $false
+        $state.Text = ''
+      }
+    }
+    $pic.Visible = $n -lt 3
+    $pic.Invalidate()
   }
-  $s1 = Step '۱' 92 'بالا سمت راست صفحه‌ی افزونه‌ها، کلید «Developer mode» را روشن کن.'
-  $s2 = Step '۲' 160 'پوشه‌ی «Ora» را از پنجره‌ی کناری بکش و روی صفحه‌ی افزونه‌ها رها کن. (یا «Load unpacked» را بزن، بعد Ctrl+V و Enter؛ مسیرش را کپی کرده‌ام.)'
+  $script:done = $false
+  $bNext.Add_Click({
+    if ($script:stage -eq 1) { Show-Step 2 }
+    elseif ($script:stage -eq 2) {
+      if ((Ora-Paths $b).Count -gt 0) { $script:done = $true; Show-Step 3 }
+      else { $state.Text = 'هنوز نمی‌بینمش؛ مرورگر چند ثانیه طول می‌کشد. اگر پوشه را انتخاب کرده‌ای، کمی صبر کن.' }
+    } else { Start-Process -FilePath $b.Path -ArgumentList ($b.Page -replace 'extensions/$', 'newtab/'); $f.Close() }
+  })
+  $bPage.Add_Click({ Start-Process -FilePath $b.Path -ArgumentList $b.Page; Set-Clipboard -Value $b.Page; $state.Text = 'آدرس کپی شد: در نوار آدرس مرورگر Ctrl+V و بعد Enter بزن.' })
+  $bCopy.Add_Click({ Set-Clipboard -Value $Dir; $state.Text = 'مسیر اورآ کپی شد.' })
 
-  $state = New-Object System.Windows.Forms.Label; $state.ForeColor = $dim; $state.SetBounds(16, 226, 400, 40); $state.Text = 'صفحه‌ی افزونه‌ها باز نشد؟ دکمه‌ی پایین را بزن. بعد از هر کار چند ثانیه طول می‌کشد تا تیک بخورد.'; $f.Controls.Add($state)
-
-  function Btn($text, $x, $w) { $x2 = New-Object System.Windows.Forms.Button; $x2.Text = $text; $x2.FlatStyle = 'Flat'; $x2.ForeColor = $gold; $x2.FlatAppearance.BorderColor = $gold; $x2.SetBounds($x, 270, $w, 40); $f.Controls.Add($x2); return $x2 }
-  $bPage = Btn 'باز کردن دوباره‌ی صفحه' 226 188
-  $bCopy = Btn 'کپی مسیر' 120 100
-  $bFolder = Btn 'پوشه' 16 98
-  # if the browser refuses to open its own extensions page from outside, the address goes to the
-  # clipboard and the line below says where to paste it
-  $bPage.Add_Click({ Start-Process -FilePath $b.Path -ArgumentList $b.Page; Set-Clipboard -Value $b.Page; $state.Text = 'اگر صفحه‌ی افزونه‌ها باز نشد: در نوار آدرس مرورگر Ctrl+V و Enter بزن (آدرسش کپی شد).' })
-  $bCopy.Add_Click({ Set-Clipboard -Value $Dir; $state.Text = 'مسیر کپی شد: ' + $Dir })
-  $bFolder.Add_Click({ Start-Process explorer.exe -ArgumentList "/select,`"$Dir`"" })
-
-  $done = $false
   $timer = New-Object System.Windows.Forms.Timer; $timer.Interval = 1500
   $timer.Add_Tick({
-    if (Dev-Mode $b) { $s1[0].Text = '✓'; $s1[0].ForeColor = $ok; $s1[1].ForeColor = $dim }
+    if ($script:stage -eq 1 -and (Dev-Mode $b)) { Show-Step 2 }
     $paths = Ora-Paths $b
-    if (($env:ORA_FRESH -and ($paths -contains $Dir)) -or (-not $env:ORA_FRESH -and $paths.Count -gt 0)) {
-      $timer.Stop(); $script:done = $true
-      $s1[0].Text = '✓'; $s1[0].ForeColor = $ok; $s2[0].Text = '✓'; $s2[0].ForeColor = $ok; $s2[1].ForeColor = $dim
-      $title.Text = 'تمام شد! اورآ نصب شد.'; $title.ForeColor = $ok
-      $state.Text = 'یک تب تازه باز کن. اگر مرورگر پرسید «این صفحه‌ی تب را نگه داری؟»، «Keep it» را بزن.'
-      $bPage.Text = 'باز کردن اورآ'; $bPage.Add_Click({ $f.Close() })
-      Start-Process -FilePath $b.Path -ArgumentList ($b.Page -replace 'extensions/$', 'newtab/')
-    }
+    $found = if ($env:ORA_FRESH) { $paths -contains $Dir } else { $paths.Count -gt 0 }
+    if ($script:stage -lt 3 -and $found) { $script:done = $true; Show-Step 3; $timer.Stop() }
   })
+  Show-Step 1
   $timer.Start()
   [void]$f.ShowDialog()
   $timer.Dispose()
