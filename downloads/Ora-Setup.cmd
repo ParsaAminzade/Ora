@@ -165,7 +165,7 @@ function Show-Guide($b) {
   $timer.Add_Tick({
     if (Dev-Mode $b) { $s1[0].Text = '✓'; $s1[0].ForeColor = $ok; $s1[1].ForeColor = $dim }
     $paths = Ora-Paths $b
-    if ($paths.Count -gt 0) {
+    if (($env:ORA_FRESH -and ($paths -contains $Dir)) -or (-not $env:ORA_FRESH -and $paths.Count -gt 0)) {
       $timer.Stop(); $script:done = $true
       $s1[0].Text = '✓'; $s1[0].ForeColor = $ok; $s2[0].Text = '✓'; $s2[0].ForeColor = $ok; $s2[1].ForeColor = $dim
       $title.Text = 'تمام شد! اورآ نصب شد.'; $title.ForeColor = $ok
@@ -191,7 +191,8 @@ try {
 
   # already there? then this is an update
   $have = @(foreach ($x in $Browsers) { if ($x.Path) { Ora-Paths $x } }) | Select-Object -Unique
-  if ($have.Count) {
+  # ORA_FRESH=1: test the newcomer path on a computer that already has Ora (load it into a new browser profile)
+  if ($have.Count -and -not $env:ORA_FRESH) {
     foreach ($d in $have) { if ((Version-Of $d) -lt $theirs) { Copy-Ora $src $d } }
     Say "اورآ از قبل نصب است و حالا نسخه‌ی $theirs را دارد.`n`nیک تب تازه باز کن."
     exit 0
