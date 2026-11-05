@@ -191,7 +191,8 @@ try {
   Copy-Ora $src $Dir; Keep-Updater $Dir
   Set-Clipboard -Value $Dir
   Start-Process -FilePath $b.Path -ArgumentList $b.Page
-  [void](Show-Guide $w $b)
+  if ($w) { [void](Show-Guide $w $b) }
+  else { Say "صفحه‌ی افزونه‌ها باز شد.`n`n۱. کلید «Developer mode» را روشن کن (بالا سمت راست؛ در مرورگر فارسی بالا سمت چپ).`n۲. «Load unpacked» را بزن، در نوار آدرس پنجره Ctrl+V و Enter بزن، بعد «Select Folder».`n`nمسیر اورآ کپی شده است." }
 } catch {
   Log "error: $($_.Exception.Message)"
   if ($w -and -not $w.Closed) { Finish $w $false 'نصب نشد' $_.Exception.Message } else { Say ("نصب نشد:`n" + $_.Exception.Message) 'Error' }

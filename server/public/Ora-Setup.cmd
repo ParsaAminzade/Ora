@@ -278,7 +278,9 @@ function Log($m) { $line = "$(Get-Date -Format 'HH:mm:ss')  $m"; $OraLog.Add($li
 
 # ---------- the window: dark glass, rounded, Ora's eye; pages for work, the log and the guide ----------
 function New-OraWindow($title) {
-  $win = [Windows.Markup.XamlReader]::Parse($OraXaml)
+  # If the window can't be built on this Windows, carry on without it: steps and the result then
+  # come as plain message boxes, so nothing ever fails silently (the console is hidden).
+  try { $win = [Windows.Markup.XamlReader]::Parse($OraXaml) } catch { Log "window: $($_.Exception.Message)"; return $null }
   if ($OraFont) { $win.FontFamily = $OraFont }
   $w = @{ Win = $win; Closed = $false; Page = 'Work' }
   foreach ($n in 'Card', 'Head', 'Pupil', 'Badge', 'BadgeText', 'CloseBtn', 'PageWork', 'PageLog', 'PageGuide', 'Title', 'Status', 'Track', 'Bar', 'Detail', 'DoneBtn', 'LogBtn', 'LogBox', 'BackBtn', 'CopyLogBtn',
@@ -315,7 +317,12 @@ function Set-Step($w, $status, $pct = -1, $detail = '') {
 }
 function Finish($w, $ok, $title, $status) {
   Log "$title — $status"
-  if (-not $w -or $w.Closed) { return }
+  if (-not $w -or $w.Closed) {
+    Add-Type -AssemblyName System.Windows.Forms
+    $rtl = [System.Windows.Forms.MessageBoxOptions]::RtlReading -bor [System.Windows.Forms.MessageBoxOptions]::RightAlign
+    [void][System.Windows.Forms.MessageBox]::Show("$title`n`n$status", 'اورآ', 'OK', $(if ($ok) { 'Information' } else { 'Error' }), 'Button1', $rtl)
+    return
+  }
   Show-Page $w 'Work'
   $w.Title.Text = $title
   $w.Title.Foreground = New-Object Windows.Media.SolidColorBrush([Windows.Media.Color]::FromRgb($(if ($ok) { 126 } else { 240 }), $(if ($ok) { 211 } else { 128 }), $(if ($ok) { 150 } else { 112 })))
@@ -604,7 +611,8 @@ try {
   Copy-Ora $src $Dir; Keep-Updater $Dir
   Set-Clipboard -Value $Dir
   Start-Process -FilePath $b.Path -ArgumentList $b.Page
-  [void](Show-Guide $w $b)
+  if ($w) { [void](Show-Guide $w $b) }
+  else { Say "صفحه‌ی افزونه‌ها باز شد.`n`n۱. کلید «Developer mode» را روشن کن (بالا سمت راست؛ در مرورگر فارسی بالا سمت چپ).`n۲. «Load unpacked» را بزن، در نوار آدرس پنجره Ctrl+V و Enter بزن، بعد «Select Folder».`n`nمسیر اورآ کپی شده است." }
 } catch {
   Log "error: $($_.Exception.Message)"
   if ($w -and -not $w.Closed) { Finish $w $false 'نصب نشد' $_.Exception.Message } else { Say ("نصب نشد:`n" + $_.Exception.Message) 'Error' }
