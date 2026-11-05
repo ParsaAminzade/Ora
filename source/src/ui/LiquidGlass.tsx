@@ -13,8 +13,8 @@
 //     per mouse move.
 // SVG backdrop filters only work in Chromium. Elsewhere (Safari, Firefox: the iPhone app) the setting
 // isn't offered and the normal frosted glass stays.
-import { useEffect } from 'react';
-import { useStore } from '../core/state';
+import { useEffect, useState } from 'react';
+import { effectiveLook, useStore } from '../core/state';
 
 const NS = 'http://www.w3.org/2000/svg';
 const N = 1.5; // glass
@@ -184,13 +184,40 @@ const TOOLS = '[data-lg]';
 // never what opens over them (settings, dialogs, menus): glass on glass can't be read
 const ALL = '[data-lg], section[data-widget].glass, [data-widget] .frame-glass .sentence-plate, [data-widget] .frame-bevel .sentence-plate';
 
+/* ---------- the GPU path (LiquidCanvas.tsx) ----------
+   While the background is something we can read (colour, image, video, stars, scene, shader), the glass
+   is drawn by one WebGL canvas just above the background — every panel in one pass, like the iPhone —
+   and the panels themselves become transparent. Only for an HTML background (an iframe we can't read)
+   or when WebGL fails does the SVG-filter path above take over. */
+export const glPanels = new Set<HTMLElement>();
+let glBroken = false;
+export const glFailed = () => { glBroken = true; dispatchEvent(new Event('ora:lg-gl')); };
+function useGlMode(): boolean {
+  const kind = useStore((s) => effectiveLook(s.settings).background.kind);
+  const [, bump] = useState(0);
+  useEffect(() => { const on = () => bump((x) => x + 1); addEventListener('ora:lg-gl', on); return () => removeEventListener('ora:lg-gl', on); }, []);
+  return kind !== 'html' && !glBroken;
+}
+export function useLiquidGl(): boolean {
+  const raw = useStore((s) => s.settings.liquid);
+  const legacy = useStore((s) => s.settings.liquidGlass);
+  const L = liquidOf({ liquid: raw, liquidGlass: legacy });
+  return useGlMode() && L.where !== 'off' && liquidSupported;
+}
+function register(node: HTMLElement): () => void {
+  glPanels.add(node);
+  node.dataset.lgOn = '';
+  return () => { glPanels.delete(node); delete node.dataset.lgOn; };
+}
+
 /** Mount once: applies the liquid glass to the chosen elements while the setting is on. */
 export function LiquidGlassHost() {
   const raw = useStore((s) => s.settings.liquid);
   const legacy = useStore((s) => s.settings.liquidGlass);
   const L = liquidOf({ liquid: raw, liquidGlass: legacy });
   const on = L.where !== 'off' && liquidSupported;
-  const key = `${L.where}/${L.bend}/${L.edge}/${L.rainbow}`;
+  const gl = useGlMode();
+  const key = `${L.where}/${gl ? 'gl' : `${L.bend}/${L.edge}/${L.rainbow}`}`;
   // the cheap factors are CSS variables: no rebuild
   useEffect(() => {
     const r = document.documentElement.style;
@@ -208,13 +235,14 @@ export function LiquidGlassHost() {
       // not on dialogs, sheets and menus that open over the panels: glass on glass can't be read
       const now = new Set([...document.querySelectorAll(sel)].filter((n) => n.matches('[data-lg]') || !n.closest('[role="dialog"], [role="menu"], .dlg-backdrop, .settings-panel, .upd-bar')));
       for (const [n, off] of live) if (!now.has(n) || !n.isConnected) { off(); live.delete(n); }
-      for (const n of now) if (!live.has(n)) live.set(n, attach(n as HTMLElement, L));
+      for (const n of now) if (!live.has(n)) live.set(n, gl ? register(n as HTMLElement) : attach(n as HTMLElement, L));
     };
     scan();
     const mo = new MutationObserver(() => { if (!pending) pending = requestAnimationFrame(scan); });
     mo.observe(document.body, { childList: true, subtree: true });
     document.documentElement.dataset.liquid = L.where;
-    return () => { mo.disconnect(); cancelAnimationFrame(pending); for (const off of live.values()) off(); delete document.documentElement.dataset.liquid; };
+    if (gl) document.documentElement.dataset.liquidGl = ''; else delete document.documentElement.dataset.liquidGl;
+    return () => { delete document.documentElement.dataset.liquidGl; mo.disconnect(); cancelAnimationFrame(pending); for (const off of live.values()) off(); delete document.documentElement.dataset.liquid; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [on, key]);
   return null;

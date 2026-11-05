@@ -2066,3 +2066,11 @@ body { text-shadow: 0 1px 2px rgba(0,0,0,.45), 0 0 10px rgba(0,0,0,.28); }
 :root[data-bg-light] .btn-accent, :root[data-bg-light] .btn-accent * { text-shadow: none; }
 .liquid-factors { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px 18px; padding: 4px 0 14px; align-items: end; }
 .liquid-factors .btn-link { justify-self: start; }
+/* the GPU path: the glass is already drawn under the panel (LiquidCanvas), so the panel itself is clear */
+:root[data-liquid-gl] [data-lg-on],
+:root[data-liquid-gl][data-panels] [data-lg-on].glass,
+:root[data-liquid-gl] .frame-glass .sentence-plate[data-lg-on], :root[data-liquid-gl] .frame-bevel .sentence-plate[data-lg-on] {
+  background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; border-color: transparent;
+  box-shadow: 0 1px 2px rgba(0,0,0,.18), 0 10px 28px -12px rgba(0,0,0,.4);
+}
+:root[data-liquid-gl] [data-lg-on]::before { opacity: calc(var(--lg-shine, .6) * .5); }

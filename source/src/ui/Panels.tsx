@@ -840,7 +840,7 @@ function LiquidRows() {
   const set = (p: Partial<Liquid>) => setSettings({ liquid: { ...L, ...p }, liquidGlass: undefined });
   return (
     <>
-      <Row label="شیشه‌ی مایع" hint="مثل Liquid Glass اپل: لبه‌ها پشتشان را مثل عدسی خم می‌کنند. «همه‌ی پنل‌ها» روی کامپیوترهای ضعیف ممکن است صفحه را کمی کند کند.">
+      <Row label="شیشه‌ی مایع" hint="مثل Liquid Glass اپل: لبه‌ها پشتشان را مثل عدسی خم می‌کنند. روی کارت گرافیک کشیده می‌شود، همه‌ی پنل‌ها با هم. (با پس‌زمینه‌ی «کد HTML» روش ساده‌تری به کار می‌رود.)">
         <Segmented label="شیشه‌ی مایع" value={L.where} options={[['off', 'خاموش'], ['tools', 'نوار جست‌وجو و کناری'], ['all', 'همه‌ی پنل‌ها']] as const} onChange={(v) => set({ where: v })} />
       </Row>
       {L.where !== 'off' && (

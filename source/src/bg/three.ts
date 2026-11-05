@@ -309,7 +309,7 @@ export function shrink(src: HTMLCanvasElement): string | null {
 }
 
 export function mountBackground(canvas: HTMLCanvasElement, initial: SceneParams, onError: (msg: string | null) => void) {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'low-power' });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'low-power', preserveDrawingBuffer: true }); // the liquid glass reads this canvas
   renderer.setPixelRatio(pr());
   renderer.setClearColor(0x05060a, 1);
   let shaderError: string | null = null;

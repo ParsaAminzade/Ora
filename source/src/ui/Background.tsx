@@ -5,6 +5,8 @@ import type { SceneParams } from '../bg/three';
 import { safeMode } from '../core/health';
 import { db } from '../core/db';
 import { noteStill } from '../core/backgrounds';
+import { useLiquidGl } from './LiquidGlass';
+import { LiquidCanvas } from './LiquidCanvas';
 
 /** Twinkling, slowly drifting starfield with gentle mouse parallax. 30fps cap, stops when the tab is hidden. */
 function Starfield() {
@@ -178,6 +180,7 @@ export function Background() {
   const bg = safeMode ? { ...saved, kind: 'color' as const, color: '#0B0D14', dim: 0 } : saved;
   const url = useAssetUrl(bg.kind === 'image' || bg.kind === 'video' ? bg.assetId : undefined);
   useLightBackground(bg.kind, bg.kind === 'color' ? bg.color : undefined, url, bg.dim);
+  const liquidGl = useLiquidGl();
 
   return (
     <div aria-hidden="true" style={{ position: 'fixed', inset: 0, zIndex: 0, background: bg.kind === 'color' ? bg.color : '#05060A' }}>
@@ -189,6 +192,8 @@ export function Background() {
       {bg.kind === 'video' && url && <VideoBg src={url} />}
       {bg.kind === 'html' && bg.htmlId && <HtmlBg key={bg.htmlId} id={bg.htmlId} />}
       {bg.dim > 0 && <div style={{ position: 'absolute', inset: 0, background: `rgba(0,0,0,${bg.dim / 100})` }} />}
+      {/* the liquid glass of every panel, drawn on the GPU right above the background */}
+      {liquidGl && <LiquidCanvas kind={bg.kind} url={url} color={bg.color} dim={bg.dim} />}
     </div>
   );
 }
