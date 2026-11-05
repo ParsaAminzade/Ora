@@ -71,15 +71,81 @@ function RowIcon({ s }: { s: Shortcut }) {
   const icon = useSiteIcon(s.url);
   return <Favicon s={s} size={20} icon={icon} />;
 }
+/** Each tile's glow sits a little differently — its own angle, reach and strength — so a row of
+ *  tiles doesn't look stamped out of one mould. Seeded by the site, so it never jumps around. */
+function glowShape(url: string, c: string[]) {
+  let seed = hueOf(hostOf(url) + '~') + 1;
+  const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  const turn = rnd() * 360;
+  const at: string[] = [], sh: string[] = [], hv: string[] = [];
+  for (let i = 0; i < 4; i++) {
+    const a = ((turn + i * 90 + (rnd() - 0.5) * 50) * Math.PI) / 180;
+    const r = 4 + rnd() * 6, blur = 15 + rnd() * 12, al = 0.38 + rnd() * 0.3;
+    const x = Math.cos(a) * r, y = Math.sin(a) * r + 2;
+    sh.push(`${x.toFixed(1)}px ${y.toFixed(1)}px ${blur.toFixed(0)}px -9px rgb(${c[i]} / ${al.toFixed(2)})`);
+    hv.push(`${(x * 1.3).toFixed(1)}px ${(y * 1.3).toFixed(1)}px ${(blur + 6).toFixed(0)}px -8px rgb(${c[i]} / ${Math.min(0.85, al + 0.15).toFixed(2)})`);
+    at.push(`${(50 + Math.cos(a) * 55).toFixed(0)}% ${(50 + Math.sin(a) * 55).toFixed(0)}%`);
+  }
+  return {
+    '--sc-shadow': `0 1px 2px rgba(0,0,0,.2), ${sh.join(', ')}`, '--sc-shadow-h': `0 1px 2px rgba(0,0,0,.2), ${hv.join(', ')}`,
+    '--sc-p1': at[0], '--sc-p2': at[1], '--sc-p3': at[2], '--sc-p4': at[3], '--sc-rot': `${turn.toFixed(0)}deg`,
+  };
+}
 function Tile({ s }: { s: Shortcut }) {
   const icon = useSiteIcon(s.url);
   const c = glowOf(icon, s.url);
   const mono = !!icon && !icon.pal?.length && !icon.rgb;
   return (
     <>
-      <span className={`sc-tile${icon ? ' has-icon' : ''}${mono ? ' bw' : ''}`} style={c ? ({ '--sc-c': c[0], '--sc-c2': c[1], '--sc-c3': c[2], '--sc-c4': c[3] } as CSSProperties) : undefined}><Favicon s={s} size={34} icon={icon} /></span>
+      <span className={`sc-tile${icon ? ' has-icon' : ''}${mono ? ' bw' : ''}`} style={c ? ({ '--sc-c': c[0], '--sc-c2': c[1], '--sc-c3': c[2], '--sc-c4': c[3], ...(mono ? {} : glowShape(s.url, c)) } as CSSProperties) : undefined}><Favicon s={s} size={34} icon={icon} /></span>
       <span className="sc-name">{s.title}</span>
     </>
+  );
+}
+
+/* ---------- «بیشتر»: what doesn't fit goes into one quiet tile (no glow), opened as a small panel ---------- */
+function FolderTile({ rest }: { rest: Shortcut[] }) {
+  return (
+    <>
+      <span className="sc-tile sc-folder" aria-hidden="true">
+        {rest.slice(0, 4).map((s) => <MiniIcon key={s.url + s.title} s={s} />)}
+      </span>
+      <span className="sc-name">{`${rest.length.toLocaleString('fa-IR')} تای دیگه`}</span>
+    </>
+  );
+}
+function MiniIcon({ s }: { s: Shortcut }) {
+  const icon = useSiteIcon(s.url);
+  return <span className="sc-folder-i"><Favicon s={s} size={16} icon={icon} /></span>;
+}
+function FolderPanel({ rest, anchor, onEdit, onClose }: { rest: Shortcut[]; anchor: DOMRect; onEdit(): void; onClose(): void }) {
+  useEffect(() => {
+    const esc = (e: globalThis.KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    addEventListener('keydown', esc);
+    return () => removeEventListener('keydown', esc);
+  }, [onClose]);
+  const w = Math.min(380, innerWidth - 24);
+  const left = Math.max(12, Math.min(innerWidth - w - 12, anchor.left + anchor.width / 2 - w / 2));
+  const below = anchor.bottom + 10 + 300 < innerHeight;
+  return createPortal(
+    <div className="sc-folder-back" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div role="dialog" aria-label="بقیه‌ی میانبرها" className="glass sc-folder-panel" style={{ left, width: w, ...(below ? { top: anchor.bottom + 10 } : { bottom: innerHeight - anchor.top + 10 }) }}>
+        <div className="sc-grid">
+          {rest.map((s) => (
+            <div key={s.url + s.title} className="sc-item">
+              <a href={s.url} className="sc-link" title={s.url}><Tile s={s} /></a>
+            </div>
+          ))}
+          <div className="sc-item">
+            <button className="sc-link sc-addtile" aria-label="ویرایش میانبرها" onClick={onEdit}>
+              <span className="sc-tile sc-tile-new"><IconEdit size={18} /></span>
+              <span className="sc-name">ویرایش</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -179,6 +245,33 @@ defineWidget<Config>({
     const [preview, setPreview] = useState<Shortcut[] | null>(null);
     const [drag, setDrag] = useState<number | null>(null);
     const items = preview ?? config.items;
+    // How many tiles fit without scrolling; the rest go into one «بیشتر» tile.
+    const box = useRef<HTMLDivElement>(null);
+    const [fit, setFit] = useState(999);
+    const [folder, setFolder] = useState<DOMRect | null>(null);
+    useEffect(() => {
+      const el = box.current; if (!el) return;
+      const measure = () => {
+        if (el.closest('.phone')) { setFit(999); return; } // on the phone the card grows to fit: show them all
+        const grid = el.querySelector<HTMLElement>('.sc-grid'); const one = grid?.querySelector<HTMLElement>('.sc-item');
+        if (!grid || !one) return;
+        const cs = getComputedStyle(grid);
+        const cols = cs.gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+        // the grid's bottom padding is only breathing room: a last row may use it
+        const gap = parseFloat(cs.rowGap) || 0, pad = parseFloat(cs.paddingTop) || 0;
+        const rows = Math.max(1, Math.floor((el.clientHeight - pad + gap) / (one.offsetHeight + gap)));
+        setFit(cols * rows);
+      };
+      measure();
+      const ro = new ResizeObserver(measure); ro.observe(el);
+      return () => ro.disconnect();
+    }, [items.length]);
+    // Sites first: the «ویرایش» tile only takes a place if one is left (otherwise it lives in the
+    // «بیشتر» panel, and right-click still edits). A folder is only made for two or more sites.
+    const overflow = !editing && drag === null && items.length > fit;
+    const roomForEdit = !editing && !overflow && items.length < fit;
+    const shown = overflow ? items.slice(0, Math.max(1, fit - 1)) : items;
+    const rest = overflow ? items.slice(shown.length) : [];
     const set = (next: Shortcut[]) => setConfig({ items: next });
 
     const over = (e: DragEvent, j: number) => {
@@ -191,9 +284,9 @@ defineWidget<Config>({
 
     return (
       <div className="sc-wrap" onContextMenu={(e) => { e.preventDefault(); setPanel('edit'); }}>
-        <div className="sc-scroll scroll">
+        <div className="sc-scroll" ref={box}>
         <div className="sc-grid" onDragOver={(e) => { if (drag !== null) e.preventDefault(); }} onDrop={(e) => { e.preventDefault(); end(); }}>
-          {items.map((s, i) => (
+          {shown.map((s, i) => (
             <div key={s.url + s.title} className={`sc-item${drag === i ? ' dragging' : ''}`} draggable={!editing}
               onDragStart={(e) => { setDrag(i); setPreview(config.items); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/uri-list', s.url); }}
               onDragOver={(e) => over(e, i)} onDragEnd={end}>
@@ -202,7 +295,14 @@ defineWidget<Config>({
               </a>
             </div>
           ))}
-          {!editing && (
+          {overflow && (
+            <div className="sc-item">
+              <button className="sc-link" aria-label={`${rest.length} میانبر دیگر`} onClick={(e) => setFolder(e.currentTarget.getBoundingClientRect())}>
+                <FolderTile rest={rest} />
+              </button>
+            </div>
+          )}
+          {roomForEdit && (
             <div className="sc-item">
               <button className="sc-link sc-addtile" aria-label="ویرایش میانبرها" title="افزودن، جابه‌جایی، ویرایش و حذف" onClick={() => setPanel('add')}>
                 <span className="sc-tile sc-tile-new"><IconEdit size={18} /></span>
@@ -212,6 +312,7 @@ defineWidget<Config>({
           )}
         </div>
         </div>
+        {folder && <FolderPanel rest={rest} anchor={folder} onClose={() => setFolder(null)} onEdit={() => { setFolder(null); setPanel('edit'); }} />}
         {panel && <EditPanel items={config.items} onChange={set} onClose={() => setPanel(null)} focusNew={panel === 'add'} />}
       </div>
     );

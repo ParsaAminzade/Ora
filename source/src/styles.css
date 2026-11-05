@@ -284,8 +284,7 @@ aside[aria-label='شخصی‌سازی'] section { scroll-margin-top: 84px; }
 
 /* ---------- Shortcuts ---------- */
 .sc-wrap { position: relative; height: 100%; display: flex; flex-direction: column; }
-.sc-scroll { height: 100%; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
-.sc-scroll:hover { scrollbar-width: thin; }
+.sc-scroll { height: 100%; overflow: hidden; } /* never a scrollbar: what doesn't fit goes into the «بیشتر» tile */
 /* padding gives the tiles' shadows room inside the scroll box */
 .sc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 18px 12px; align-content: start; padding: 6px 4px 22px; }
 .sc-item { display: flex; justify-content: center; transition: opacity .15s; }
@@ -2007,3 +2006,27 @@ body { text-shadow: 0 1px 2px rgba(0,0,0,.45), 0 0 10px rgba(0,0,0,.28); }
 :root[data-bg-light][data-panels='plain'] .glass { background: var(--glass-solid, rgba(10, 11, 16, calc(.42 + var(--panel-a)))); }
 .btn-accent, .btn-accent *, .pill[aria-pressed="true"], input, textarea, select, [contenteditable="true"], .sc-img, svg text, .on-accent { text-shadow: none; }
 :root[data-bg-light] .sc-name { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.85), 0 0 8px rgba(0,0,0,.6); }
+
+/* each tile's own glow (angle, reach, strength from shortcuts.tsx glowShape) */
+.sc-tile[style*='--sc-shadow'] { box-shadow: var(--sc-shadow); }
+.sc-tile[style*='--sc-shadow']::after {
+  background:
+    radial-gradient(80% 70% at var(--sc-p1), rgb(var(--sc-c) / .30), transparent 70%),
+    radial-gradient(80% 70% at var(--sc-p2), rgb(var(--sc-c2) / .28), transparent 70%),
+    radial-gradient(80% 70% at var(--sc-p3), rgb(var(--sc-c3) / .24), transparent 70%),
+    radial-gradient(80% 70% at var(--sc-p4), rgb(var(--sc-c4) / .24), transparent 70%),
+    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02) 60%), rgba(9,10,15,.36);
+}
+.sc-tile[style*='--sc-shadow']::before { background: conic-gradient(from var(--sc-rot), rgb(var(--sc-c) / .75), rgb(var(--sc-c2) / .75), rgb(var(--sc-c3) / .7), rgb(var(--sc-c4) / .7), rgb(var(--sc-c) / .75)); }
+.sc-link:hover .sc-tile[style*='--sc-shadow'], .sc-link:focus-visible .sc-tile[style*='--sc-shadow'] { box-shadow: var(--sc-shadow-h); }
+/* «بیشتر»: a quiet tile, no glow, four little icons inside */
+.sc-folder { display: grid; grid-template-columns: repeat(2, 18px); grid-auto-rows: 18px; gap: 5px; place-content: center; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.sc-folder::after { background: rgba(9,10,15,.42); }
+.sc-folder::before { opacity: .35; }
+.sc-folder-i { width: 18px; height: 18px; display: grid; place-items: center; }
+.sc-folder-i .sc-img { width: 16px; height: 16px; border-radius: 4px; filter: none; }
+.sc-folder-i .sc-img.on-light { padding: 1px; border-radius: 4px; }
+.sc-folder-i .sc-mono { position: static; width: 16px; height: 16px; font-size: 10px !important; border-radius: 4px; }
+.sc-folder-i .sc-wait { width: 14px; height: 14px; border-radius: 4px; }
+.sc-folder-back { position: fixed; inset: 0; z-index: 400; }
+.sc-folder-panel { position: fixed; max-height: min(60vh, 520px); overflow: auto; padding: 14px 10px 4px; --glass-solid: rgba(14,16,22,.9); border-radius: 22px; box-shadow: var(--glass-shadow); scrollbar-width: thin; }
