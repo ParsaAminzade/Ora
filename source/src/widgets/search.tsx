@@ -190,7 +190,7 @@ defineWidget<Record<string, never>>({
       <div className={`srch${open ? ' open' : ''}${open && phone ? ' full' : ''}`}>
         {open && phone && <div className="srch-shade" />}
         <div className={`srch-ring${ring ? '' : ' plain'}`} style={ringStyle}>
-        <form ref={boxRef} className="srch-box glass" role="search" onSubmit={(e) => { e.preventDefault(); if (sel >= 0 && items[sel]) pick(items[sel]); else go(q); }}>
+        <form ref={boxRef} className="srch-box glass" data-lg role="search" onSubmit={(e) => { e.preventDefault(); if (sel >= 0 && items[sel]) pick(items[sel]); else go(q); }}>
           {open && phone && <button type="button" className="icon-btn srch-back" aria-label="بستن جستجو" onClick={() => close()}><IconChevronR size={20} /></button>}
           {mark}
           <input

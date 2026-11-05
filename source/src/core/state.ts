@@ -98,6 +98,8 @@ export interface Settings {
   panelOpacity: number;
   /** Panel material: the premium glass (same as the sentence plate) or the simple flat glass. */
   panelStyle?: 'premium' | 'plain';
+  /** «شیشه‌ی مایع» (آزمایشی): the search bar and side rail bend what's behind them (Chromium only). */
+  liquidGlass?: boolean;
   /** Scale the layout to fit the screen height (default on). */
   layoutFit?: boolean;
   /** Prayer reminders (system notification + the Ora eye). */

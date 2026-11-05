@@ -28,6 +28,7 @@ import { runAutoBackup } from './core/backup';
 import { syncCalDav } from './core/providers/caldav';
 import { usePhone } from './core/platform';
 import { PhoneShell } from './ui/Phone';
+import { LiquidGlassHost } from './ui/LiquidGlass';
 import { LegalHost } from './ui/Legal';
 import { TourHost } from './ui/Tour';
 import { UpdateHost } from './ui/Update';
@@ -172,6 +173,7 @@ export default function App() {
       <AutoModeToast />
       <TasteTest />
       <DialogHost />
+      <LiquidGlassHost />
       <TaskEditorHost />
       <PlannerHost />
       <ScheduleHost />

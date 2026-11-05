@@ -1,3 +1,4 @@
+import { liquidSupported } from './LiquidGlass';
 import { ask } from './Dialog';
 import { OraEye } from './OraEye';
 import { PrayerSection } from './settings/PrayerSection';
@@ -46,7 +47,7 @@ export function Rail() {
   const setEditing = useStore((s) => s.setEditing);
   const setPanel = useStore((s) => s.setPanel);
   return (
-    <nav className="glass" aria-label="ناوبری" style={{ width: 64, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 0', zIndex: 25 }}>
+    <nav className="glass" data-lg aria-label="ناوبری" style={{ width: 64, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 0', zIndex: 25 }}>
       <OraEye />
       <button className="icon-btn" aria-label="ویرایش چیدمان" title="ویرایش چیدمان" aria-pressed={editing} onClick={() => setEditing(!editing)}>
         <IconLayout />
@@ -776,6 +777,11 @@ export function SettingsPanel() {
         <Row label="جنس پنل‌ها" hint="شیشه‌ی ویژه همان قاب جمله است: لبه‌ی روشن و سایه‌ی نرم.">
           <Segmented label="جنس پنل‌ها" value={settings.panelStyle ?? 'premium'} options={[['premium', 'شیشه‌ی ویژه'], ['plain', 'ساده']] as const} onChange={(v) => setSettings({ panelStyle: v })} />
         </Row>
+        {liquidSupported && (
+          <Row label="شیشه‌ی مایع (آزمایشی)" hint="نوار جست‌وجو و نوار کناری مثل شیشه‌ی واقعی، پشتشان را در لبه‌ها خم می‌کنند (مثل Liquid Glass اپل). اگر حس کردی صفحه کند شد، خاموشش کن.">
+            <Segmented label="شیشه‌ی مایع" value={settings.liquidGlass ? 'on' : 'off'} options={[['off', 'خاموش'], ['on', 'روشن']] as const} onChange={(v) => setSettings({ liquidGlass: v === 'on' })} />
+          </Row>
+        )}
         <Row label="چشم اورآ" hint="گاهی (هر چند ساعت یک بار) یک نکته‌ی کوتاه پیشنهاد می‌دهد. با کلیک روی چشم هم نکته می‌گوید.">
           <Segmented label="چشم اورآ" value={settings.eyeTips === false ? 'off' : 'on'} options={[['on', 'نکته بگوید'], ['off', 'فقط نگاه کند']] as const} onChange={(v) => setSettings({ eyeTips: v === 'on' })} />
         </Row>
