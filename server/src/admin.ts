@@ -1,5 +1,6 @@
 // The admin panel (/admin): overview, users (everything each one shared), lines, releases and
 // announcements, messages, a full export, and built-in documentation.
+import { newestRelease } from './release';
 import { checkCsrf, login, logoutCookie, passwordReady, session, type Session } from './auth';
 import { all, bumpPackRev, eraseInstall, kvGet, kvSet, one, run } from './db';
 import { SEARCH_CATS } from './api';
@@ -115,7 +116,7 @@ async function dashboard(c: Ctx) {
     <div class="tile"><span>پروفایل پر کرده</span><b>${fa(s.profile)}</b><small>${fa(s.email)} نفر ایمیل داده‌اند</small></div>
     <div class="tile"><span>پیام نخوانده</span><b>${fa(s.unread)}</b><small><a href="/admin/feedback">صندوق پیام‌ها</a></small></div>
     <div class="tile"><span>جمله‌های سرور</span><b>${fa(s.lines)}</b><small><a href="/admin/sentences/new">+ جمله‌ی تازه</a></small></div>
-    <div class="tile"><span>آخرین نسخه</span><b class="ltr">${esc(latest?.version ?? '—')}</b><small>${announce ? 'یک اعلان فعال' : 'بدون اعلان'}</small></div>
+    <div class="tile"><span>آخرین نسخه</span><b class="ltr">${esc((await newestRelease(c.env))?.version ?? latest?.version ?? '—')}</b><small>${announce ? 'یک اعلان فعال' : 'بدون اعلان'}</small></div>
   </div>
   <div class="card"><h2>فعالیت دو هفته‌ی اخیر <small class="faint">کسانی که هر روز بازخورد یا جست‌وجو داشتند</small></h2>
     <div class="spark">${days.map((d) => `<div title="${d}: ${act.get(d) ?? 0}"><i style="height:${Math.round(((act.get(d) ?? 0) / dmax) * 100)}%"></i><small>${fa(+d.slice(8))}</small></div>`).join('')}</div></div>
@@ -337,11 +338,14 @@ async function importSentences(c: Ctx, form: FormData): Promise<Response> {
 
 async function release(c: Ctx) {
   const latest = await kvGet<{ version: string; notes?: string; url?: string; at: number } | null>(c.env.DB, 'latest', null);
+  const live = await newestRelease(c.env);
+  const fromGh = !!live && live.version !== latest?.version;
   const announce = await kvGet<{ id: string; text: string; link?: string; at: number } | null>(c.env.DB, 'announce', null);
   const body = `<h1>نسخه و اعلان</h1><div class="grid2">
   <form method="post" class="card">${csrf(c)}<input type="hidden" name="what" value="release"><h2>انتشار نسخه‌ی تازه‌ی افزونه</h2>
     <p class="muted">اورآی هر کسی که افزونه‌اش قدیمی‌تر باشد یک بار پیام «نسخه‌ی تازه آمد» با دکمه‌ی دریافت می‌بیند. اپ گوشی خودش به‌روز می‌شود و این را لازم ندارد.</p>
-    ${latest ? `<p>الان: نسخه‌ی <b class="ltr">${esc(latest.version)}</b> · ${jdate(latest.at)}${latest.url ? ` · <a href="${esc(latest.url)}">لینک دانلود</a>` : ''}</p>` : ''}
+    ${live ? `<p>نسخه‌ای که همه می‌گیرند: <b class="ltr">${esc(live.version)}</b>${fromGh ? ' · خودکار از گیت‌هاب (لازم نیست اینجا ثبت کنی)' : ''}${live.url ? ` · <a href="${esc(live.url)}">لینک دانلود</a>` : ''}</p>` : ''}
+    ${latest && fromGh ? `<p class="muted">آخرین ثبت دستی: <span class="ltr">${esc(latest.version)}</span> · ${jdate(latest.at)}</p>` : ''}
     <label class="f">شماره‌ی نسخه (همان که در manifest.json است)<input type="text" name="version" class="ltr" placeholder="2.3.0" required pattern="\\d+(\\.\\d+){0,3}"></label>
     <label class="f">چه چیزهایی عوض شده (به زبان ساده)<textarea name="notes" maxlength="1500"></textarea></label>
     <label class="f">لینک دانلود (مثلاً صفحه‌ی Release در گیت‌هاب)<input type="url" name="url" class="ltr" placeholder="https://github.com/ParsaAminzade/Ora/releases/latest" required></label>
