@@ -14,6 +14,7 @@ import { all, eraseInstall, kvGet, one, run } from './db';
 import { json, now, today, type Env } from './util';
 import LEGAL from './legal.json';
 import { pushKey, pushRemove, pushSchedule, pushSnooze } from './push';
+import { newestRelease } from './release';
 
 const ID_RE = /^[a-z0-9]{20,40}$/;
 const LINE_RE = /^[A-Za-z0-9:_-]{1,80}$/;
@@ -58,7 +59,7 @@ export async function handleApi(req: Request, env: Env, url: URL): Promise<Respo
     if (p === '/api/pack' && req.method === 'GET') return await pack(req, env, url);
     if (p === '/api/icon' && req.method === 'GET') return await icon(req, url);
     if (p === '/api/legal' && req.method === 'GET') return out(LEGAL);
-    if (p === '/api/latest' && req.method === 'GET') return out((await kvGet(env.DB, 'latest', null)) ?? {}, 200, { 'Cache-Control': 'public, max-age=300' });
+    if (p === '/api/latest' && req.method === 'GET') return out((await newestRelease(env)) ?? {}, 200, { 'Cache-Control': 'public, max-age=300' });
     if (p === '/api/sync' && req.method === 'POST') return await sync(req, env);
     if (p === '/api/feedback' && req.method === 'POST') return await feedback(req, env);
     if (p === '/api/delete' && req.method === 'POST') return await del(req, env);
@@ -79,7 +80,8 @@ export async function handleApi(req: Request, env: Env, url: URL): Promise<Respo
 
 async function pack(req: Request, env: Env, url: URL) {
   const rev = String(await kvGet(env.DB, 'pack_rev', 0));
-  const etag = `"${rev}-${LEGAL.version}"`;
+  const latest = await newestRelease(env); // part of the tag: a release on GitHub alone must reach everyone
+  const etag = `"${rev}-${LEGAL.version}-${latest?.version ?? ''}"`;
   if (req.headers.get('If-None-Match') === etag) return new Response(null, { status: 304, headers: { ...CORS, ETag: etag } });
   const rows = await all<{ id: string; text: string; by: string | null; theme: string | null; tags: string | null; meaning: string | null; builtin: number }>(
     env.DB, 'SELECT id, text, by, theme, tags, meaning, builtin FROM sentences WHERE active = 1');
@@ -94,7 +96,6 @@ async function pack(req: Request, env: Env, url: URL) {
     items.push(base);
   }
   const hide = (await all<{ id: string }>(env.DB, 'SELECT id FROM hidden')).map((r) => r.id);
-  const latest = await kvGet<Record<string, unknown> | null>(env.DB, 'latest', null);
   const announce = await kvGet<Record<string, unknown> | null>(env.DB, 'announce', null);
   void url;
   return out({ rev, items, overrides, hide, latest, announce, legal: LEGAL.version }, 200, { ETag: etag, 'Cache-Control': 'public, max-age=300' });

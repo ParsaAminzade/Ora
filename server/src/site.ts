@@ -1,3 +1,4 @@
+import { newestRelease } from './release';
 // The public pages: home (phone app + extension install steps) and the full terms.
 import { kvGet } from './db';
 import { esc, fa, html, jdate, page, type Env } from './util';
@@ -6,7 +7,7 @@ import LEGAL from './legal.json';
 const head = (link: string) => `<header><img src="/static/icon.png" alt=""><b>اورآ</b><nav>${link}</nav></header>`;
 
 export async function home(env: Env, url: URL): Promise<Response> {
-  const latest = await kvGet<{ version: string; notes?: string; url?: string; at: number } | null>(env.DB, 'latest', null);
+  const latest = await newestRelease(env);
   const body = `<div class="site">${head('<a href="/privacy">قوانین و حریم خصوصی</a>')}
   <div class="hero">
     <h1>یک صفحه‌ی تب آرام، که کمکت می‌کند روزت را بچینی</h1>
