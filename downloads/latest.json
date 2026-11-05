@@ -1,5 +1,5 @@
 {
-  "version": "2.6.16",
-  "notes": "شیشه‌ی مایع حالا روی کارت گرافیک کشیده می‌شود، همه‌ی پنل‌ها با هم در یک مرحله، مثل آیفون: بدون لگ، حتی با پس‌زمینه‌ی ویدیویی. خم شدن لبه‌ها و برقشان هم دقیق‌تر شده.",
-  "url": "https://github.com/ParsaAminzade/Ora/raw/main/downloads/ora-extension-v2.6.16.zip"
+  "version": "2.6.17",
+  "notes": "درست شد: پس‌زمینه پشت شیشه‌ی مایع وارونه دیده می‌شد. از ۲.۶.۱۶: شیشه‌ی مایع روی کارت گرافیک، بدون لگ.",
+  "url": "https://github.com/ParsaAminzade/Ora/raw/main/downloads/ora-extension-v2.6.17.zip"
 }

@@ -32,7 +32,7 @@ float hgt(float t) { t = clamp(t, 0., 1.); return pow(1. - pow(1. - t, 4.), .25)
 vec3 tap(vec2 px) {
   vec2 uv = clamp(px / uRes, vec2(0.), vec2(1.));
   uv = uv * uMap.xy + uMap.zw;
-  return texture2D(uTex, vec2(uv.x, 1. - uv.y)).rgb;
+  return texture2D(uTex, uv).rgb; // textures keep the image's top row first, like the screen
 }
 // frost: a disc of 12 taps around px (golden angle), radius uFrost
 vec3 frosted(vec2 px) {
