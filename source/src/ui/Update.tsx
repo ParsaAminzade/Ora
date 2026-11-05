@@ -14,6 +14,8 @@ type Latest = { version: string; notes?: string; url?: string };
 const HIDE = 'ora:update-bar-hidden';
 const UPDATER = 'https://github.com/ParsaAminzade/Ora/raw/main/downloads/Ora-Update.cmd';
 const LAST = 'ora:last-version';
+// always the newest, under a name that never goes away (a versioned link can outlive its file)
+const LATEST_ZIP = 'https://github.com/ParsaAminzade/Ora/raw/main/downloads/ora-extension-latest.zip';
 const ls = { get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private */ } } };
 const newer = (l: Latest | null | undefined): l is Latest => !!l?.version && APP_VERSION !== 'dev' && isNewer(l.version, APP_VERSION);
 const say = (detail: object) => dispatchEvent(new CustomEvent('ora:say', { detail }));
@@ -74,7 +76,7 @@ function Sheet({ latest, onClose }: { latest: Latest; onClose(): void }) {
             <li>
               <b>نسخه‌ی تازه را بگیر</b>
               <span>یک فایل zip در پوشه‌ی Downloads.</span>
-              {latest.url && <button className="btn btn-accent" onClick={() => { download(latest.url!); setGot(true); }}><IconDownload size={16} />{got ? 'دوباره بگیر' : 'دانلود'}</button>}
+              <button className="btn btn-accent" onClick={() => { download(LATEST_ZIP); setGot(true); }}><IconDownload size={16} />{got ? 'دوباره بگیر' : 'دانلود'}</button>
             </li>
             <li>
               <b>روی پوشه‌ی فعلی اورآ باز کن</b>

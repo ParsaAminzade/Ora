@@ -424,8 +424,14 @@ function Fetch-Ora($tmp, $w, $latest) {
   }
   if (-not $ok) {
     Log "using a zip next to this file instead"
-    $local = Get-ChildItem -LiteralPath $env:ORA_SELF_DIR -Filter 'ora-extension*.zip' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-    if (-not $local) { throw "دانلود نشد ($why). اینترنت را بررسی کن، یا فایل zip اورآ را کنار همین فایل بگذار و دوباره امتحان کن." }
+    # the browser often gets through where this window can't (a VPN or proxy only the browser uses):
+    # a zip Chrome downloaded is just as good. Look next to this file and in Downloads.
+    $dl = "$HOME\Downloads"
+    try { $k = (Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders' -ErrorAction Stop).'{374DE290-123F-4565-9164-39C4925E467B}'; if ($k) { $dl = [Environment]::ExpandEnvironmentVariables($k) } } catch { }
+    $local = @($env:ORA_SELF_DIR, $dl) | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -Unique |
+      ForEach-Object { Get-ChildItem -LiteralPath $_ -Filter 'ora-extension*.zip' -File -ErrorAction SilentlyContinue } |
+      Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if (-not $local) { throw "دانلود نشد ($why). از داخل کروم فایل zip اورآ را دانلود کن (همان دکمه‌ی دانلود در پنجره‌ی به‌روزرسانی اورآ) و بعد دوباره همین فایل را باز کن؛ خودش آن را در Downloads پیدا می‌کند." }
     Log "local zip: $($local.FullName)"
     Copy-Item -LiteralPath $local.FullName -Destination $zip
     $script:FetchedLocal = $why
