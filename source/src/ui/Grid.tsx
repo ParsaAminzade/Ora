@@ -26,6 +26,7 @@ function WidgetFrame({ inst, cell, editing, onStart }: {
   return (
     <section
       aria-label={def.name}
+      data-widget=""
       className={[card ? 'glass' : '', editing ? 'editing-card' : ''].filter(Boolean).join(' ') || undefined}
       onPointerDown={editing ? (e) => onStart(e, 'move', inst) : undefined}
       style={{
@@ -141,6 +142,7 @@ export function Grid() {
   }, [cell, widgets, updateWidget, zoom]);
 
   const height = rows * GRID.rowH + (editing ? 240 : 0);
+  const zoomNotScale = useStore((s) => !!s.settings.liquid?.where && s.settings.liquid.where !== 'off' || !!s.settings.liquidGlass);
   return (
     <div style={{ position: 'relative', height: height * zoom, minHeight: '100%' }}>
     <div
@@ -149,9 +151,11 @@ export function Grid() {
         position: 'absolute',
         top: 0,
         right: 0,
-        width: `${100 / zoom}%`,
-        transform: zoom === 1 ? undefined : `scale(${zoom})`,
-        transformOrigin: 'top right',
+        // with CSS zoom a percentage already counts in zoomed pixels
+        width: zoomNotScale ? '100%' : `${100 / zoom}%`,
+        // the liquid glass bends the backdrop with an SVG filter, which Chrome draws wrong under a
+        // scale transform; CSS zoom shrinks the same way without that problem
+        ...(zoomNotScale ? { zoom: zoom === 1 ? undefined : zoom } : { transform: zoom === 1 ? undefined : `scale(${zoom})`, transformOrigin: 'top right' }),
         minHeight: height,
         backgroundImage: editing ? 'radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px)' : undefined,
         backgroundSize: editing ? `${cell}px ${GRID.rowH}px` : undefined,

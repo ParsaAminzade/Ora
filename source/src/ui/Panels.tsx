@@ -1,4 +1,4 @@
-import { liquidSupported } from './LiquidGlass';
+import { liquidOf, liquidSupported, LIQUID_DEFAULT, type Liquid } from './LiquidGlass';
 import { ask } from './Dialog';
 import { OraEye } from './OraEye';
 import { PrayerSection } from './settings/PrayerSection';
@@ -777,11 +777,7 @@ export function SettingsPanel() {
         <Row label="جنس پنل‌ها" hint="شیشه‌ی ویژه همان قاب جمله است: لبه‌ی روشن و سایه‌ی نرم.">
           <Segmented label="جنس پنل‌ها" value={settings.panelStyle ?? 'premium'} options={[['premium', 'شیشه‌ی ویژه'], ['plain', 'ساده']] as const} onChange={(v) => setSettings({ panelStyle: v })} />
         </Row>
-        {liquidSupported && (
-          <Row label="شیشه‌ی مایع (آزمایشی)" hint="نوار جست‌وجو و نوار کناری مثل شیشه‌ی واقعی، پشتشان را در لبه‌ها خم می‌کنند (مثل Liquid Glass اپل). اگر حس کردی صفحه کند شد، خاموشش کن.">
-            <Segmented label="شیشه‌ی مایع" value={settings.liquidGlass ? 'on' : 'off'} options={[['off', 'خاموش'], ['on', 'روشن']] as const} onChange={(v) => setSettings({ liquidGlass: v === 'on' })} />
-          </Row>
-        )}
+        {liquidSupported && <LiquidRows />}
         <Row label="چشم اورآ" hint="گاهی (هر چند ساعت یک بار) یک نکته‌ی کوتاه پیشنهاد می‌دهد. با کلیک روی چشم هم نکته می‌گوید.">
           <Segmented label="چشم اورآ" value={settings.eyeTips === false ? 'off' : 'on'} options={[['on', 'نکته بگوید'], ['off', 'فقط نگاه کند']] as const} onChange={(v) => setSettings({ eyeTips: v === 'on' })} />
         </Row>
@@ -833,5 +829,31 @@ export function SettingsPanel() {
       </div>
     </aside>
     </div>
+  );
+}
+
+/* «شیشه‌ی مایع»: where, and its factors */
+function LiquidRows() {
+  const settings = useStore((s) => s.settings);
+  const setSettings = useStore((s) => s.setSettings);
+  const L = liquidOf(settings);
+  const set = (p: Partial<Liquid>) => setSettings({ liquid: { ...L, ...p }, liquidGlass: undefined });
+  return (
+    <>
+      <Row label="شیشه‌ی مایع" hint="مثل Liquid Glass اپل: لبه‌ها پشتشان را مثل عدسی خم می‌کنند. «همه‌ی پنل‌ها» روی کامپیوترهای ضعیف ممکن است صفحه را کمی کند کند.">
+        <Segmented label="شیشه‌ی مایع" value={L.where} options={[['off', 'خاموش'], ['tools', 'نوار جست‌وجو و کناری'], ['all', 'همه‌ی پنل‌ها']] as const} onChange={(v) => set({ where: v })} />
+      </Row>
+      {L.where !== 'off' && (
+        <div className="liquid-factors">
+          <Slider label="خم شدن لبه" value={L.bend} min={0} max={100} onChange={(v) => set({ bend: v })} />
+          <Slider label="پهنای لبه" value={L.edge} min={8} max={48} unit=" px" onChange={(v) => set({ edge: v })} />
+          <Slider label="رنگین‌کمان لبه" value={L.rainbow} min={0} max={100} onChange={(v) => set({ rainbow: v })} />
+          <Slider label="مات بودن" value={L.frost} min={0} max={100} onChange={(v) => set({ frost: v })} />
+          <Slider label="دودی بودن" value={L.smoke} min={0} max={100} onChange={(v) => set({ smoke: v })} />
+          <Slider label="برق لبه" value={L.shine} min={0} max={100} onChange={(v) => set({ shine: v })} />
+          <button className="btn-link" onClick={() => set({ ...LIQUID_DEFAULT, where: L.where })}>برگرداندن به پیش‌فرض</button>
+        </div>
+      )}
+    </>
   );
 }

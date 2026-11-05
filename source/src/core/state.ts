@@ -100,6 +100,8 @@ export interface Settings {
   panelStyle?: 'premium' | 'plain';
   /** «شیشه‌ی مایع» (آزمایشی): the search bar and side rail bend what's behind them (Chromium only). */
   liquidGlass?: boolean;
+  /** «شیشه‌ی مایع»: where (off / tools / every panel) and its factors. */
+  liquid?: Partial<import('../ui/LiquidGlass').Liquid>;
   /** Scale the layout to fit the screen height (default on). */
   layoutFit?: boolean;
   /** Prayer reminders (system notification + the Ora eye). */
