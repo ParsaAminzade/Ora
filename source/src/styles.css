@@ -2047,3 +2047,24 @@ body { text-shadow: 0 1px 2px rgba(0,0,0,.45), 0 0 10px rgba(0,0,0,.28); }
 @media (prefers-reduced-transparency: reduce) {
   :root[data-liquid] [data-lg-on] { backdrop-filter: blur(var(--blur)) saturate(135%); background: rgba(12, 13, 18, .6); }
 }
+
+/* ---------- light backgrounds: dark glass over white turns grey and muddy (a thin dark veil over a
+   bright photo). Make it a deliberate smoked glass instead: deep enough to read as dark, a little of
+   the picture still showing through, no grey wash on top, and no heavy halo on text inside it. ---------- */
+:root[data-bg-light][data-panels='premium'] .glass,
+:root[data-bg-light][data-panels='plain'] .glass,
+:root[data-bg-light] .frame-glass .sentence-plate {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0) 38%),
+    var(--glass-solid, rgba(14, 15, 20, calc(.80 + var(--panel-a))));
+  backdrop-filter: blur(var(--blur)) saturate(140%) brightness(.9);
+}
+:root[data-bg-light] .glass, :root[data-bg-light] .sentence-plate { text-shadow: 0 1px 1px rgba(0,0,0,.35); }
+:root[data-bg-light] .btn-accent, :root[data-bg-light] .btn-accent * { text-shadow: none; }
+/* the liquid glass needs to stay clearer to show its bending; a lighter smoke */
+:root[data-bg-light][data-liquid] [data-lg-on] {
+  background:
+    radial-gradient(120% 90% at 30% -10%, rgba(255,255,255,.12), transparent 55%),
+    rgba(14, 15, 20, .74);
+  backdrop-filter: var(--lg-filter) blur(2px) saturate(150%) brightness(.92);
+}
