@@ -2007,18 +2007,15 @@ body { text-shadow: 0 1px 2px rgba(0,0,0,.45), 0 0 10px rgba(0,0,0,.28); }
 .btn-accent, .btn-accent *, .pill[aria-pressed="true"], input, textarea, select, [contenteditable="true"], .sc-img, svg text, .on-accent { text-shadow: none; }
 :root[data-bg-light] .sc-name { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.85), 0 0 8px rgba(0,0,0,.6); }
 
-/* each tile's own glow (angle, reach, strength from shortcuts.tsx glowShape) */
-.sc-tile[style*='--sc-shadow'] { box-shadow: var(--sc-shadow); }
-.sc-tile[style*='--sc-shadow']::after {
-  background:
-    radial-gradient(80% 70% at var(--sc-p1), rgb(var(--sc-c) / .30), transparent 70%),
-    radial-gradient(80% 70% at var(--sc-p2), rgb(var(--sc-c2) / .28), transparent 70%),
-    radial-gradient(80% 70% at var(--sc-p3), rgb(var(--sc-c3) / .24), transparent 70%),
-    radial-gradient(80% 70% at var(--sc-p4), rgb(var(--sc-c4) / .24), transparent 70%),
-    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02) 60%), rgba(9,10,15,.36);
+/* the glow is inside the tile only — nothing around it; its layout is the site's own (glowShape) */
+.sc-tile[style*='--sc-c'], .sc-tile.bw[style*='--sc-c'],
+.sc-link:hover .sc-tile[style*='--sc-c'], .sc-link:focus-visible .sc-tile[style*='--sc-c'] { box-shadow: 0 1px 2px rgba(0,0,0,.25), 0 6px 14px -10px rgba(0,0,0,.6); }
+.sc-tile[style*='--sc-in']::after {
+  background: var(--sc-in), linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02) 60%), rgba(9,10,15,.36);
+  transition: filter .2s;
 }
-.sc-tile[style*='--sc-shadow']::before { background: conic-gradient(from var(--sc-rot), rgb(var(--sc-c) / .75), rgb(var(--sc-c2) / .75), rgb(var(--sc-c3) / .7), rgb(var(--sc-c4) / .7), rgb(var(--sc-c) / .75)); }
-.sc-link:hover .sc-tile[style*='--sc-shadow'], .sc-link:focus-visible .sc-tile[style*='--sc-shadow'] { box-shadow: var(--sc-shadow-h); }
+.sc-tile[style*='--sc-in']::before { background: conic-gradient(from var(--sc-rot), rgb(var(--sc-c) / .75), rgb(var(--sc-c2) / .75), rgb(var(--sc-c3) / .7), rgb(var(--sc-c4) / .7), rgb(var(--sc-c) / .75)); opacity: var(--sc-ring); }
+.sc-link:hover .sc-tile[style*='--sc-in']::after, .sc-link:focus-visible .sc-tile[style*='--sc-in']::after { filter: brightness(1.35) saturate(1.15); }
 /* «بیشتر»: a quiet tile, no glow, four little icons inside */
 .sc-folder { display: grid; grid-template-columns: repeat(2, 18px); grid-auto-rows: 18px; gap: 5px; place-content: center; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
 .sc-folder::after { background: rgba(9,10,15,.42); }

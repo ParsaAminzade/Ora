@@ -73,22 +73,65 @@ function RowIcon({ s }: { s: Shortcut }) {
 }
 /** Each tile's glow sits a little differently — its own angle, reach and strength — so a row of
  *  tiles doesn't look stamped out of one mould. Seeded by the site, so it never jumps around. */
+// The glow lives only inside the tile (nothing spills around it), and its shape is the site's own:
+// seeded by the host, so it stays the same on every visit but two sites with the same colours still
+// look different — a different layout (corners, a band of light, a ring, a sweep), blob sizes and
+// strengths, and the colours nudged a few degrees off each other.
+function nudge(rgb: string, deg: number, light: number): string {
+  const [r, g, b] = rgb.split(' ').map((x) => Number(x) / 255);
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+  let h = 0, sat = 0;
+  if (d) {
+    sat = d / (1 - Math.abs(2 * l - 1));
+    h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    h *= 60;
+  }
+  return hslToRgb((h + deg + 360) % 360, Math.min(1, sat), Math.max(0.2, Math.min(0.8, l + light))).join(' ');
+}
 function glowShape(url: string, c: string[]) {
   let seed = hueOf(hostOf(url) + '~') + 1;
   const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  for (let k = 0; k < 3; k++) rnd(); // let similar hosts drift apart
   const turn = rnd() * 360;
-  const at: string[] = [], sh: string[] = [], hv: string[] = [];
-  for (let i = 0; i < 4; i++) {
-    const a = ((turn + i * 90 + (rnd() - 0.5) * 50) * Math.PI) / 180;
-    const r = 4 + rnd() * 6, blur = 15 + rnd() * 12, al = 0.38 + rnd() * 0.3;
-    const x = Math.cos(a) * r, y = Math.sin(a) * r + 2;
-    sh.push(`${x.toFixed(1)}px ${y.toFixed(1)}px ${blur.toFixed(0)}px -9px rgb(${c[i]} / ${al.toFixed(2)})`);
-    hv.push(`${(x * 1.3).toFixed(1)}px ${(y * 1.3).toFixed(1)}px ${(blur + 6).toFixed(0)}px -8px rgb(${c[i]} / ${Math.min(0.85, al + 0.15).toFixed(2)})`);
-    at.push(`${(50 + Math.cos(a) * 55).toFixed(0)}% ${(50 + Math.sin(a) * 55).toFixed(0)}%`);
+  const col = c.map((x, i) => nudge(x, (rnd() - 0.5) * 36, (rnd() - 0.5) * 0.12 + (i ? -0.02 : 0)));
+  const pct = (v: number) => `${v.toFixed(0)}%`;
+  const blob = (x: number, y: number, w: number, h: number, ci: number, a: number) =>
+    `radial-gradient(${pct(w)} ${pct(h)} at ${pct(x)} ${pct(y)}, rgb(${col[ci % 4]} / ${a.toFixed(2)}), transparent 72%)`;
+  const layers: string[] = [];
+  const kind = Math.floor(rnd() * 4);
+  if (kind === 0) {
+    // corners: each colour from its own side, at its own reach
+    for (let i = 0; i < 4; i++) {
+      const a = ((turn + i * 90 + (rnd() - 0.5) * 60) * Math.PI) / 180, r = 30 + rnd() * 30;
+      layers.push(blob(50 + Math.cos(a) * r, 50 + Math.sin(a) * r, 55 + rnd() * 45, 50 + rnd() * 40, i, 0.2 + rnd() * 0.2));
+    }
+  } else if (kind === 1) {
+    // a band of light along one edge, like a sunrise
+    const a = (turn * Math.PI) / 180;
+    for (let i = 0; i < 3; i++) {
+      const along = (i - 1) * 32 + (rnd() - 0.5) * 16;
+      const x = 50 + Math.cos(a) * 48 - Math.sin(a) * along, y = 50 + Math.sin(a) * 48 + Math.cos(a) * along;
+      layers.push(blob(x, y, 45 + rnd() * 25, 40 + rnd() * 25, i, 0.26 + rnd() * 0.18));
+    }
+    layers.push(blob(50 - Math.cos(a) * 40, 50 - Math.sin(a) * 40, 60, 50, 3, 0.08 + rnd() * 0.08));
+  } else if (kind === 2) {
+    // a soft ring: the middle stays dark, the colour sits around the icon
+    layers.push(`radial-gradient(closest-side at ${pct(45 + rnd() * 10)} ${pct(45 + rnd() * 10)}, transparent 55%, rgb(${col[0]} / ${(0.18 + rnd() * 0.12).toFixed(2)}) 82%, transparent 100%)`);
+    for (let i = 1; i < 3; i++) {
+      const a = ((turn + i * 140) * Math.PI) / 180;
+      layers.push(blob(50 + Math.cos(a) * 42, 50 + Math.sin(a) * 42, 50 + rnd() * 30, 45 + rnd() * 30, i, 0.16 + rnd() * 0.14));
+    }
+  } else {
+    // a sweep from one corner across, colours one after another
+    layers.push(`linear-gradient(${turn.toFixed(0)}deg, rgb(${col[0]} / ${(0.22 + rnd() * 0.12).toFixed(2)}), rgb(${col[1]} / ${(0.1 + rnd() * 0.1).toFixed(2)}) ${pct(35 + rnd() * 20)}, transparent ${pct(70 + rnd() * 20)})`);
+    const a = ((turn + 180) * Math.PI) / 180;
+    layers.push(blob(50 + Math.cos(a) * 45, 50 + Math.sin(a) * 45, 50 + rnd() * 30, 45 + rnd() * 30, 2, 0.14 + rnd() * 0.12));
   }
   return {
-    '--sc-shadow': `0 1px 2px rgba(0,0,0,.2), ${sh.join(', ')}`, '--sc-shadow-h': `0 1px 2px rgba(0,0,0,.2), ${hv.join(', ')}`,
-    '--sc-p1': at[0], '--sc-p2': at[1], '--sc-p3': at[2], '--sc-p4': at[3], '--sc-rot': `${turn.toFixed(0)}deg`,
+    '--sc-in': layers.join(', '),
+    '--sc-rot': `${turn.toFixed(0)}deg`,
+    '--sc-ring': (0.28 + rnd() * 0.3).toFixed(2),
+    '--sc-c': col[0], '--sc-c2': col[1], '--sc-c3': col[2], '--sc-c4': col[3],
   };
 }
 function Tile({ s }: { s: Shortcut }) {
