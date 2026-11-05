@@ -3,13 +3,13 @@
 // The batch part is one ( ) block that ends with exit, so cmd never reads the PowerShell below it.
 import { readFileSync, writeFileSync } from 'node:fs';
 function build(src, out, what) {
-const ps = readFileSync(src, 'utf8').replace(/\r?\n/g, '\r\n');
+const ps = (readFileSync('scripts/ora-common.ps1', 'utf8') + '\n' + readFileSync(src, 'utf8')).replace(/\r?\n/g, '\r\n');
 const head = [
   '@echo off',
   `rem ${what}`,
   'set "ORA_SELF=%~f0"',
   'set "ORA_SELF_DIR=%~dp0."',
-  `(powershell -NoProfile -ExecutionPolicy Bypass -Command "$t=[IO.File]::ReadAllText($env:ORA_SELF,[Text.Encoding]::UTF8); iex ($t.Substring($t.IndexOf('#'+'::PS::')+7))" & exit /b)`,
+  `(powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command "$t=[IO.File]::ReadAllText($env:ORA_SELF,[Text.Encoding]::UTF8); iex ($t.Substring($t.IndexOf('#'+'::PS::')+7))" & exit /b)`,
   '#::PS::',
 ].join('\r\n');
 writeFileSync(out, head + '\r\n' + ps); // UTF-8 without BOM: a BOM would break the first line

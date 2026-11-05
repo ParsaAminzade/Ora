@@ -10,27 +10,12 @@
 #      (or Load unpacked + Ctrl+V, the path is already copied); it watches and ticks each step
 #   4. when the browser has Ora, it says so and opens a new tab
 # Already installed? Then it just updates it, like Ora-Update.
-$ErrorActionPreference = 'Stop'
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
-[System.Windows.Forms.Application]::EnableVisualStyles()
 $Rtl = [System.Windows.Forms.MessageBoxOptions]::RtlReading -bor [System.Windows.Forms.MessageBoxOptions]::RightAlign
 function Say($text, $icon = 'Information') { [void][System.Windows.Forms.MessageBox]::Show($text, 'اورآ', 'OK', $icon, 'Button1', $Rtl) }
 
-$Server = 'https://ora.p128parsa.workers.dev'
-$Fallback = 'https://github.com/ParsaAminzade/Ora/raw/main/downloads/ora-extension-latest.zip'
-$Id = 'knlanhnalgmnibmfgblipaclcoomdhdi'   # Ora's extension id (fixed by the key in manifest.json)
 $OraHome = Join-Path $env:LOCALAPPDATA 'Ora'
 $Dir = Join-Path $OraHome 'Ora'
 
-function Is-Ora($dir) {
-  $m = Join-Path $dir 'manifest.json'
-  if (-not (Test-Path -LiteralPath $m)) { return $false }
-  $t = Get-Content -LiteralPath $m -Raw -Encoding UTF8
-  return ($t -match '"short_name"\s*:\s*"Ora"') -and ($t -match '"newtab"')
-}
-function Version-Of($dir) { [version]((Get-Content -LiteralPath (Join-Path $dir 'manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json).version) }
 
 # ---------- browsers ----------
 $Browsers = @(
@@ -74,38 +59,8 @@ function Ora-Paths($b) {
 }
 function Dev-Mode($b) { foreach ($file in Pref-Files $b) { if ((Read-Text $file) -match '"developer_mode"\s*:\s*true') { return $true } }; return $false }
 
-# ---------- get the newest Ora into a folder ----------
-function Fetch-Ora($tmp) {
-  $zip = Join-Path $tmp 'ora.zip'
-  $url = $Fallback
-  try { $l = Invoke-RestMethod -Uri "$Server/api/latest" -TimeoutSec 20; if ($l.url -match '\.zip($|\?)') { $url = $l.url } } catch { }
-  $ok = $false
-  foreach ($u in @($url, $Fallback) | Select-Object -Unique) {
-    try { Write-Host "Downloading $u ..."; Invoke-WebRequest -Uri $u -OutFile $zip -UseBasicParsing -TimeoutSec 300; $ok = $true; break } catch { Write-Host "  failed: $($_.Exception.Message)" }
-  }
-  if (-not $ok) {
-    # no internet to the servers: a zip downloaded by hand, next to this file
-    $local = Get-ChildItem -LiteralPath $env:ORA_SELF_DIR -Filter 'ora-extension*.zip' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-    if (-not $local) { throw 'دانلود نشد. اینترنت را بررسی کن، یا فایل zip اورآ را از سایت بگیر و کنار همین فایل بگذار.' }
-    Copy-Item -LiteralPath $local.FullName -Destination $zip
-  }
-  $new = Join-Path $tmp 'new'
-  Expand-Archive -LiteralPath $zip -DestinationPath $new -Force
-  if (Is-Ora $new) { return $new }
-  $inner = Get-ChildItem -LiteralPath $new -Directory | Where-Object { Is-Ora $_.FullName } | Select-Object -First 1
-  if ($inner) { return $inner.FullName }
-  throw 'فایل دانلودشده اورآ نیست.'
-}
-function Copy-Ora($from, $dest) {
-  New-Item -ItemType Directory -Path $dest -Force | Out-Null
-  $assets = Join-Path $dest 'assets'
-  if (Test-Path -LiteralPath $assets) { Remove-Item -LiteralPath $assets -Recurse -Force -ErrorAction SilentlyContinue }
-  robocopy $from $dest /E /XF manifest.json /NFL /NDL /NJH /NJS /NP | Out-Null
-  if ($LASTEXITCODE -ge 8) { throw "کپی فایل‌ها نشد (robocopy $LASTEXITCODE)." }
-  Copy-Item -LiteralPath (Join-Path $from 'manifest.json') -Destination (Join-Path $dest 'manifest.json') -Force # last: Ora reloads when it sees it
-  Get-ChildItem -LiteralPath $dest -Recurse -File | Unblock-File -ErrorAction SilentlyContinue
-  # the updater lives next to Ora too, so updating later is one double-click
-  # a shortcut to the updater in %LOCALAPPDATA%\Ora — nice to have, never a reason to fail
+# a shortcut to the updater in %LOCALAPPDATA%\Ora — nice to have, never a reason to fail
+function Keep-Updater($dest) {
   try {
     $upd = Join-Path $dest 'Ora-Update.cmd'
     if (Test-Path -LiteralPath $upd) {
@@ -247,30 +202,36 @@ function Show-Guide($b) {
 
 # ---------- run ----------
 $Tmp = Join-Path $env:TEMP ('ora-setup-' + [guid]::NewGuid().ToString('N'))
+$w = $null
 try {
+  $w = New-OraWindow 'نصب اورآ'
   $b = Pick-Browser
-  if (-not $b) { Say 'روی این کامپیوتر کروم، اج یا بریو پیدا نکردم. اول یکی را نصب کن (کروم پیشنهاد می‌شود)، بعد دوباره همین فایل را باز کن.' 'Warning'; exit 1 }
+  if (-not $b) { Finish $w $false 'نصب نشد' 'روی این کامپیوتر کروم، اج یا بریو پیدا نکردم. اول یکی را نصب کن (کروم پیشنهاد می‌شود)، بعد دوباره همین فایل را باز کن.'; exit 1 }
   New-Item -ItemType Directory -Path $Tmp | Out-Null
-  $src = Fetch-Ora $Tmp
+  $latest = Get-Latest $w
+  $src = Fetch-Ora $Tmp $w $latest
   $theirs = Version-Of $src
 
   # already there? then this is an update
   $have = @(foreach ($x in $Browsers) { if ($x.Path) { Ora-Paths $x } }) | Select-Object -Unique
   # ORA_FRESH=1: test the newcomer path on a computer that already has Ora (load it into a new browser profile)
   if ($have.Count -and -not $env:ORA_FRESH) {
-    foreach ($d in $have) { if ((Version-Of $d) -lt $theirs) { Copy-Ora $src $d } }
-    Say "اورآ از قبل نصب است و حالا نسخه‌ی $theirs را دارد.`n`nیک تب تازه باز کن."
+    Set-Step $w "نسخه‌ی $(Fa $theirs) را جای قبلی می‌گذارم…" 1
+    foreach ($d in $have) { if ((Version-Of $d) -lt $theirs) { Copy-Ora $src $d; Keep-Updater $d } }
+    Finish $w $true "اورآ نسخه‌ی $(Fa $theirs) را دارد" 'از قبل نصب بود و حالا به‌روز است. یک تب تازه باز کن.'
     exit 0
   }
 
-  Copy-Ora $src $Dir
+  Set-Step $w 'اورآ را سر جایش می‌گذارم…' 1
+  Copy-Ora $src $Dir; Keep-Updater $Dir
+  $w.Form.Close(); Pump
   Set-Clipboard -Value $Dir
   Start-Process -FilePath $b.Path -ArgumentList $b.Page
   Start-Sleep -Milliseconds 900
   Start-Process explorer.exe -ArgumentList "/select,`"$Dir`""
   [void](Show-Guide $b)
 } catch {
-  Say ("نصب نشد:`n" + $_.Exception.Message) 'Error'
+  if ($w -and -not $w.Closed) { Finish $w $false 'نصب نشد' $_.Exception.Message } else { Say ("نصب نشد:`n" + $_.Exception.Message) 'Error' }
   exit 1
 } finally {
   if (Test-Path -LiteralPath $Tmp) { Remove-Item -LiteralPath $Tmp -Recurse -Force -ErrorAction SilentlyContinue }
