@@ -35,7 +35,7 @@ export interface Liquid {
   /** the lit rim, 0–100 */
   shine: number;
 }
-export const LIQUID_DEFAULT: Liquid = { where: 'off', bend: 50, edge: 22, rainbow: 40, frost: 10, smoke: 20, shine: 60 };
+export const LIQUID_DEFAULT: Liquid = { where: 'off', bend: 50, edge: 22, rainbow: 25, frost: 30, smoke: 30, shine: 60 };
 export const liquidOf = (s: { liquid?: Partial<Liquid>; liquidGlass?: boolean }): Liquid =>
   ({ ...LIQUID_DEFAULT, ...(s.liquidGlass && !s.liquid ? { where: 'tools' as const } : {}), ...s.liquid });
 
@@ -134,14 +134,13 @@ function makeFilter(id: string, w: number, h: number, r: number, L: Liquid): SVG
   }
   f.append(
     img, flood, map,
+    // two passes instead of three (each pass re-reads the whole backdrop): red bends a little less,
+    // green and blue together a little more
     el('feDisplacementMap', { in: 'SourceGraphic', in2: 'map', scale: s * (1 - k * 0.6), xChannelSelector: 'R', yChannelSelector: 'G', result: 'dr' }),
     el('feColorMatrix', { in: 'dr', type: 'matrix', values: '1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0', result: 'r' }),
-    el('feDisplacementMap', { in: 'SourceGraphic', in2: 'map', scale: s, xChannelSelector: 'R', yChannelSelector: 'G', result: 'dg' }),
-    el('feColorMatrix', { in: 'dg', type: 'matrix', values: '0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0', result: 'g' }),
-    el('feDisplacementMap', { in: 'SourceGraphic', in2: 'map', scale: s * (1 + k), xChannelSelector: 'R', yChannelSelector: 'G', result: 'db' }),
-    el('feColorMatrix', { in: 'db', type: 'matrix', values: '0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0', result: 'b' }),
-    el('feBlend', { in: 'r', in2: 'g', mode: 'screen', result: 'rg' }),
-    el('feBlend', { in: 'rg', in2: 'b', mode: 'screen' }),
+    el('feDisplacementMap', { in: 'SourceGraphic', in2: 'map', scale: s * (1 + k * 0.5), xChannelSelector: 'R', yChannelSelector: 'G', result: 'dgb' }),
+    el('feColorMatrix', { in: 'dgb', type: 'matrix', values: '0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0', result: 'gb' }),
+    el('feBlend', { in: 'r', in2: 'gb', mode: 'screen' }),
   );
   return f;
 }
