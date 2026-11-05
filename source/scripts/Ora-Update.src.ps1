@@ -53,19 +53,21 @@ try {
     $folders = @($dlg.SelectedPath)
   }
   $mine = $folders | ForEach-Object { Version-Of $_ } | Sort-Object | Select-Object -First 1
+  $where = "`n`nپوشه: " + ($folders -join "`n")
+  foreach ($f in $folders) { Log "folder: $f = $(Version-Of $f)" }
   Set-Step $w "اورآی تو نسخه‌ی $(Fa $mine) است." 0.02
 
   $latest = Get-Latest $w
-  if ($latest -and [version]$latest.version -le $mine) { Finish $w $true 'اورآی تو به‌روز است' "نسخه‌ی $(Fa $mine)؛ چیزی برای دانلود نیست."; exit 0 }
+  if ($latest -and [version]$latest.version -le $mine) { Finish $w $true 'اورآی تو به‌روز است' ("نسخه‌ی $(Fa $mine)؛ چیزی برای دانلود نیست." + $where); exit 0 }
 
   New-Item -ItemType Directory -Path $Tmp | Out-Null
   $root = Fetch-Ora $Tmp $w $latest
   $theirs = Version-Of $root
-  if ($theirs -le $mine) { Finish $w $true 'اورآی تو به‌روز است' "نسخه‌ی $(Fa $mine)."; exit 0 }
+  if ($theirs -le $mine) { Finish $w $true 'اورآی تو به‌روز است' ("نسخه‌ی $(Fa $mine)." + $where); exit 0 }
 
   Set-Step $w "نسخه‌ی $(Fa $theirs) را جای قبلی می‌گذارم…" 1
   foreach ($dest in $folders) { Copy-Ora $root $dest }
-  Finish $w $true "اورآ به نسخه‌ی $(Fa $theirs) به‌روز شد" 'تا یک دقیقه‌ی دیگر خودش دوباره بالا می‌آید؛ اگر عجله داری، یک تب تازه باز کن. کارها و یادداشت‌هایت سر جایشان هستند.'
+  Finish $w $true "اورآ به نسخه‌ی $(Fa $theirs) به‌روز شد" ('تا یک دقیقه‌ی دیگر خودش دوباره بالا می‌آید؛ اگر نیامد، در chrome://extensions روی فلش گرد اورآ بزن. کارها و یادداشت‌هایت سر جایشان هستند.' + $where)
 } catch {
   Finish $w $false 'به‌روزرسانی نشد' ($_.Exception.Message + ' — اینترنت را بررسی کن و دوباره امتحان کن.')
   exit 1
