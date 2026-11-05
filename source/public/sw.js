@@ -70,6 +70,24 @@ chrome.runtime.onInstalled.addListener(() => { ensureAlarm(); });
 chrome.runtime.onStartup.addListener(() => { ensureAlarm(); void checkUpdate(); });
 ensureAlarm();
 
+// downloads/latest.json in Ora's GitHub repo, through whichever door answers
+const GH_LATEST = [
+  ['https://api.github.com/repos/ParsaAminzade/Ora/contents/downloads/latest.json', { Accept: 'application/vnd.github.raw' }],
+  ['https://raw.githubusercontent.com/ParsaAminzade/Ora/main/downloads/latest.json', {}],
+  ['https://cdn.jsdelivr.net/gh/ParsaAminzade/Ora@main/downloads/latest.json', {}],
+];
+async function githubLatest() {
+  for (const [u, headers] of GH_LATEST) {
+    try {
+      const r = await fetch(u, { cache: 'no-store', headers, signal: AbortSignal.timeout(8000) });
+      if (!r.ok) continue;
+      const j = await r.json();
+      if (j?.version) return j;
+    } catch { /* next door */ }
+  }
+  return null;
+}
+
 function isNewer(a, b) {
   const pa = String(a).split('.').map(Number), pb = String(b).split('.').map(Number);
   for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
@@ -84,12 +102,13 @@ async function checkUpdate(force = false) {
   const st = await chrome.storage.local.get(['oraServer', 'oraReceive', 'oraUpdateTold']);
   const server = (st.oraServer ?? DEFAULT_SERVER).replace(/\/+$/, '');
   if (!server || st.oraReceive === false) return;
-  let latest;
+  let latest = null;
   try {
     const res = await fetch(`${server}/api/latest`, { cache: 'no-store' });
-    if (!res.ok) return;
-    latest = await res.json();
-  } catch { return; }
+    if (res.ok) latest = await res.json();
+  } catch { /* server unreachable (filtered in some places): ask GitHub instead */ }
+  if (!latest?.version) latest = await githubLatest();
+  if (!latest?.version) return;
   const mine = chrome.runtime.getManifest().version;
   if (!latest?.version || !isNewer(latest.version, mine)) { await chrome.storage.local.set({ oraLatest: null }); return; }
   await chrome.storage.local.set({ oraLatest: latest });

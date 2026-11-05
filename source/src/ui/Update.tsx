@@ -29,6 +29,14 @@ async function known(): Promise<Latest | null> {
   const info = await kvGet<{ latest?: Latest | null }>('ora:pack-info');
   return newer(info?.latest) ? info!.latest! : null;
 }
+let ghTried = 0;
+async function knownOrGithub(): Promise<Latest | null> {
+  const k = await known();
+  if (k || Date.now() - ghTried < 30 * 60_000) return k;
+  ghTried = Date.now();
+  const g = await githubLatest(); // Ora's server can be unreachable where GitHub isn't
+  return newer(g) ? g : null;
+}
 
 function download(url: string) {
   // the zip goes straight to Downloads; for anything else (a Release page) open it
@@ -84,20 +92,65 @@ function Sheet({ latest, onClose }: { latest: Latest; onClose(): void }) {
   );
 }
 
-/** The phone/web app: a new version is downloaded and waiting; the bar stays until it is taken. */
+// downloads/latest.json in Ora's GitHub repo, through whichever door answers (raw.githubusercontent
+// is filtered in some places; the API and jsDelivr usually aren't)
+const GH_LATEST: [string, Record<string, string>][] = [
+  ['https://api.github.com/repos/ParsaAminzade/Ora/contents/downloads/latest.json', { Accept: 'application/vnd.github.raw' }],
+  ['https://raw.githubusercontent.com/ParsaAminzade/Ora/main/downloads/latest.json', {}],
+  ['https://cdn.jsdelivr.net/gh/ParsaAminzade/Ora@main/downloads/latest.json', {}],
+];
+async function githubLatest(): Promise<Latest | null> {
+  for (const [u, headers] of GH_LATEST) {
+    try {
+      const r = await fetch(u, { cache: 'no-store', headers, signal: AbortSignal.timeout(8000) });
+      if (!r.ok) continue;
+      const j = (await r.json()) as Latest;
+      if (j?.version) return j;
+    } catch { /* next door */ }
+  }
+  return null;
+}
+
+/** Throw away the copy the browser keeps for offline use and load the newest files. Tasks and notes
+ *  live in the browser's database, not in that copy, so nothing of yours is touched. */
+async function forceWebUpdate() {
+  try {
+    const regs = await navigator.serviceWorker?.getRegistrations?.() ?? [];
+    await Promise.all(regs.map((r) => r.unregister()));
+  } catch { /* */ }
+  try { for (const k of await caches.keys()) if (k.startsWith('ora-')) await caches.delete(k); } catch { /* */ }
+  const u = new URL(location.href); u.searchParams.set('v', String(Date.now()));
+  location.replace(u.toString());
+}
+
+/** The phone/web app: a new version is downloaded and waiting (one tap takes it), or GitHub says a
+ *  newer one exists that this browser hasn't picked up yet (one tap fetches it fresh). */
 function WebUpdateBar() {
   const [apply, setApply] = useState<(() => void) | null>(() => (globalThis as { oraWebUpdate?: () => void }).oraWebUpdate ?? null);
+  const [latest, setLatest] = useState<Latest | null>(null);
+  const [busy, setBusy] = useState(false);
   useEffect(() => {
     const on = (e: Event) => setApply(() => (e as CustomEvent<{ apply: () => void }>).detail.apply);
     addEventListener('ora:web-update-ready', on);
-    return () => removeEventListener('ora:web-update-ready', on);
+    // just updated? clean the address and say so once
+    if (new URLSearchParams(location.search).has('v')) { const u = new URL(location.href); u.searchParams.delete('v'); history.replaceState(null, '', u.toString()); }
+    const prev = ls.get(LAST);
+    if (prev && APP_VERSION !== 'dev' && isNewer(APP_VERSION, prev)) window.setTimeout(() => say({ title: `اورآ به نسخه‌ی ${fa(APP_VERSION)} به‌روز شد`, text: 'هر چیزی که تازه آمده، در «آشنایی با اورآ» هم هست.' }), 1500);
+    if (APP_VERSION !== 'dev') ls.set(LAST, APP_VERSION);
+    const look = () => { if (navigator.onLine !== false) void githubLatest().then((l) => setLatest(newer(l) ? l : null)); };
+    look();
+    const vis = () => { if (document.visibilityState === 'visible') look(); };
+    document.addEventListener('visibilitychange', vis);
+    const iv = window.setInterval(look, 3600_000);
+    return () => { removeEventListener('ora:web-update-ready', on); document.removeEventListener('visibilitychange', vis); window.clearInterval(iv); };
   }, []);
-  if (!apply) return null;
+  if (!apply && !latest) return null;
+  const go = () => { setBusy(true); if (apply) apply(); else void forceWebUpdate(); };
   return createPortal(
     <div className="upd-bar glass" role="status">
       <span className="upd-dot" aria-hidden="true" />
-      <span>نسخه‌ی تازه‌ی اورآ آماده است</span>
-      <button className="btn btn-accent btn-sm" onClick={() => apply()}>بارگذاری دوباره</button>
+      <span>{latest ? <>نسخه‌ی <bdi dir="ltr">{fa(latest.version)}</bdi> اورآ آمده</> : 'نسخه‌ی تازه‌ی اورآ آماده است'}</span>
+      <button className="btn btn-accent btn-sm" disabled={busy} onClick={go}>{busy ? 'یک لحظه…' : 'به‌روزرسانی'}</button>
     </div>,
     document.body,
   );
@@ -115,7 +168,7 @@ function ExtensionUpdate() {
   const [hidden, setHidden] = useState(false);
 
   const refresh = useCallback(async () => {
-    const l = await known();
+    const l = await knownOrGithub();
     setLatest(l);
     if (l) {
       try { const h = JSON.parse(ls.get(HIDE) ?? 'null'); setHidden(!!h && h.v === l.version && Date.now() < h.until); } catch { setHidden(false); }
