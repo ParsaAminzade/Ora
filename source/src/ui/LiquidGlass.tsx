@@ -75,7 +75,7 @@ function sdf(x: number, y: number, hw: number, hh: number, r: number): [number, 
   return [d, gx * Math.sign(x || 1), gy * Math.sign(y || 1)];
 }
 
-function buildMap(w: number, h: number, r: number, p: { mag: Float32Array; max: number }, edge: number): string {
+function buildMap(w: number, h: number, r: number, p: { mag: Float32Array; max: number }, edge: number, sx = 1, sy = 1): string {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   const ctx = c.getContext('2d')!;
@@ -94,7 +94,7 @@ function buildMap(w: number, h: number, r: number, p: { mag: Float32Array; max: 
       const m = p.mag[Math.floor(into)] / p.max;
       const i = (y * w + x) * 4;
       // sample from further out: the edge pulls the outside in, like a lens
-      d8[i] = 128 + gx * m * 127; d8[i + 1] = 128 + gy * m * 127;
+      d8[i] = 128 + gx * m * sx * 127; d8[i + 1] = 128 + gy * m * sy * 127;
     }
   }
   ctx.putImageData(img, 0, 0);
@@ -119,12 +119,17 @@ const el = (tag: string, a: Record<string, string | number>) => {
   return e;
 };
 
+// The filter is laid out in the element's own box (objectBoundingBox): whatever pixels Chrome uses for
+// a backdrop — the layout's zoom, Windows' 125% or 150% scaling — the map always covers the whole
+// panel, edge to edge. In that box a displacement «scale» counts in widths across and heights down,
+// so the map stores each direction relative to the shorter side and scale is given in that unit.
 function makeFilter(id: string, w: number, h: number, r: number, L: Liquid): SVGFilterElement {
   const p = profile(L.edge, L.bend);
-  const f = el('filter', { id, x: 0, y: 0, width: w, height: h, filterUnits: 'userSpaceOnUse', primitiveUnits: 'userSpaceOnUse', 'color-interpolation-filters': 'sRGB' }) as SVGFilterElement;
-  const s = p.max * 2; // the map stores ±1 → ±max px
+  const f = el('filter', { id, x: 0, y: 0, width: 1, height: 1, filterUnits: 'objectBoundingBox', primitiveUnits: 'objectBoundingBox', 'color-interpolation-filters': 'sRGB' }) as SVGFilterElement;
+  const m = Math.min(w, h);
+  const s = (p.max * 2) / m; // ±1 in the map → ±max px along the shorter side
   const k = (L.rainbow / 100) * 0.16; // dispersion: red bends a little less, blue a little more
-  const img = el('feImage', { href: buildMap(w, h, r, p, L.edge), x: 0, y: 0, width: w, height: h, result: 'img', preserveAspectRatio: 'none' });
+  const img = el('feImage', { href: buildMap(w, h, r, p, L.edge, m / w, m / h), x: 0, y: 0, width: 1, height: 1, result: 'img', preserveAspectRatio: 'none' });
   // anything the map doesn't cover means «don't move» (mid-grey), never «move far» (transparent)
   const flood = el('feFlood', { 'flood-color': 'rgb(128,128,128)', result: 'mid' });
   const map = el('feComposite', { in: 'img', in2: 'mid', operator: 'over', result: 'map' });
@@ -152,13 +157,10 @@ function attach(node: HTMLElement, L: Liquid): () => void {
   let f: SVGFilterElement | null = null, last = '', raf = 0;
   const apply = () => {
     raf = 0;
-    // When the layout scales a widget down («جا شدن چیدمان»), Chrome applies the scale to the backdrop
-    // filter's units once more; draw the map that much larger so it lands on the element's real edges.
-    const box = node.getBoundingClientRect();
-    const k = node.offsetWidth ? box.width / node.offsetWidth : 1;
-    const w = Math.round(node.offsetWidth / k), h = Math.round(node.offsetHeight / k);
+    // the map is drawn at the element's layout size; the filter stretches it over the real box
+    const w = node.offsetWidth, h = node.offsetHeight;
     if (w < 8 || h < 8) return;
-    const r = (parseFloat(getComputedStyle(node).borderTopLeftRadius) || 0) / k;
+    const r = parseFloat(getComputedStyle(node).borderTopLeftRadius) || 0;
     const key = `${w}x${h}x${r}/${factors}`;
     if (key === last) return;
     last = key;
