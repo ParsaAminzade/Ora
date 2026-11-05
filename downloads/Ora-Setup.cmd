@@ -19,6 +19,14 @@ Add-Type -AssemblyName System.Drawing
 
 $Server = 'https://ora.p128parsa.workers.dev'
 $LatestJson = 'https://raw.githubusercontent.com/ParsaAminzade/Ora/main/downloads/latest.json'
+# Every file of the repo can be reached by several doors; in Iran raw.githubusercontent.com is often
+# filtered while the GitHub API or jsDelivr still answer. Try them all.
+function Mirrors($path) {
+  @("https://api.github.com/repos/ParsaAminzade/Ora/contents/$path",
+    "https://raw.githubusercontent.com/ParsaAminzade/Ora/main/$path",
+    "https://cdn.jsdelivr.net/gh/ParsaAminzade/Ora@main/$path",
+    "https://github.com/ParsaAminzade/Ora/raw/main/$path")
+}
 $Fallback = 'https://github.com/ParsaAminzade/Ora/raw/main/downloads/ora-extension-latest.zip'
 $Id = 'knlanhnalgmnibmfgblipaclcoomdhdi'   # Ora's extension id (fixed by the key in manifest.json)
 
@@ -338,6 +346,7 @@ function Wait-Window($w) { while (-not $w.Closed) { Pump; Start-Sleep -Milliseco
 function Open-Url($url, $connectMs) {
   $req = [Net.HttpWebRequest]::Create($url)
   $req.Timeout = $connectMs; $req.ReadWriteTimeout = 20000; $req.UserAgent = 'Ora-Installer'; $req.AllowAutoRedirect = $true
+  if ($url -like 'https://api.github.com/*') { $req.Accept = 'application/vnd.github.raw' }
   try { $req.Proxy = [Net.WebRequest]::GetSystemWebProxy(); $req.Proxy.Credentials = [Net.CredentialCache]::DefaultCredentials } catch { }
   # connect on a worker so the window keeps breathing while we wait
   $task = $req.GetResponseAsync()
@@ -351,7 +360,9 @@ function Open-Url($url, $connectMs) {
 function Curl-To($url, $out, $secs) {
   $c = Join-Path $env:SystemRoot 'System32\curl.exe'
   if (-not (Test-Path -LiteralPath $c)) { throw 'curl.exe not found' }
-  $p = Start-Process -FilePath $c -ArgumentList @('-L','-s','-f','--max-time',"$secs",'-A','Ora-Installer','-o',"`"$out`"","`"$url`"") -WindowStyle Hidden -PassThru
+  $a = @('-L','-s','-f','--max-time',"$secs",'-A','Ora-Installer','-o',"`"$out`"")
+  if ($url -like 'https://api.github.com/*') { $a += @('-H','"Accept: application/vnd.github.raw"') }
+  $p = Start-Process -FilePath $c -ArgumentList ($a + "`"$url`"") -WindowStyle Hidden -PassThru
   while (-not $p.HasExited) { Pump; Start-Sleep -Milliseconds 60 }
   if ($p.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $out)) { throw "curl $($p.ExitCode)" }
 }
@@ -381,21 +392,35 @@ function Get-File($url, $out, $w, $what) {
 # The newest version and where to get it: GitHub first (it answers in Iran), then Ora's server.
 function Get-Latest($w) {
   Set-Step $w 'دنبال آخرین نسخه می‌گردم…' 0.03
-  try { $j = (Get-Text $LatestJson) | ConvertFrom-Json; if ($j.version) { Log "latest: $($j.version) (github)"; return $j } } catch { Log "latest.json: $($_.Exception.Message)" }
-  try { $f = Join-Path $env:TEMP ('ora-latest-' + [guid]::NewGuid().ToString('N') + '.json'); Curl-To $LatestJson $f 20; $j = [IO.File]::ReadAllText($f, [Text.Encoding]::UTF8) | ConvertFrom-Json; Remove-Item -LiteralPath $f -ErrorAction SilentlyContinue; if ($j.version) { Log "latest: $($j.version) (curl)"; return $j } } catch { Log "latest.json via curl: $($_.Exception.Message)" }
-  try { $j = (Get-Text "$Server/api/latest" 6000) | ConvertFrom-Json; if ($j.version) { return $j } } catch { Log "server: $($_.Exception.Message)" }
+  $urls = Mirrors 'downloads/latest.json'
+  foreach ($u in $urls) {
+    try { $j = (Get-Text $u 6000) | ConvertFrom-Json; if ($j.version) { Log "latest: $($j.version) from $u"; return $j } } catch { Log "latest ✗ $u — $($_.Exception.Message)" }
+  }
+  foreach ($u in $urls) {
+    try { $f = Join-Path $env:TEMP ('ora-latest-' + [guid]::NewGuid().ToString('N') + '.json'); Curl-To $u $f 15; $j = [IO.File]::ReadAllText($f, [Text.Encoding]::UTF8) | ConvertFrom-Json; Remove-Item -LiteralPath $f -ErrorAction SilentlyContinue; if ($j.version) { Log "latest: $($j.version) via curl from $u"; return $j } } catch { Log "latest ✗ curl $u — $($_.Exception.Message)" }
+  }
+  try { $j = (Get-Text "$Server/api/latest" 6000) | ConvertFrom-Json; if ($j.version) { Log "latest: $($j.version) from server"; return $j } } catch { Log "server ✗ $($_.Exception.Message)" }
   return $null
 }
 # Download the newest Ora into $tmp and return the folder that holds it.
 function Fetch-Ora($tmp, $w, $latest) {
   $zip = Join-Path $tmp 'ora.zip'
   $urls = @()
-  if ($latest -and $latest.url -match '\.zip($|\?)') { $urls += $latest.url }
-  $urls += $Fallback
+  if ($latest -and $latest.url -match '\.zip($|\?)') {
+    $urls += $latest.url
+    $name = ($latest.url -split '[/?]' | Where-Object { $_ -like '*.zip' } | Select-Object -First 1)
+    if ($name) { $urls += Mirrors "downloads/$name" }
+  }
+  $urls += Mirrors 'downloads/ora-extension-latest.zip'
+  $urls = @($urls | Select-Object -Unique)
   $ok = $false; $why = ''
-  foreach ($u in ($urls | Select-Object -Unique)) {
-    try { Log "download: $u"; Get-File $u $zip $w 'اورآ را دانلود می‌کنم…'; $ok = $true; break } catch { $why = $_.Exception.Message; Log "  failed: $why" }
-    try { Set-Step $w 'اورآ را دانلود می‌کنم… (راه دوم)' -1; Curl-To $u $zip 180; $ok = $true; Log "  ok via curl"; break } catch { Log "  curl failed: $($_.Exception.Message)" }
+  foreach ($u in $urls) {
+    try { Log "download: $u"; Get-File $u $zip $w 'اورآ را دانلود می‌کنم…'; $ok = $true; break } catch { $why = $_.Exception.Message; Log "  ✗ $why" }
+  }
+  if (-not $ok) {
+    foreach ($u in $urls) {
+      try { Set-Step $w 'اورآ را دانلود می‌کنم… (راه دوم)' -1; Log "curl: $u"; Curl-To $u $zip 180; $ok = $true; break } catch { Log "  ✗ curl $($_.Exception.Message)" }
+    }
   }
   if (-not $ok) {
     Log "using a zip next to this file instead"
