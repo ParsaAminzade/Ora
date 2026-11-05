@@ -338,12 +338,22 @@ function Wait-Window($w) { while (-not $w.Closed) { Pump; Start-Sleep -Milliseco
 function Open-Url($url, $connectMs) {
   $req = [Net.HttpWebRequest]::Create($url)
   $req.Timeout = $connectMs; $req.ReadWriteTimeout = 20000; $req.UserAgent = 'Ora-Installer'; $req.AllowAutoRedirect = $true
+  try { $req.Proxy = [Net.WebRequest]::GetSystemWebProxy(); $req.Proxy.Credentials = [Net.CredentialCache]::DefaultCredentials } catch { }
   # connect on a worker so the window keeps breathing while we wait
   $task = $req.GetResponseAsync()
   $t0 = [Environment]::TickCount
   while (-not $task.IsCompleted) { Pump; Start-Sleep -Milliseconds 40; if ([Environment]::TickCount - $t0 -gt $connectMs + 2000) { $req.Abort(); throw "no answer from $([uri]$url | ForEach-Object Host)" } }
   if ($task.IsFaulted) { throw $task.Exception.InnerException }
   return $task.Result
+}
+# Windows 10+ ships curl.exe; it gets through some networks/VPNs where .NET can't. Run it hidden and
+# keep the window breathing while it works.
+function Curl-To($url, $out, $secs) {
+  $c = Join-Path $env:SystemRoot 'System32\curl.exe'
+  if (-not (Test-Path -LiteralPath $c)) { throw 'curl.exe not found' }
+  $p = Start-Process -FilePath $c -ArgumentList @('-L','-s','-f','--max-time',"$secs",'-A','Ora-Installer','-o',"`"$out`"","`"$url`"") -WindowStyle Hidden -PassThru
+  while (-not $p.HasExited) { Pump; Start-Sleep -Milliseconds 60 }
+  if ($p.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $out)) { throw "curl $($p.ExitCode)" }
 }
 function Get-Text($url, $connectMs = 8000) {
   $res = Open-Url $url $connectMs
@@ -371,7 +381,8 @@ function Get-File($url, $out, $w, $what) {
 # The newest version and where to get it: GitHub first (it answers in Iran), then Ora's server.
 function Get-Latest($w) {
   Set-Step $w 'دنبال آخرین نسخه می‌گردم…' 0.03
-  try { $j = (Get-Text $LatestJson) | ConvertFrom-Json; if ($j.version) { return $j } } catch { Log "latest.json: $($_.Exception.Message)" }
+  try { $j = (Get-Text $LatestJson) | ConvertFrom-Json; if ($j.version) { Log "latest: $($j.version) (github)"; return $j } } catch { Log "latest.json: $($_.Exception.Message)" }
+  try { $f = Join-Path $env:TEMP ('ora-latest-' + [guid]::NewGuid().ToString('N') + '.json'); Curl-To $LatestJson $f 20; $j = [IO.File]::ReadAllText($f, [Text.Encoding]::UTF8) | ConvertFrom-Json; Remove-Item -LiteralPath $f -ErrorAction SilentlyContinue; if ($j.version) { Log "latest: $($j.version) (curl)"; return $j } } catch { Log "latest.json via curl: $($_.Exception.Message)" }
   try { $j = (Get-Text "$Server/api/latest" 6000) | ConvertFrom-Json; if ($j.version) { return $j } } catch { Log "server: $($_.Exception.Message)" }
   return $null
 }
@@ -384,11 +395,15 @@ function Fetch-Ora($tmp, $w, $latest) {
   $ok = $false; $why = ''
   foreach ($u in ($urls | Select-Object -Unique)) {
     try { Log "download: $u"; Get-File $u $zip $w 'اورآ را دانلود می‌کنم…'; $ok = $true; break } catch { $why = $_.Exception.Message; Log "  failed: $why" }
+    try { Set-Step $w 'اورآ را دانلود می‌کنم… (راه دوم)' -1; Curl-To $u $zip 180; $ok = $true; Log "  ok via curl"; break } catch { Log "  curl failed: $($_.Exception.Message)" }
   }
   if (-not $ok) {
+    Log "using a zip next to this file instead"
     $local = Get-ChildItem -LiteralPath $env:ORA_SELF_DIR -Filter 'ora-extension*.zip' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
     if (-not $local) { throw "دانلود نشد ($why). اینترنت را بررسی کن، یا فایل zip اورآ را کنار همین فایل بگذار و دوباره امتحان کن." }
+    Log "local zip: $($local.FullName)"
     Copy-Item -LiteralPath $local.FullName -Destination $zip
+    $script:FetchedLocal = $why
   }
   Set-Step $w 'باز کردن فایل‌ها…' 1
   $new = Join-Path $tmp 'new'
@@ -483,7 +498,14 @@ try {
   New-Item -ItemType Directory -Path $Tmp | Out-Null
   $root = Fetch-Ora $Tmp $w $latest
   $theirs = Version-Of $root
-  if ($theirs -le $mine) { Finish $w $true 'اورآی تو به‌روز است' ("نسخه‌ی $(Fa $mine)." + $where); exit 0 }
+  Log "downloaded: $theirs"
+  if ($theirs -le $mine) {
+    # never call it «up to date» when we simply couldn't download the new one
+    if ($script:FetchedLocal -or ($latest -and [version]$latest.version -gt $mine) -or -not $latest) {
+      Finish $w $false 'به‌روزرسانی نشد' ("نسخه‌ی جدید دانلود نشد و اورآی تو هنوز $(Fa $mine) است. «جزئیات» را بزن و گزارش را بفرست." + $where); exit 1
+    }
+    Finish $w $true 'اورآی تو به‌روز است' ("نسخه‌ی $(Fa $mine)." + $where); exit 0
+  }
 
   Set-Step $w "نسخه‌ی $(Fa $theirs) را جای قبلی می‌گذارم…" 1
   foreach ($dest in $folders) { Copy-Ora $root $dest }

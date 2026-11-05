@@ -63,7 +63,14 @@ try {
   New-Item -ItemType Directory -Path $Tmp | Out-Null
   $root = Fetch-Ora $Tmp $w $latest
   $theirs = Version-Of $root
-  if ($theirs -le $mine) { Finish $w $true 'اورآی تو به‌روز است' ("نسخه‌ی $(Fa $mine)." + $where); exit 0 }
+  Log "downloaded: $theirs"
+  if ($theirs -le $mine) {
+    # never call it «up to date» when we simply couldn't download the new one
+    if ($script:FetchedLocal -or ($latest -and [version]$latest.version -gt $mine) -or -not $latest) {
+      Finish $w $false 'به‌روزرسانی نشد' ("نسخه‌ی جدید دانلود نشد و اورآی تو هنوز $(Fa $mine) است. «جزئیات» را بزن و گزارش را بفرست." + $where); exit 1
+    }
+    Finish $w $true 'اورآی تو به‌روز است' ("نسخه‌ی $(Fa $mine)." + $where); exit 0
+  }
 
   Set-Step $w "نسخه‌ی $(Fa $theirs) را جای قبلی می‌گذارم…" 1
   foreach ($dest in $folders) { Copy-Ora $root $dest }
