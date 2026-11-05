@@ -48,7 +48,7 @@ try {
     Set-Step $w 'پوشه‌ی اورآ را خودم پیدا نکردم؛ نشانم بده کجاست.' 0.01
     $dlg = New-Object System.Windows.Forms.FolderBrowserDialog
     $dlg.Description = 'پوشه‌ای که اورآ را از آن نصب کرده‌ای (همان که manifest.json دارد)'
-    if ($dlg.ShowDialog($w.Form) -ne 'OK') { Finish $w $false 'به‌روزرسانی نشد' 'پوشه‌ای انتخاب نشد.'; exit 1 }
+    if ($dlg.ShowDialog() -ne 'OK') { Finish $w $false 'به‌روزرسانی نشد' 'پوشه‌ای انتخاب نشد.'; exit 1 }
     if (-not (Is-Ora $dlg.SelectedPath)) { Finish $w $false 'به‌روزرسانی نشد' 'این پوشه اورآ نیست؛ manifest.json اورآ در آن نیست.'; exit 1 }
     $folders = @($dlg.SelectedPath)
   }

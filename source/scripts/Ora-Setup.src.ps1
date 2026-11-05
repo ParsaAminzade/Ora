@@ -70,134 +70,99 @@ function Keep-Updater($dest) {
   } catch { Write-Host "  (updater shortcut skipped: $($_.Exception.Message))" }
 }
 
-# ---------- the live guide: one step at a time, with a picture of exactly where to click ----------
+# ---------- the live guide, inside the same Ora window ----------
 # Step 1 «Developer mode» → step 2 «Load unpacked, Ctrl+V, Enter, Select Folder» → done.
-# It watches the browser's own settings and moves on by itself; the buttons move on too, in case
-# the browser is slow to save them.
-function Show-Guide($b) {
+# It watches the browser's own settings and moves on by itself; the button moves on too, in case
+# the browser is slow to save them. The picture shows exactly where to click.
+function Show-Guide($w, $b) {
   $edge = $b.Name -eq 'Edge'
-  $gold = [Drawing.Color]::FromArgb(222, 186, 120); $ink = [Drawing.Color]::FromArgb(236, 230, 218)
-  $dim = [Drawing.Color]::FromArgb(150, 146, 138); $ok = [Drawing.Color]::FromArgb(126, 211, 150)
-  $bg = [Drawing.Color]::FromArgb(14, 16, 22)
-  $f = New-Object System.Windows.Forms.Form
-  $f.Text = 'نصب اورآ'; $f.RightToLeft = 'Yes'; $f.RightToLeftLayout = $true
-  $f.TopMost = $true; $f.FormBorderStyle = 'FixedToolWindow'; $f.StartPosition = 'Manual'
-  $f.BackColor = $bg; $f.ForeColor = $ink; $f.Font = New-Object Drawing.Font('Tahoma', 10)
-  $f.ClientSize = New-Object Drawing.Size(460, 470)
-  $wa = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea
-  $f.Location = New-Object Drawing.Point(($wa.Right - 480), ($wa.Bottom - 500))
-
-  $count = New-Object System.Windows.Forms.Label; $count.ForeColor = $gold; $count.SetBounds(16, 12, 428, 22); $f.Controls.Add($count)
-  $title = New-Object System.Windows.Forms.Label; $title.Font = New-Object Drawing.Font('Tahoma', 13, [Drawing.FontStyle]::Bold); $title.SetBounds(16, 36, 428, 30); $f.Controls.Add($title)
-
-  # the picture: a little drawing of the browser's extensions page with the spot to click circled
-  $pic = New-Object System.Windows.Forms.Panel; $pic.SetBounds(16, 72, 428, 150); $pic.BackColor = [Drawing.Color]::FromArgb(32, 33, 36); $f.Controls.Add($pic)
-  $script:stage = 1
-  $pic.Add_Paint({
-    param($s, $e)
-    $g = $e.Graphics; $g.SmoothingMode = 'AntiAlias'
-    $fg = New-Object Drawing.SolidBrush([Drawing.Color]::FromArgb(220, 220, 220))
-    $soft = New-Object Drawing.SolidBrush([Drawing.Color]::FromArgb(140, 140, 140))
-    $font = New-Object Drawing.Font('Segoe UI', 9); $bold = New-Object Drawing.Font('Segoe UI', 10, [Drawing.FontStyle]::Bold)
-    $pen = New-Object Drawing.Pen($gold, 3)
-    # address bar
-    $g.FillRectangle((New-Object Drawing.SolidBrush([Drawing.Color]::FromArgb(53, 54, 58))), 10, 8, 408, 22)
-    $g.DrawString(($b.Page.TrimEnd('/')), $font, $soft, 18, 11)
-    if ($edge) {
-      # Edge: Developer mode sits at the bottom of the left menu; Load unpacked at the top of the page
-      $g.FillRectangle((New-Object Drawing.SolidBrush([Drawing.Color]::FromArgb(43, 43, 46))), 10, 36, 120, 108)
-      $g.DrawString('Extensions', $bold, $fg, 18, 42)
-      $g.DrawString('Developer mode', $font, $fg, 18, 118)
-      $tog = New-Object Drawing.Rectangle(108, 119, 18, 10)
-      $load = New-Object Drawing.Rectangle(145, 40, 100, 24)
-    } else {
-      $g.DrawString('Extensions', $bold, $fg, 14, 40)
-      $g.DrawString('Developer mode', $font, $fg, 290, 41)
-      $tog = New-Object Drawing.Rectangle(392, 43, 22, 12)
-      $load = New-Object Drawing.Rectangle(14, 70, 110, 26)
-    }
-    $on = $script:stage -ge 2
-    $g.FillEllipse((New-Object Drawing.SolidBrush($(if ($on) { [Drawing.Color]::FromArgb(138, 180, 248) } else { [Drawing.Color]::FromArgb(110, 110, 110) }))), $tog)
-    $knob = if ($on) { $tog.Right - $tog.Height } else { $tog.X }
-    $g.FillEllipse((New-Object Drawing.SolidBrush([Drawing.Color]::White)), $knob, $tog.Y, $tog.Height, $tog.Height)
-    if ($on) {
-      # the three buttons that appear once Developer mode is on; «Load unpacked» is the first
-      $g.DrawRectangle((New-Object Drawing.Pen([Drawing.Color]::FromArgb(138, 180, 248), 1)), $load)
-      $g.DrawString('Load unpacked', $font, (New-Object Drawing.SolidBrush([Drawing.Color]::FromArgb(138, 180, 248))), $load.X + 8, $load.Y + 5)
-      $g.DrawRectangle((New-Object Drawing.Pen([Drawing.Color]::FromArgb(90, 90, 90), 1)), $load.Right + 8, $load.Y, 90, $load.Height)
-      $g.DrawString('Pack extension', $font, $soft, $load.Right + 14, $load.Y + 5)
-      $ring = New-Object Drawing.Rectangle(($load.X - 6), ($load.Y - 6), ($load.Width + 12), ($load.Height + 12))
-    } else {
-      $ring = New-Object Drawing.Rectangle(($tog.X - 10), ($tog.Y - 10), ($tog.Width + 20), ($tog.Height + 20))
-    }
-    $g.DrawEllipse($pen, $ring)
-    # «اینجا» next to the circle
-    $sf = New-Object Drawing.StringFormat; $sf.FormatFlags = 'DirectionRightToLeft'
-    $here = New-Object Drawing.Font('Tahoma', 10, [Drawing.FontStyle]::Bold)
-    $hx = if ($ring.X -gt 214) { $ring.X - 70 } else { $ring.Right + 8 }
-    $g.DrawString('اینجا', $here, (New-Object Drawing.SolidBrush($gold)), $hx, ($ring.Y + 2))
-  })
-
-  $text = New-Object System.Windows.Forms.Label; $text.SetBounds(16, 232, 428, 150); $text.Font = New-Object Drawing.Font('Tahoma', 10.5); $f.Controls.Add($text)
-  $state = New-Object System.Windows.Forms.Label; $state.ForeColor = $dim; $state.SetBounds(16, 382, 428, 22); $f.Controls.Add($state)
-
-  function Btn($t, $x, $w, $main) { $x2 = New-Object System.Windows.Forms.Button; $x2.Text = $t; $x2.FlatStyle = 'Flat'; $x2.SetBounds($x, 414, $w, 40)
-    if ($main) { $x2.BackColor = $gold; $x2.ForeColor = [Drawing.Color]::FromArgb(26, 20, 11); $x2.FlatAppearance.BorderSize = 0 } else { $x2.ForeColor = $gold; $x2.FlatAppearance.BorderColor = $gold }
-    $f.Controls.Add($x2); return $x2 }
-  $bNext = Btn 'انجامش دادم' 284 160 $true
-  $bPage = Btn 'صفحه باز نشد' 150 126 $false
-  $bCopy = Btn 'کپی مسیر' 16 126 $false
-
-  function Show-Step($n) {
+  $w.Win.Topmost = $true
+  $w.Badge.Visibility = 'Visible'
+  $wa = [System.Windows.SystemParameters]::WorkArea
+  $w.Win.Left = $wa.Right - $w.Win.Width - 8; $w.Win.Top = $wa.Bottom - $w.Win.Height - 8   # out of the browser's way
+  $w.PicUrl.Text = $b.Page.TrimEnd('/')
+  if ($edge) {
+    # Edge keeps «Developer mode» at the bottom of its left menu
+    [Windows.Controls.Canvas]::SetLeft($w.PicDev, 14); [Windows.Controls.Canvas]::SetTop($w.PicDev, 86)
+    [Windows.Controls.Canvas]::SetLeft($w.Toggle, 118); [Windows.Controls.Canvas]::SetTop($w.Toggle, 87)
+    [Windows.Controls.Canvas]::SetLeft($w.LoadBtn, 170); [Windows.Controls.Canvas]::SetTop($w.LoadBtn, 38)
+    [Windows.Controls.Canvas]::SetLeft($w.PackBtn, 290); [Windows.Controls.Canvas]::SetTop($w.PackBtn, 38)
+  }
+  $gold = [Windows.Media.Color]::FromRgb(227, 189, 122)
+  $place = {
+    param($stage)
+    $on = $stage -ge 2
+    $w.Toggle.Background = New-Object Windows.Media.SolidColorBrush($(if ($on) { [Windows.Media.Color]::FromRgb(138, 180, 248) } else { [Windows.Media.Color]::FromRgb(95, 99, 104) }))
+    $w.Knob.HorizontalAlignment = $(if ($on) { 'Right' } else { 'Left' })
+    $w.LoadBtn.Visibility = $(if ($on) { 'Visible' } else { 'Hidden' }); $w.PackBtn.Visibility = $w.LoadBtn.Visibility
+    $target = if ($on) { $w.LoadBtn } else { $w.Toggle }
+    $target.UpdateLayout()
+    $x = [Windows.Controls.Canvas]::GetLeft($target); $y = [Windows.Controls.Canvas]::GetTop($target)
+    $tw = [Math]::Max($target.ActualWidth, 26); $th = [Math]::Max($target.ActualHeight, 14)
+    $w.Ring.Width = $tw + 24; $w.Ring.Height = $th + 20
+    [Windows.Controls.Canvas]::SetLeft($w.Ring, $x - 12); [Windows.Controls.Canvas]::SetTop($w.Ring, $y - 10)
+  }
+  $step = {
+    param($n)
     $script:stage = $n
     switch ($n) {
       1 {
-        $count.Text = 'قدم ۱ از ۲'
-        $title.Text = 'کلید «Developer mode» را روشن کن'
-        $text.Text = $(if ($edge) { "صفحه‌ی افزونه‌های Edge برایت باز شده. پایینِ منوی سمت چپ، کلیدی هست به اسم «Developer mode». رویش بزن تا روشن (آبی) شود.`n`nاگر Edge فارسی است، کلیدی است که کنارش «برنامه‌نویس» نوشته شده." } else { "صفحه‌ی افزونه‌های $($b.Name) برایت باز شده. گوشه‌ی بالا سمت راستِ همان صفحه، کلید کوچکی هست به اسم «Developer mode». رویش بزن تا روشن (آبی) شود.`n`nاگر مرورگرت فارسی است، همین کلید بالا سمت چپ است و کنارش «برنامه‌نویس» نوشته شده." })
-        $bNext.Text = 'روشنش کردم'
+        $w.BadgeText.Text = 'قدم ۱ از ۲'
+        $w.GTitle.Text = 'کلید «Developer mode» را روشن کن'
+        $w.GText.Text = $(if ($edge) { 'صفحه‌ی افزونه‌های Edge برایت باز شده. پایینِ منوی سمت چپ، کلیدی هست به اسم «Developer mode». رویش بزن تا روشن (آبی) شود. اگر Edge فارسی است، کنارش «برنامه‌نویس» نوشته شده.' } else { "صفحه‌ی افزونه‌های $($b.Name) برایت باز شده. گوشه‌ی بالا سمت راستِ همان صفحه، کلید کوچکی هست به اسم «Developer mode». رویش بزن تا روشن (آبی) شود. اگر مرورگرت فارسی است، همین کلید بالا سمت چپ است و کنارش «برنامه‌نویس» نوشته شده." })
+        $w.GNext.Content = 'روشنش کردم'
+        & $place 1
       }
       2 {
-        $count.Text = 'قدم ۲ از ۲'
-        $title.Text = 'روی «Load unpacked» بزن و پوشه را بده'
-        $text.Text = "حالا بالای همان صفحه سه دکمه آمده. روی اولی، «Load unpacked»، بزن.`n`nیک پنجره‌ی انتخاب پوشه باز می‌شود. بالای آن پنجره، توی نوار آدرس کلیک کن، Ctrl+V بزن و Enter (مسیر اورآ را خودم کپی کرده‌ام). بعد دکمه‌ی «Select Folder» را بزن."
-        $bNext.Text = 'انجامش دادم'
+        $w.BadgeText.Text = 'قدم ۲ از ۲'
+        $w.GTitle.Text = 'روی «Load unpacked» بزن و پوشه را بده'
+        $w.GText.Text = 'حالا بالای همان صفحه سه دکمه آمده. روی اولی، «Load unpacked»، بزن. در پنجره‌ای که باز می‌شود، بالای آن توی نوار آدرس کلیک کن، Ctrl+V و Enter بزن (مسیر اورآ را خودم کپی کرده‌ام)، بعد «Select Folder» را بزن.'
+        $w.GNext.Content = 'انجامش دادم'
         Set-Clipboard -Value $Dir
-      }
-      3 {
-        $count.Text = 'تمام!'; $count.ForeColor = $ok
-        $title.Text = 'اورآ نصب شد'; $title.ForeColor = $ok
-        $text.Text = "یک تب تازه باز کن تا اورآ را ببینی.`n`nاگر مرورگر پرسید «این صفحه را نگه داری؟»، «Keep it» را بزن."
-        $bNext.Text = 'باز کردن اورآ'; $bPage.Visible = $false; $bCopy.Visible = $false
-        $state.Text = ''
+        & $place 2
       }
     }
-    $pic.Visible = $n -lt 3
-    $pic.Invalidate()
+    Log $w.GTitle.Text
   }
-  $script:done = $false
-  $bNext.Add_Click({
-    if ($script:stage -eq 1) { Show-Step 2 }
-    elseif ($script:stage -eq 2) {
-      if ((Ora-Paths $b).Count -gt 0) { $script:done = $true; Show-Step 3 }
-      else { $state.Text = 'هنوز نمی‌بینمش؛ مرورگر چند ثانیه طول می‌کشد. اگر پوشه را انتخاب کرده‌ای، کمی صبر کن.' }
-    } else { Start-Process -FilePath $b.Path -ArgumentList ($b.Page -replace 'extensions/$', 'newtab/'); $f.Close() }
+  $done = {
+    $script:installed = $true
+    $w.Win.Topmost = $false
+    Show-Page $w 'Work'
+    $w.BadgeText.Text = 'تمام!'
+    $w.LogBtn.Visibility = 'Collapsed'
+    $w.DoneBtn.Content = 'باز کردن اورآ'
+    $w.DoneBtn.Add_Click({ Start-Process -FilePath $b.Path -ArgumentList ($b.Page -replace 'extensions/$', 'newtab/') })
+    $w.Title.Text = 'اورآ نصب شد'
+    $w.Title.Foreground = New-Object Windows.Media.SolidColorBrush([Windows.Media.Color]::FromRgb(126, 211, 150))
+    $w.Status.Text = 'یک تب تازه باز کن تا اورآ را ببینی. اگر مرورگر پرسید «این صفحه را نگه داری؟»، «Keep it» را بزن.'
+    $w.Track.UpdateLayout(); $w.Bar.Width = $w.Track.ActualWidth; $w.Detail.Text = ''
+    $w.DoneBtn.Visibility = 'Visible'
+    Log 'Ora is in the browser.'
+  }
+  $script:installed = $false
+  $w.GNext.Add_Click({
+    if ($script:stage -eq 1) { & $step 2 }
+    elseif ((Ora-Paths $b).Count -gt 0) { & $done }
+    else { $w.GState.Text = 'هنوز نمی‌بینمش؛ مرورگر چند ثانیه طول می‌کشد تا خبر بدهد. اگر پوشه را انتخاب کرده‌ای، کمی صبر کن.' }
   })
-  $bPage.Add_Click({ Start-Process -FilePath $b.Path -ArgumentList $b.Page; Set-Clipboard -Value $b.Page; $state.Text = 'آدرس کپی شد: در نوار آدرس مرورگر Ctrl+V و بعد Enter بزن.' })
-  $bCopy.Add_Click({ Set-Clipboard -Value $Dir; $state.Text = 'مسیر اورآ کپی شد.' })
+  $w.GPage.Add_Click({ Start-Process -FilePath $b.Path -ArgumentList $b.Page; Set-Clipboard -Value $b.Page; $w.GState.Text = 'آدرس کپی شد: در نوار آدرس مرورگر Ctrl+V و بعد Enter بزن.' })
+  $w.GCopy.Add_Click({ Set-Clipboard -Value $Dir; $w.GState.Text = 'مسیر اورآ کپی شد.' })
 
-  $timer = New-Object System.Windows.Forms.Timer; $timer.Interval = 1500
+  $timer = New-Object Windows.Threading.DispatcherTimer
+  $timer.Interval = [TimeSpan]::FromMilliseconds(1500)
   $timer.Add_Tick({
-    if ($script:stage -eq 1 -and (Dev-Mode $b)) { Show-Step 2 }
+    if ($script:installed) { return }
+    if ($script:stage -eq 1 -and (Dev-Mode $b)) { & $step 2 }
     $paths = Ora-Paths $b
     $found = if ($env:ORA_FRESH) { $paths -contains $Dir } else { $paths.Count -gt 0 }
-    if ($script:stage -lt 3 -and $found) { $script:done = $true; Show-Step 3; $timer.Stop() }
+    if ($found) { & $done }
   })
-  Show-Step 1
+  Show-Page $w 'Guide'
+  & $step 1
   $timer.Start()
-  [void]$f.ShowDialog()
-  $timer.Dispose()
-  return $script:done
+  Wait-Window $w
+  $timer.Stop()
+  return $script:installed
 }
 
 # ---------- run ----------
@@ -224,13 +189,11 @@ try {
 
   Set-Step $w 'اورآ را سر جایش می‌گذارم…' 1
   Copy-Ora $src $Dir; Keep-Updater $Dir
-  $w.Form.Close(); Pump
   Set-Clipboard -Value $Dir
   Start-Process -FilePath $b.Path -ArgumentList $b.Page
-  Start-Sleep -Milliseconds 900
-  Start-Process explorer.exe -ArgumentList "/select,`"$Dir`""
-  [void](Show-Guide $b)
+  [void](Show-Guide $w $b)
 } catch {
+  Log "error: $($_.Exception.Message)"
   if ($w -and -not $w.Closed) { Finish $w $false 'نصب نشد' $_.Exception.Message } else { Say ("نصب نشد:`n" + $_.Exception.Message) 'Error' }
   exit 1
 } finally {

@@ -3,7 +3,11 @@
 // The batch part is one ( ) block that ends with exit, so cmd never reads the PowerShell below it.
 import { readFileSync, writeFileSync } from 'node:fs';
 function build(src, out, what) {
-const ps = (readFileSync('scripts/ora-common.ps1', 'utf8') + '\n' + readFileSync(src, 'utf8')).replace(/\r?\n/g, '\r\n');
+// The window's look (XAML) and Ora's font go inside the file, so it is still one file to download.
+const xaml = readFileSync('scripts/ora-window.xaml', 'utf8').replace(/'@/g, "' @");
+const font = readFileSync('scripts/diba-ui.ttf').toString('base64');
+const common = readFileSync('scripts/ora-common.ps1', 'utf8').replace('__XAML__', () => xaml).replace('__DIBA__', () => font);
+const ps = (common + '\n' + readFileSync(src, 'utf8')).replace(/\r?\n/g, '\r\n');
 const head = [
   '@echo off',
   `rem ${what}`,

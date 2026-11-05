@@ -1,5 +1,6 @@
 # Shared by Ora-Setup and Ora-Update (make-updater.mjs puts this in front of each).
-# · A small Ora window with a gold progress bar instead of a console.
+# · An Ora window (WPF: rounded dark glass, gold hairline, Ora's eye, Diba) instead of a console,
+#   with a «جزئیات» page that shows every step, and the install guide inside the same window.
 # · Downloads that can't hang: every connection and every read has its own timeout, the newest version
 #   is read from GitHub first (reachable even when Cloudflare is not), and the window keeps
 #   responding while bytes arrive.
@@ -15,57 +16,79 @@ $LatestJson = 'https://raw.githubusercontent.com/ParsaAminzade/Ora/main/download
 $Fallback = 'https://github.com/ParsaAminzade/Ora/raw/main/downloads/ora-extension-latest.zip'
 $Id = 'knlanhnalgmnibmfgblipaclcoomdhdi'   # Ora's extension id (fixed by the key in manifest.json)
 
-$C = @{
-  Bg = [Drawing.Color]::FromArgb(14, 16, 22); Ink = [Drawing.Color]::FromArgb(236, 230, 218)
-  Dim = [Drawing.Color]::FromArgb(150, 146, 138); Gold = [Drawing.Color]::FromArgb(222, 186, 120)
-  Ok = [Drawing.Color]::FromArgb(126, 211, 150); Bad = [Drawing.Color]::FromArgb(240, 128, 112)
-  Track = [Drawing.Color]::FromArgb(40, 42, 50)
-}
+Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
+# Ora's font (Diba), carried inside this file and put in a temp folder for the window to use
+$OraFont = $null
+try {
+  $fd = Join-Path $env:TEMP 'ora-font'; New-Item -ItemType Directory -Path $fd -Force | Out-Null
+  $ff = Join-Path $fd 'diba.ttf'
+  if (-not (Test-Path -LiteralPath $ff)) { [IO.File]::WriteAllBytes($ff, [Convert]::FromBase64String('__DIBA__')) }
+  $OraFont = New-Object Windows.Media.FontFamily((New-Object Uri("file:///$($fd.Replace('\', '/'))/")), './#Diba, Tahoma')
+} catch { }
+$OraXaml = @'
+__XAML__
+'@
 function Fa($x) { $d = '۰۱۲۳۴۵۶۷۸۹'; -join ("$x".ToCharArray() | ForEach-Object { if ($_ -match '\d') { $d[[int]"$_"] } else { $_ } }) }
-function Pump { [System.Windows.Forms.Application]::DoEvents() }
+# keep the window alive while we work (one turn of the WPF message loop)
+function Pump {
+  $frame = New-Object Windows.Threading.DispatcherFrame
+  [void][Windows.Threading.Dispatcher]::CurrentDispatcher.BeginInvoke([Windows.Threading.DispatcherPriority]::Background,
+    [Windows.Threading.DispatcherOperationCallback] { param($f) $f.Continue = $false; $null }, $frame)
+  [Windows.Threading.Dispatcher]::PushFrame($frame)
+}
+$OraLog = New-Object System.Collections.Generic.List[string]
+function Log($m) { $line = "$(Get-Date -Format 'HH:mm:ss')  $m"; $OraLog.Add($line); Write-Host $line; if ($script:OraW -and $script:OraW.LogBox) { $script:OraW.LogBox.AppendText("$line`r`n"); $script:OraW.LogBox.ScrollToEnd() } }
 
-# ---------- the window ----------
+# ---------- the window: dark glass, rounded, Ora's eye; pages for work, the log and the guide ----------
 function New-OraWindow($title) {
-  $f = New-Object System.Windows.Forms.Form
-  $f.Text = 'اورآ'; $f.RightToLeft = 'Yes'; $f.RightToLeftLayout = $true
-  $f.FormBorderStyle = 'FixedSingle'; $f.MaximizeBox = $false; $f.StartPosition = 'CenterScreen'
-  $f.BackColor = $C.Bg; $f.ForeColor = $C.Ink; $f.Font = New-Object Drawing.Font('Tahoma', 10)
-  $f.ClientSize = New-Object Drawing.Size(460, 236)
-  try { $f.Icon = [Drawing.Icon]::ExtractAssociatedIcon("$env:SystemRoot\System32\shell32.dll") } catch { }
-  $logo = New-Object System.Windows.Forms.Label; $logo.Text = 'اورآ'; $logo.ForeColor = $C.Gold
-  $logo.Font = New-Object Drawing.Font('Tahoma', 20, [Drawing.FontStyle]::Bold); $logo.SetBounds(20, 14, 420, 40); $f.Controls.Add($logo)
-  $t = New-Object System.Windows.Forms.Label; $t.Text = $title; $t.Font = New-Object Drawing.Font('Tahoma', 12, [Drawing.FontStyle]::Bold)
-  $t.SetBounds(20, 58, 420, 28); $f.Controls.Add($t)
-  $s = New-Object System.Windows.Forms.Label; $s.ForeColor = $C.Dim; $s.SetBounds(20, 92, 420, 44); $f.Controls.Add($s)
-  $track = New-Object System.Windows.Forms.Panel; $track.BackColor = $C.Track; $track.SetBounds(20, 142, 420, 8); $f.Controls.Add($track)
-  $bar = New-Object System.Windows.Forms.Panel; $bar.BackColor = $C.Gold; $bar.SetBounds(0, 0, 0, 8); $track.Controls.Add($bar)
-  $d = New-Object System.Windows.Forms.Label; $d.ForeColor = $C.Dim; $d.Font = New-Object Drawing.Font('Tahoma', 9); $d.SetBounds(20, 156, 420, 20); $f.Controls.Add($d)
-  $b = New-Object System.Windows.Forms.Button; $b.Text = 'بستن'; $b.FlatStyle = 'Flat'; $b.BackColor = $C.Gold
-  $b.ForeColor = [Drawing.Color]::FromArgb(26, 20, 11); $b.FlatAppearance.BorderSize = 0; $b.SetBounds(20, 186, 130, 36); $b.Visible = $false
-  $b.Add_Click({ $this.FindForm().Close() }); $f.Controls.Add($b)
-  $w = @{ Form = $f; Title = $t; Status = $s; Track = $track; Bar = $bar; Detail = $d; Button = $b; Closed = $false }
-  $f.Tag = $w
-  $f.Add_FormClosed({ $this.Tag.Closed = $true })
-  $f.Show(); Pump
+  $win = [Windows.Markup.XamlReader]::Parse($OraXaml)
+  if ($OraFont) { $win.FontFamily = $OraFont }
+  $w = @{ Win = $win; Closed = $false; Page = 'Work' }
+  foreach ($n in 'Card', 'Head', 'Pupil', 'Badge', 'BadgeText', 'CloseBtn', 'PageWork', 'PageLog', 'PageGuide', 'Title', 'Status', 'Track', 'Bar', 'Detail', 'DoneBtn', 'LogBtn', 'LogBox', 'BackBtn', 'CopyLogBtn',
+    'GTitle', 'GText', 'GState', 'GNext', 'GPage', 'GCopy', 'PicUrl', 'PicTitle', 'PicDev', 'Toggle', 'Knob', 'LoadBtn', 'PackBtn', 'Ring') { $w[$n] = $win.FindName($n) }
+  $w.Title.Text = $title
+  $w.Badge.Visibility = 'Collapsed'   # the guide uses it for «قدم ۱ از ۲»
+  $win.Tag = $w
+  $win.Add_Closed({ $this.Tag.Closed = $true })
+  $w.Head.Add_MouseLeftButtonDown({ try { [Windows.Window]::GetWindow($this).DragMove() } catch { } })
+  $w.CloseBtn.Add_Click({ [Windows.Window]::GetWindow($this).Close() })
+  $w.DoneBtn.Add_Click({ [Windows.Window]::GetWindow($this).Close() })
+  $w.LogBtn.Add_Click({ Show-Page ([Windows.Window]::GetWindow($this).Tag) 'Log' })
+  $w.BackBtn.Add_Click({ $t = [Windows.Window]::GetWindow($this).Tag; Show-Page $t $t.Back })
+  $w.CopyLogBtn.Add_Click({ Set-Clipboard -Value ($OraLog -join "`r`n") })
+  # the eye follows the mouse a little
+  $win.Add_MouseMove({ param($s, $e) $p = $e.GetPosition($s); $t = $s.Tag.Pupil.RenderTransform; $t.X = [Math]::Max(-3, [Math]::Min(3, ($p.X - 70) / 60)); $t.Y = [Math]::Max(-3, [Math]::Min(3, ($p.Y - 45) / 60)) })
+  foreach ($l in $OraLog) { $w.LogBox.AppendText("$l`r`n") }
+  $script:OraW = $w
+  $win.Show(); Pump
   return $w
 }
+function Show-Page($w, $name) {
+  if ($name -eq 'Log') { $w.Back = $w.Page; $w.LogBox.ScrollToEnd() }
+  $w.Page = $name
+  foreach ($p in 'Work', 'Log', 'Guide') { $w["Page$p"].Visibility = $(if ($p -eq $name) { 'Visible' } else { 'Collapsed' }) }
+}
 function Set-Step($w, $status, $pct = -1, $detail = '') {
-  if (-not $w) { Write-Host $status; return }
-  if ($w.Closed) { throw 'بسته شد.' }
+  Log $status
+  if (-not $w) { return }
+  if ($w.Closed) { throw 'پنجره بسته شد.' }
   $w.Status.Text = $status; $w.Detail.Text = $detail
-  if ($pct -ge 0) { $w.Bar.Width = [int]($w.Track.Width * [Math]::Min(1, $pct)) }
-  # RTL: the bar grows from the right
-  $w.Bar.Left = $w.Track.Width - $w.Bar.Width
+  if ($pct -ge 0) { $w.Track.UpdateLayout(); $w.Bar.Width = [Math]::Max(10, $w.Track.ActualWidth * [Math]::Min(1, $pct)) }
   Pump
 }
 function Finish($w, $ok, $title, $status) {
-  if (-not $w) { Write-Host "$title $status"; return }
-  $w.Title.Text = $title; $w.Title.ForeColor = $(if ($ok) { $C.Ok } else { $C.Bad })
-  $w.Status.Text = $status; $w.Status.ForeColor = $C.Ink; $w.Detail.Text = ''
-  if ($ok) { $w.Bar.BackColor = $C.Ok; $w.Bar.Width = $w.Track.Width; $w.Bar.Left = 0 } else { $w.Track.Visible = $false }
-  $w.Button.Visible = $true; $w.Form.Activate()
-  while (-not $w.Closed) { Pump; Start-Sleep -Milliseconds 40 }
+  Log "$title — $status"
+  if (-not $w -or $w.Closed) { return }
+  Show-Page $w 'Work'
+  $w.Title.Text = $title
+  $w.Title.Foreground = New-Object Windows.Media.SolidColorBrush([Windows.Media.Color]::FromRgb($(if ($ok) { 126 } else { 240 }), $(if ($ok) { 211 } else { 128 }), $(if ($ok) { 150 } else { 112 })))
+  $w.Status.Text = $status; $w.Status.Foreground = New-Object Windows.Media.SolidColorBrush([Windows.Media.Color]::FromRgb(216, 210, 198)); $w.Detail.Text = ''
+  if ($ok) { $w.Track.UpdateLayout(); $w.Bar.Width = $w.Track.ActualWidth } else { $w.Track.Visibility = 'Collapsed' }
+  $w.DoneBtn.Visibility = 'Visible'; $w.Win.Activate() | Out-Null
+  while (-not $w.Closed) { Pump; Start-Sleep -Milliseconds 30 }
 }
+# wait while the window is open (the guide uses this)
+function Wait-Window($w) { while (-not $w.Closed) { Pump; Start-Sleep -Milliseconds 30 } }
 
 # ---------- network, with timeouts that hold ----------
 function Open-Url($url, $connectMs) {
@@ -104,8 +127,8 @@ function Get-File($url, $out, $w, $what) {
 # The newest version and where to get it: GitHub first (it answers in Iran), then Ora's server.
 function Get-Latest($w) {
   Set-Step $w 'دنبال آخرین نسخه می‌گردم…' 0.03
-  try { $j = (Get-Text $LatestJson) | ConvertFrom-Json; if ($j.version) { return $j } } catch { Write-Host "latest.json: $($_.Exception.Message)" }
-  try { $j = (Get-Text "$Server/api/latest" 6000) | ConvertFrom-Json; if ($j.version) { return $j } } catch { Write-Host "server: $($_.Exception.Message)" }
+  try { $j = (Get-Text $LatestJson) | ConvertFrom-Json; if ($j.version) { return $j } } catch { Log "latest.json: $($_.Exception.Message)" }
+  try { $j = (Get-Text "$Server/api/latest" 6000) | ConvertFrom-Json; if ($j.version) { return $j } } catch { Log "server: $($_.Exception.Message)" }
   return $null
 }
 # Download the newest Ora into $tmp and return the folder that holds it.
@@ -116,7 +139,7 @@ function Fetch-Ora($tmp, $w, $latest) {
   $urls += $Fallback
   $ok = $false; $why = ''
   foreach ($u in ($urls | Select-Object -Unique)) {
-    try { Get-File $u $zip $w 'اورآ را دانلود می‌کنم…'; $ok = $true; break } catch { $why = $_.Exception.Message; Write-Host "  failed: $why" }
+    try { Log "download: $u"; Get-File $u $zip $w 'اورآ را دانلود می‌کنم…'; $ok = $true; break } catch { $why = $_.Exception.Message; Log "  failed: $why" }
   }
   if (-not $ok) {
     $local = Get-ChildItem -LiteralPath $env:ORA_SELF_DIR -Filter 'ora-extension*.zip' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
