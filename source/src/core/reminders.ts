@@ -8,13 +8,14 @@ import { fa } from './dates';
 
 export type PrayerKey = PrayerTime['key'];
 export interface PrayerReminder { enabled: boolean; keys: PrayerKey[]; before: number; notify: boolean }
-export const DEFAULT_REMINDER: PrayerReminder = { enabled: true, keys: ['fajr', 'dhuhr', 'maghrib'], before: 10, notify: true };
+// off for someone new: the day's times are something you add, not something Ora assumes
+export const DEFAULT_REMINDER: PrayerReminder = { enabled: false, keys: ['fajr', 'dhuhr', 'maghrib'], before: 10, notify: true };
 export const reminderOf = (): PrayerReminder => ({ ...DEFAULT_REMINDER, ...useStore.getState().settings.prayerReminder });
 
 const PREFIX = 'prayer|';
 const DAYS = 3;
 
-/** «۱۰ دقیقه تا اذان ظهر» / «وقت اذان ظهر است» */
+/** «۱۰ دقیقه تا غروب آفتاب» / «وقت غروب آفتاب است» */
 export function reminderText(label: string, before: number): string {
   return before > 0 ? `${fa(before)} دقیقه تا ${label}` : `وقت ${label} است`;
 }

@@ -209,7 +209,7 @@ function CitySection() {
           ))}
         </div>
       )}
-      <span className="faint" style={{ fontSize: 12, lineHeight: 1.8 }}>آب‌وهوا از Open-Meteo گرفته می‌شود (حداکثر هر ۳۰ دقیقه یک بار). اوقات شرعی روی خود مرورگر و بدون اینترنت محاسبه می‌شود.</span>
+      <span className="faint" style={{ fontSize: 12, lineHeight: 1.8 }}>آب‌وهوا از Open-Meteo گرفته می‌شود (حداکثر هر ۳۰ دقیقه یک بار). زمان‌های طلوع و غروب روی خود مرورگر و بدون اینترنت محاسبه می‌شود.</span>
     </Section>
   );
 }
@@ -580,8 +580,8 @@ const GROUPS: { name: string; items: { title: string; short?: string; keys: stri
   ] },
   { name: 'ابزارها', items: [
     { title: 'هوش مصنوعی', keys: 'ai ollama مدل دستیار' },
-    { title: 'شهر', keys: 'شهر آب و هوا اوقات شرعی' },
-    { title: 'یادآوری نماز', keys: 'نماز اذان یادآوری اعلان غروب' },
+    { title: 'شهر', keys: 'شهر آب و هوا طلوع غروب' },
+    { title: 'یادآوری زمان‌های روز', keys: 'زمان روز طلوع غروب یادآوری اعلان' },
     { title: 'تقویم‌ها', keys: 'تقویم گوگل ics قمری ساعت دوم منطقه زمانی یادآوری رویداد' },
     { title: 'سرور تقویم شخصی (CalDAV)', short: 'سرور تقویم (CalDAV)', keys: 'caldav radicale سرور' },
     { title: 'موتور جستجو', short: 'جستجو', keys: 'جستجو search گوگل duckduckgo' },

@@ -195,7 +195,7 @@ function NightBox() {
         <span className="faint" style={{ marginInlineStart: 'auto', fontSize: 12, fontWeight: 400 }}>الان: {levelText(level)}</span>
       </label>
       <span className="faint" style={{ fontSize: 12, lineHeight: 1.8 }}>
-        از غروب ({fa(fmtMin(sun.sunset))}) تا اذان مغرب ({fa(fmtMin(sun.maghrib))}) نور گرم زرد و نارنجی روی صفحه می‌نشیند و بعد می‌رود. از غروب تا ساعت خواب هم صفحه کم‌کم تیره‌تر می‌شود و بعد از طلوع ({fa(fmtMin(sun.sunrise))}) آرام برمی‌گردد.
+        از غروب ({fa(fmtMin(sun.sunset))}) تا شامگاه ({fa(fmtMin(sun.maghrib))}) نور گرم زرد و نارنجی روی صفحه می‌نشیند و بعد می‌رود. از غروب تا ساعت خواب هم صفحه کم‌کم تیره‌تر می‌شود و بعد از طلوع ({fa(fmtMin(sun.sunrise))}) آرام برمی‌گردد.
       </span>
       <label className="muted" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13 }}>
         ساعت خواب (اوج تیرگی)

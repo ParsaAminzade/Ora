@@ -14,12 +14,12 @@ export function prayerTimes(place: Place, date: Date): PrayerTime[] {
   const p = new PrayerTimes(coords, date, CalculationMethod.Tehran());
   const s = new SunnahTimes(p);
   return [
-    { key: 'fajr', label: 'اذان صبح', time: p.fajr },
+    { key: 'fajr', label: 'سپیده‌دم', time: p.fajr },
     { key: 'sunrise', label: 'طلوع آفتاب', time: p.sunrise },
-    { key: 'dhuhr', label: 'اذان ظهر', time: p.dhuhr },
+    { key: 'dhuhr', label: 'ظهر', time: p.dhuhr },
     { key: 'sunset', label: 'غروب آفتاب', time: p.sunset },
-    { key: 'maghrib', label: 'اذان مغرب', time: p.maghrib },
-    { key: 'midnight', label: 'نیمه‌شب شرعی', time: s.middleOfTheNight },
+    { key: 'maghrib', label: 'شامگاه', time: p.maghrib },
+    { key: 'midnight', label: 'نیمه‌شب', time: s.middleOfTheNight },
   ];
 }
 

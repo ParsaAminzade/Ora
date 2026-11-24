@@ -1,5 +1,5 @@
 // «لحن اورآ»: Ora says what the numbers mean for *you* instead of only showing them.
-// Not «۱۲°» but «خنکه؛ یه ژاکت نازک بردار.» Not «مغرب ۱۷:۳۰» but «تا اذان مغرب بیست دقیقه مونده.»
+// Not «۱۲°» but «خنکه؛ یه ژاکت نازک بردار.» Not «غروب ۱۷:۱۲» but «تا غروب آفتاب بیست دقیقه مونده.»
 //
 // Three tones, chosen in settings › «لحن اورآ»:
 //   friendly  خودمونی (default) — like a friend who checked the weather for you
@@ -68,7 +68,7 @@ export function weatherLine(w: Weather, now = new Date(), t: Tone = tone()): str
 }
 
 /* ---------- prayer ---------- */
-const PRAYER_NAME: Record<string, string> = { fajr: 'اذان صبح', sunrise: 'طلوع آفتاب', dhuhr: 'اذان ظهر', sunset: 'غروب آفتاب', maghrib: 'اذان مغرب', midnight: 'نیمه‌شب شرعی' };
+const PRAYER_NAME: Record<string, string> = { fajr: 'سپیده‌دم', sunrise: 'طلوع آفتاب', dhuhr: 'ظهر', sunset: 'غروب آفتاب', maghrib: 'شامگاه', midnight: 'نیمه‌شب' };
 const span = (min: number, t: Tone) => {
   if (min < 1) return t === 'formal' ? 'چند لحظه' : 'چند لحظه';
   if (min < 60) return `${n(min)} دقیقه`;
@@ -76,7 +76,7 @@ const span = (min: number, t: Tone) => {
   const hs = h === 1 && t === 'friendly' ? 'یه ساعت' : `${n(h)} ساعت`;
   return m ? `${hs} و ${n(m)} دقیقه` : hs;
 };
-/** «تا اذان مغرب بیست دقیقه مونده.» — or empty in «فقط عدد». */
+/** «تا غروب آفتاب بیست دقیقه مونده.» — or empty in «فقط عدد». */
 export function prayerLine(key: string, at: Date, now = new Date(), t: Tone = tone()): string {
   if (t === 'numbers') return '';
   const name = PRAYER_NAME[key] ?? '';

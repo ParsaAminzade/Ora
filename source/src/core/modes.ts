@@ -95,7 +95,6 @@ export const BUILTIN_LAYOUTS: Record<string, () => WidgetInstance[]> = {
   ],
   night: () => [
     wi('clock-default', 'clock', 18, 0, 6, 6),
-    wi('prayer-default', 'prayer', 18, 6, 6, 3),
     wi('agenda-night', 'agenda', 0, 0, 7, 12, { days: 2 }),
     wi('notes-default', 'notes', 8, 4, 8, 12),
     wi('sentence-night', 'sentence', 8, 17, 9, 6),

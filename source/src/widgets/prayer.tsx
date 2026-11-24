@@ -3,7 +3,7 @@ import { useStore } from '../core/state';
 import { formatInZone, nextPrayer, prayerTimes } from '../core/prayer';
 import { prayerLine } from '../core/voice';
 import { useNow } from '../ui/hooks';
-import { IconBell, IconMosque } from '../ui/icons';
+import { IconBell, IconSunrise } from '../ui/icons';
 import { DEFAULT_REMINDER, type PrayerKey } from '../core/reminders';
 
 interface Config {
@@ -12,9 +12,9 @@ interface Config {
 
 defineWidget<Config>({
   type: 'prayer',
-  name: 'اوقات شرعی',
-  description: 'محاسبه‌ی آفلاین به روش مؤسسه ژئوفیزیک تهران',
-  icon: <IconMosque />,
+  name: 'زمان‌های روز',
+  description: 'سپیده‌دم، طلوع، ظهر، غروب و شامگاه؛ بدون اینترنت حساب می‌شود',
+  icon: <IconSunrise />,
   defaultSize: { w: 6, h: 3 },
   minSize: { w: 4, h: 3 },
   defaultConfig: { compact: true },
@@ -40,7 +40,7 @@ defineWidget<Config>({
               <span key={t.key} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, color: isNext ? 'var(--accent)' : undefined }}>
                 <span style={{ fontSize: 12, color: isNext ? undefined : 'var(--text-3)', display: 'flex', alignItems: 'center', gap: 4 }}>
                   {isNext && <span aria-hidden="true" style={{ width: 5, height: 5, borderRadius: 3, background: 'var(--accent)' }} />}
-                  {t.label.replace('اذان ', '').replace(' آفتاب', '').replace(' شرعی', '')}
+                  {t.label.replace(' آفتاب', '')}
                 </span>
                 <span style={{ fontSize: 15, fontWeight: isNext ? 700 : 500 }} aria-label={isNext ? 'نوبت بعدی' : undefined}>{formatInZone(t.time, place.timezone)}</span>
               </span>
@@ -52,7 +52,7 @@ defineWidget<Config>({
     return (
       <div className="w" style={{ overflow: 'hidden', gap: 8 }}>
         <div className="w-head">
-          <h2 className="w-title">اوقات شرعی</h2>
+          <h2 className="w-title">زمان‌های روز</h2>
           <span className="w-meta">{place.name}</span>
           <button className="btn btn-sm" style={{ border: 0 }} onClick={() => setConfig({ compact: true })}>فشرده</button>
         </div>

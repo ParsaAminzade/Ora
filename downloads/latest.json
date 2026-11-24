@@ -1,5 +1,5 @@
 {
-  "version": "2.6.17",
-  "notes": "درست شد: پس‌زمینه پشت شیشه‌ی مایع وارونه دیده می‌شد. از ۲.۶.۱۶: شیشه‌ی مایع روی کارت گرافیک، بدون لگ.",
-  "url": "https://github.com/ParsaAminzade/Ora/raw/main/downloads/ora-extension-v2.6.17.zip"
+  "version": "2.6.18",
+  "notes": "ویجت «زمان‌های روز» (سپیده‌دم، طلوع، ظهر، غروب، شامگاه) دیگر برای کاربر تازه پیش‌فرض نیست و از «افزودن ویجت» اضافه می‌شود. اگر الان داری‌اش، سر جایش می‌ماند.",
+  "url": "https://github.com/ParsaAminzade/Ora/raw/main/downloads/ora-extension-v2.6.18.zip"
 }

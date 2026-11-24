@@ -3,7 +3,7 @@ import { DEFAULT_REMINDER, reminderText, upcomingReminders, type PrayerKey } fro
 import { fa } from '../../core/dates';
 import { Row, Section, Segmented } from '../Panels';
 
-const KEYS: [PrayerKey, string][] = [['fajr', 'اذان صبح'], ['sunrise', 'طلوع آفتاب'], ['dhuhr', 'اذان ظهر'], ['sunset', 'غروب آفتاب'], ['maghrib', 'اذان مغرب'], ['midnight', 'نیمه‌شب شرعی']];
+const KEYS: [PrayerKey, string][] = [['fajr', 'سپیده‌دم'], ['sunrise', 'طلوع آفتاب'], ['dhuhr', 'ظهر'], ['sunset', 'غروب آفتاب'], ['maghrib', 'شامگاه'], ['midnight', 'نیمه‌شب']];
 
 export function PrayerSection() {
   const saved = useStore((s) => s.settings.prayerReminder);
@@ -13,9 +13,9 @@ export function PrayerSection() {
   const set = (p: Partial<typeof r>) => setSettings({ prayerReminder: { ...r, ...p } });
   const next = upcomingReminders(new Date(), r)[0];
   return (
-    <Section title="یادآوری نماز" hint={`بر اساس اوقات شرعی ${place.name}. اعلان سیستم حتی وقتی هیچ تبی باز نیست هم می‌آید (اگر کروم باز باشد).`}>
+    <Section title="یادآوری زمان‌های روز" hint={`بر اساس طلوع و غروب آفتاب در ${place.name}. اعلان سیستم حتی وقتی هیچ تبی باز نیست هم می‌آید (اگر کروم باز باشد).`}>
       <Row label="یادآوری">
-        <Segmented label="یادآوری نماز" value={r.enabled ? 'on' : 'off'} options={[['on', 'روشن'], ['off', 'خاموش']] as const} onChange={(v) => set({ enabled: v === 'on' })} />
+        <Segmented label="یادآوری زمان‌های روز" value={r.enabled ? 'on' : 'off'} options={[['on', 'روشن'], ['off', 'خاموش']] as const} onChange={(v) => set({ enabled: v === 'on' })} />
       </Row>
       {r.enabled && (
         <>
@@ -33,7 +33,7 @@ export function PrayerSection() {
           <span className="faint" style={{ fontSize: 12 }}>
             {next ? `یادآوری بعدی: ${reminderText(next.label, r.before)} · ساعت ${fa(new Date(next.at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }))}` : 'وقتی انتخاب نشده.'}
           </span>
-          <button className="btn" style={{ alignSelf: 'flex-start' }} onClick={() => dispatchEvent(new CustomEvent('ora:say', { detail: { text: reminderText('اذان ظهر', r.before), sticky: true } }))}>امتحان یادآوری</button>
+          <button className="btn" style={{ alignSelf: 'flex-start' }} onClick={() => dispatchEvent(new CustomEvent('ora:say', { detail: { text: reminderText('غروب آفتاب', r.before), sticky: true } }))}>امتحان یادآوری</button>
         </>
       )}
     </Section>

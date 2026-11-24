@@ -42,7 +42,8 @@ export const IconSnow = make(<><path d="M17 15H8a4.5 4.5 0 1 1 .9-8.9A5.5 5.5 0 
 export const IconStorm = make(<><path d="M17 15H8a4.5 4.5 0 1 1 .9-8.9A5.5 5.5 0 0 1 19 8a3.5 3.5 0 0 1-2 7z" /><path d="m12 15-2 4h4l-2 4" /></>);
 export const IconFog = make(<path d="M4 9h16M3 13h18M5 17h14" />);
 export const IconPin = make(<><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z" /><circle cx="12" cy="9" r="2.5" /></>);
-export const IconMosque = make(<><path d="M4 21V11a8 6 0 0 1 16 0v10M2 21h20M12 5V2M9 21v-4a3 3 0 0 1 6 0v4" /></>);
+// the sun on the horizon, with its rays
+export const IconSunrise = make(<><path d="M17 18a5 5 0 0 0-10 0M2 18h20M5 21h14M12 2v4M4.2 10.2l1.4 1.4M18.4 11.6l1.4-1.4M1 14h2M21 14h2" /></>);
 export const IconCommand = make(<path d="M9 6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3z" />);
 export const IconImage = make(<><rect x="3" y="4" width="18" height="16" rx="3" /><circle cx="9" cy="10" r="2" /><path d="m21 16-5-5-9 9" /></>);
 export const IconCode = make(<path d="m8 8-5 4 5 4M16 8l5 4-5 4M14 4l-4 16" />);

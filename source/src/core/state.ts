@@ -182,8 +182,7 @@ export const defaultLayout = (): WidgetInstance[] => [
   w('pomodoro', 7, 19, 5, 7),
   w('weather', 12, 19, 5, 7),
   w('clock', 18, 0, 6, 6),
-  w('prayer', 18, 6, 6, 3),
-  w('calendar', 18, 9, 6, 16),
+  w('calendar', 18, 6, 6, 16),
   w('sentence', 7, 12, 11, 6),
 ];
 
@@ -296,10 +295,16 @@ export const useStore = create<Store>((set, get) => ({
           localStorage.setItem('ora:diba-default', '1');
           if (settings.sentences.font === 'naskh' || settings.sentences.font === 'vazir') settings.sentences = { ...settings.sentences, font: 'diba' };
         }
+        // reminders used to be on by default; someone who already had them keeps them
+        if (!localStorage.getItem('ora:day-times-kept')) {
+          localStorage.setItem('ora:day-times-kept', '1');
+          if (!settings.prayerReminder) settings.prayerReminder = { enabled: true, keys: ['fajr', 'dhuhr', 'maghrib'], before: 10, notify: true };
+        }
       } catch { /* private */ }
       set({ settings, widgets, loaded: true });
     } else {
       const widgets = defaultLayout();
+      try { localStorage.setItem('ora:day-times-kept', '1'); localStorage.setItem('ora:diba-default', '1'); } catch { /* private */ } // a new install starts with the new defaults
       set({ settings: withModes(DEFAULT_SETTINGS, widgets), widgets, loaded: true });
     }
   },
